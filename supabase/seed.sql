@@ -1,0 +1,1 @@
+-- Catalog is seeded by migration 0008_partner_catalog.sql
