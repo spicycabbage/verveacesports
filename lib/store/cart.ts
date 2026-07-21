@@ -27,6 +27,9 @@ type CartState = {
   add: (item: Omit<CartItem, "qty">, qty?: number) => void;
   remove: (productId: string, variantId: string) => void;
   setQty: (productId: string, variantId: string, qty: number) => void;
+  syncPrices: (
+    updates: { productId: string; variantId: string; priceUsd: number; priceCad: number }[],
+  ) => void;
   clear: () => void;
   open: () => void;
   close: () => void;
@@ -69,6 +72,20 @@ export const useCartStore = create<CartState>()(
             )
             .filter((i) => i.qty > 0),
         })),
+      syncPrices: (updates) =>
+        set((state) => {
+          let changed = false;
+          const items = state.items.map((i) => {
+            const u = updates.find(
+              (u) => u.productId === i.productId && u.variantId === i.variantId,
+            );
+            if (!u) return i;
+            if (i.priceUsd === u.priceUsd && i.priceCad === u.priceCad) return i;
+            changed = true;
+            return { ...i, priceUsd: u.priceUsd, priceCad: u.priceCad };
+          });
+          return changed ? { items } : state;
+        }),
       clear: () => set({ items: [] }),
       open: () => set({ isOpen: true }),
       close: () => set({ isOpen: false }),

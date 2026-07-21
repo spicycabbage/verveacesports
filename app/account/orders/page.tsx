@@ -44,45 +44,73 @@ export default async function OrdersPage() {
   return (
     <Card>
       <CardContent className="p-0">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Order</TableHead>
-              <TableHead>Date</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead className="text-right">Total</TableHead>
-              <TableHead className="w-[1%]" />
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {orders.map((o) => (
-              <TableRow key={o.id}>
-                <TableCell className="font-mono text-xs">
-                  #{o.id.slice(0, 8).toUpperCase()}
-                </TableCell>
-                <TableCell className="text-muted-foreground">
-                  {formatDateOnly(o.created_at)}
-                </TableCell>
-                <TableCell>
-                  <Badge variant={STATUS_VARIANTS[o.status]} className="capitalize">
-                    {o.status}
-                  </Badge>
-                </TableCell>
-                <TableCell className="text-right tabular-nums">
+        <div className="divide-y md:hidden">
+          {orders.map((o) => (
+            <div key={o.id} className="space-y-2 p-4">
+              <div className="flex items-start justify-between gap-2">
+                <div>
+                  <p className="font-mono text-xs">#{o.id.slice(0, 8).toUpperCase()}</p>
+                  <p className="text-sm text-muted-foreground">{formatDateOnly(o.created_at)}</p>
+                </div>
+                <Badge variant={STATUS_VARIANTS[o.status]} className="capitalize shrink-0">
+                  {o.status}
+                </Badge>
+              </div>
+              <div className="flex items-center justify-between gap-2">
+                <span className="text-base font-semibold tabular-nums">
                   {formatPrice(Number(o.total), o.currency as Currency)}
-                </TableCell>
-                <TableCell>
-                  <Link
-                    href={`/account/orders/${o.id}`}
-                    className="text-sm font-medium text-primary hover:underline"
-                  >
-                    View →
-                  </Link>
-                </TableCell>
+                </span>
+                <Link
+                  href={`/account/orders/${o.id}`}
+                  className="text-sm font-medium text-primary hover:underline"
+                >
+                  View →
+                </Link>
+              </div>
+            </div>
+          ))}
+        </div>
+        <div className="hidden md:block">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Order</TableHead>
+                <TableHead>Date</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead className="text-right">Total</TableHead>
+                <TableHead className="w-[1%]" />
               </TableRow>
-            ))}
-          </TableBody>
-        </Table>
+            </TableHeader>
+            <TableBody>
+              {orders.map((o) => (
+                <TableRow key={o.id}>
+                  <TableCell className="font-mono text-xs">
+                    #{o.id.slice(0, 8).toUpperCase()}
+                  </TableCell>
+                  <TableCell className="text-muted-foreground">
+                    {formatDateOnly(o.created_at)}
+                  </TableCell>
+                  <TableCell>
+                    <Badge variant={STATUS_VARIANTS[o.status]} className="capitalize">
+                      {o.status}
+                    </Badge>
+                  </TableCell>
+                  <TableCell className="text-right tabular-nums">
+                    {formatPrice(Number(o.total), o.currency as Currency)}
+                  </TableCell>
+                  <TableCell>
+                    <Link
+                      href={`/account/orders/${o.id}`}
+                      className="text-sm font-medium text-primary hover:underline"
+                    >
+                      View →
+                    </Link>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </div>
       </CardContent>
     </Card>
   );

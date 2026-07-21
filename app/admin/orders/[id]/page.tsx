@@ -8,6 +8,7 @@ import { buttonVariants } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
 import { formatPrice, formatDate } from "@/lib/utils/format";
 import type { Currency } from "@/lib/constants";
+import { countryName } from "@/lib/constants";
 import type {
   Order,
   OrderItem,
@@ -209,6 +210,12 @@ export default async function AdminOrderDetailPage({ params }: { params: Params 
             currency={currency}
             refundable={refundable}
             isPaid={order.financial_status === "paid" || order.financial_status === "partially_refunded"}
+            lines={items.map((it) => ({
+              id: it.id,
+              name: it.product_name,
+              unitPrice: Number(it.unit_price),
+              refundableQty: it.qty - (it.refunded_qty ?? 0),
+            }))}
           />
         </div>
       </div>
@@ -244,7 +251,7 @@ function ShippingAddress({ address }: { address: Record<string, unknown> }) {
       <br />
       {a.city}, {a.state} {a.postal_code}
       <br />
-      {a.country}
+      {countryName(a.country)}
     </p>
   );
 }

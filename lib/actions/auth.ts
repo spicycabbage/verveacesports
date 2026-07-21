@@ -16,35 +16,19 @@ const credentialsSchema = z.object({
 
 const emailOnlySchema = z.object({ email: z.string().email() });
 
-/** Base URL for auth redirects — never send localhost links from prod. */
+/**
+ * Base URL for auth redirects. Pinned to configuration only — never derived
+ * from request headers, which are attacker-controlled (host-header injection
+ * would poison magic-link / OAuth redirect targets).
+ */
 async function resolveSiteUrl(): Promise<string> {
   const envUrl =
     process.env.NEXT_PUBLIC_SITE_URL?.trim().replace(/\/+$/, "") ?? "";
-  if (
-    envUrl &&
-    !/^https?:\/\/(localhost|127\.0\.0\.1)(:|\/|$)/i.test(envUrl)
-  ) {
-    return envUrl;
-  }
+  if (envUrl) return envUrl;
 
   const vercel = process.env.VERCEL_URL?.trim();
-  if (vercel && !/^localhost/i.test(vercel)) {
-    return `https://${vercel}`;
-  }
+  if (vercel) return `https://${vercel}`;
 
-  const h = await headers();
-  const host =
-    h.get("x-forwarded-host")?.split(",")[0]?.trim() ??
-    h.get("host")?.trim() ??
-    "";
-  let proto =
-    (h.get("x-forwarded-proto") ?? "").split(",")[0]?.trim().toLowerCase() ?? "";
-  if (host && !/^(localhost|127\.0\.0\.1)(:|$)/.test(host)) {
-    if (proto !== "http" && proto !== "https") proto = "https";
-    return `${proto}://${host}`;
-  }
-
-  if (envUrl) return envUrl;
   return "http://localhost:3000";
 }
 

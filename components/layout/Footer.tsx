@@ -4,13 +4,13 @@ import { CATEGORIES, categoryLabel } from "@/lib/constants";
 
 export function Footer() {
   return (
-    <footer className="mt-20 border-t bg-muted/30">
+    <footer className="mt-20 border-t border-border bg-card/40">
       <div className="mx-auto grid max-w-7xl gap-8 px-4 py-12 md:grid-cols-4">
         <div>
           <Logo />
           <p className="mt-3 text-sm text-muted-foreground">
-            Authorized retailer for BleeqUp AI camera glasses and Power Golf Carts electric
-            equipment.
+            Authorized retailer for BleeqUp AI camera glasses and MGI &amp; Motocaddy electric
+            golf trolleys.
           </p>
         </div>
         <div>
@@ -41,6 +41,11 @@ export function Footer() {
             <li>Free returns within 30 days</li>
             <li>Earn 1 point per dollar</li>
             <li>
+              <Link href="/faq" className="hover:text-foreground">
+                FAQ
+              </Link>
+            </li>
+            <li>
               <Link href="/privacy" className="hover:text-foreground">
                 Privacy Policy
               </Link>
@@ -48,6 +53,11 @@ export function Footer() {
             <li>
               <Link href="/terms" className="hover:text-foreground">
                 Terms of Service
+              </Link>
+            </li>
+            <li>
+              <Link href="/theme" className="hover:text-foreground">
+                Theme playground
               </Link>
             </li>
           </ul>

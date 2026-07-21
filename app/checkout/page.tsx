@@ -1,9 +1,17 @@
 import { redirect } from "next/navigation";
+import { cookies } from "next/headers";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
-import { profileDisplayName } from "@/lib/utils/profileDisplayName";
+import { parseMarketCookie, MARKET_COOKIE } from "@/lib/geo/market";
 import { CheckoutClient } from "./CheckoutClient";
 
 export const metadata = { title: "Checkout" };
+
+function splitLegacyFullName(fullName: string): { first: string; last: string } {
+  const parts = fullName.trim().split(/\s+/).filter(Boolean);
+  if (parts.length === 0) return { first: "", last: "" };
+  if (parts.length === 1) return { first: parts[0], last: "" };
+  return { first: parts[0], last: parts.slice(1).join(" ") };
+}
 
 export default async function CheckoutPage() {
   const supabase = await createSupabaseServerClient();
@@ -11,6 +19,9 @@ export default async function CheckoutPage() {
     data: { user },
   } = await supabase.auth.getUser();
   if (!user) redirect("/login?next=/checkout");
+
+  const cookieStore = await cookies();
+  const defaultMarket = parseMarketCookie(cookieStore.get(MARKET_COOKIE)?.value);
 
   const { data: profile } = await supabase
     .from("profiles")
@@ -24,11 +35,17 @@ export default async function CheckoutPage() {
       loyalty_points: number;
     }>();
 
+  const first = (profile?.first_name ?? "").trim();
+  const last = (profile?.last_name ?? "").trim();
+  const legacy = splitLegacyFullName(profile?.full_name ?? "");
+
   return (
     <div className="mx-auto max-w-5xl px-4 py-8">
-      <h1 className="mb-6 text-3xl font-bold tracking-tight">Checkout</h1>
+      <h1 className="mb-6 text-2xl font-bold tracking-tight sm:text-3xl">Checkout</h1>
       <CheckoutClient
-        defaultName={profileDisplayName(profile ?? {})}
+        defaultMarket={defaultMarket}
+        defaultFirstName={first || legacy.first}
+        defaultLastName={last || legacy.last}
         loyaltyPoints={profile?.loyalty_points ?? 0}
       />
     </div>

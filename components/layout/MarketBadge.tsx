@@ -15,10 +15,10 @@ export function MarketBadge() {
   return (
     <div
       className="flex items-center gap-1.5 px-2 text-xs font-medium text-muted-foreground"
-      title={`Prices shown in ${c.currency} based on your location`}
+      title={`Prices shown in ${c.currency} based on your location (${c.name})`}
     >
-      <span aria-hidden>{c.flag}</span>
-      <span className="hidden sm:inline">{c.currency}</span>
+      <span className="hidden sm:inline">{c.name}</span>
+      <span className="tabular-nums">{c.currency}</span>
     </div>
   );
 }

@@ -14,6 +14,7 @@ export type StorefrontVariant = {
   priceUsd: number;
   priceCad: number;
   available: number;
+  imageUrl: string | null;
 };
 
 export type OptionAxis = {
@@ -55,6 +56,19 @@ export function shouldShowVariantPicker(
   variants: StorefrontVariant[],
   axes: OptionAxis[],
 ): boolean {
+  return productUsesVariants(variants, axes);
+}
+
+/** True when a product has meaningful size/color/etc. options (not a single SKU). */
+export function productUsesVariants(
+  variants: Pick<StorefrontVariant, "option1" | "option2" | "option3">[],
+  productOptionsOrAxes: ProductOption[] | OptionAxis[] = [],
+): boolean {
+  const axes =
+    productOptionsOrAxes.length > 0 &&
+    "key" in (productOptionsOrAxes[0] ?? {})
+      ? (productOptionsOrAxes as OptionAxis[])
+      : buildOptionAxes(variants, productOptionsOrAxes as ProductOption[]);
   return variants.length > 1 || axes.length > 0;
 }
 
@@ -82,4 +96,18 @@ export function initialSelection(
     if (first[axis.key]) selection[axis.key] = first[axis.key]!;
   }
   return selection;
+}
+
+/** Variant hero images first (position order), then extra lifestyle shots from the product gallery. */
+export function buildProductGalleryImages(
+  productImages: string[],
+  variants: Pick<StorefrontVariant, "imageUrl">[],
+): string[] {
+  const variantHeroes = variants
+    .map((v) => v.imageUrl)
+    .filter((url): url is string => Boolean(url?.trim()));
+  const uniqueHeroes = [...new Set(variantHeroes)];
+  if (uniqueHeroes.length === 0) return productImages.length > 0 ? productImages : [];
+  const extras = productImages.filter((img) => !uniqueHeroes.includes(img));
+  return [...uniqueHeroes, ...extras];
 }

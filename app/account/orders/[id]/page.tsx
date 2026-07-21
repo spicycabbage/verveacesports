@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { formatPrice, formatDate } from "@/lib/utils/format";
 import type { Currency } from "@/lib/constants";
+import { countryName } from "@/lib/constants";
 import type { OrderStatus } from "@/lib/supabase/types";
 import { ArrowLeft } from "lucide-react";
 import { buttonVariants } from "@/components/ui/button";
@@ -63,7 +64,7 @@ export default async function OrderDetailPage({ params }: { params: Params }) {
           <div className="space-y-3">
             {(items ?? []).map((it) => (
               <div key={it.id} className="flex items-center gap-3">
-                <div className="relative h-16 w-16 flex-shrink-0 overflow-hidden rounded-md bg-muted">
+                <div className="relative h-16 w-16 flex-shrink-0 overflow-hidden rounded-md bg-white">
                   {it.product_image && (
                     <Image
                       src={it.product_image}
@@ -152,7 +153,7 @@ function ShippingAddress({ address }: { address: Record<string, unknown> }) {
       <br />
       {a.city}, {a.state} {a.postal_code}
       <br />
-      {a.country}
+      {countryName(a.country)}
     </p>
   );
 }

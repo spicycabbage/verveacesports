@@ -3,7 +3,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { formatPrice, formatDate } from "@/lib/utils/format";
-import { COUNTRIES } from "@/lib/constants";
+import { COUNTRIES, countryName } from "@/lib/constants";
 import type { Order, OrderStatus } from "@/lib/supabase/types";
 import type { Currency } from "@/lib/constants";
 import Link from "next/link";
@@ -18,9 +18,6 @@ const STATUS_VARIANTS: Record<OrderStatus, "default" | "secondary" | "outline" |
   cancelled: "destructive",
 };
 
-// Crude FX for USD-equivalent display only (admin reporting).
-const TO_USD = { USD: 1, CAD: 0.74 } as const;
-
 export default async function AdminOverviewPage() {
   const supabase = await createSupabaseServerClient();
 
@@ -30,7 +27,6 @@ export default async function AdminOverviewPage() {
     .eq("status", "paid");
   const orders = (paidOrders ?? []) as Pick<Order, "currency" | "country" | "total">[];
 
-  let totalUsdEq = 0;
   const byCurrency: Record<Currency, number> = { USD: 0, CAD: 0 };
   const byCountry: Record<"US" | "CA", number> = { US: 0, CA: 0 };
   for (const o of orders) {
@@ -39,7 +35,6 @@ export default async function AdminOverviewPage() {
     const total = Number(o.total);
     byCurrency[cur] += total;
     byCountry[country] += total;
-    totalUsdEq += total * TO_USD[cur];
   }
 
   const { data: recent } = await supabase
@@ -66,12 +61,7 @@ export default async function AdminOverviewPage() {
         </p>
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <KpiCard
-          label="Revenue (USD-eq)"
-          value={formatPrice(totalUsdEq, "USD")}
-          hint="USD + CAD ≈ 0.74"
-        />
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         <KpiCard label="USD revenue" value={formatPrice(byCurrency.USD, "USD")} />
         <KpiCard label="CAD revenue" value={formatPrice(byCurrency.CAD, "CAD")} />
         <KpiCard
@@ -89,11 +79,11 @@ export default async function AdminOverviewPage() {
           </CardHeader>
           <CardContent className="space-y-2 text-sm">
             <Row
-              label={`${COUNTRIES.US.flag} United States`}
+              label="United States"
               value={formatPrice(byCountry.US, "USD")}
             />
             <Row
-              label={`${COUNTRIES.CA.flag} Canada`}
+              label="Canada"
               value={formatPrice(byCountry.CA, "CAD")}
             />
           </CardContent>
@@ -107,8 +97,17 @@ export default async function AdminOverviewPage() {
             <Link href="/admin/orders" className="block hover:underline">
               View all orders →
             </Link>
-            <Link href="/admin/catalog" className="block hover:underline">
-              Edit catalog (descriptions & images) →
+            <Link href="/admin/finance" className="block hover:underline">
+              Finance reports →
+            </Link>
+            <Link href="/admin/products" className="block hover:underline">
+              Manage products & inventory →
+            </Link>
+            <Link href="/admin/discounts" className="block hover:underline">
+              Manage coupons →
+            </Link>
+            <Link href="/admin/shipping" className="block hover:underline">
+              Shipping fees →
             </Link>
             <Link href="/products" className="block hover:underline">
               Browse storefront →
@@ -122,6 +121,33 @@ export default async function AdminOverviewPage() {
           <CardTitle className="text-base">Recent orders</CardTitle>
         </CardHeader>
         <CardContent className="p-0">
+          <div className="divide-y md:hidden">
+            {(recent ?? []).map((o) => (
+              <Link
+                key={o.id}
+                href={`/admin/orders/${o.id}`}
+                className="flex items-center justify-between gap-2 p-4 hover:bg-muted/50"
+              >
+                <div className="min-w-0">
+                  <p className="font-mono text-xs">#{o.id.slice(0, 8).toUpperCase()}</p>
+                  <p className="text-xs text-muted-foreground">{formatDate(o.created_at)}</p>
+                  <p className="text-xs text-muted-foreground">{countryName(o.country)}</p>
+                </div>
+                <div className="shrink-0 text-right">
+                  <Badge
+                    variant={STATUS_VARIANTS[o.status as OrderStatus]}
+                    className="mb-1 capitalize"
+                  >
+                    {o.status}
+                  </Badge>
+                  <p className="text-sm font-medium tabular-nums">
+                    {formatPrice(Number(o.total), o.currency as Currency)}
+                  </p>
+                </div>
+              </Link>
+            ))}
+          </div>
+          <div className="hidden md:block">
           <Table>
             <TableHeader>
               <TableRow>
@@ -141,7 +167,7 @@ export default async function AdminOverviewPage() {
                   <TableCell className="text-muted-foreground">
                     {formatDate(o.created_at)}
                   </TableCell>
-                  <TableCell>{o.country}</TableCell>
+                  <TableCell>{countryName(o.country)}</TableCell>
                   <TableCell>
                     <Badge
                       variant={STATUS_VARIANTS[o.status as OrderStatus]}
@@ -157,6 +183,7 @@ export default async function AdminOverviewPage() {
               ))}
             </TableBody>
           </Table>
+          </div>
         </CardContent>
       </Card>
     </div>

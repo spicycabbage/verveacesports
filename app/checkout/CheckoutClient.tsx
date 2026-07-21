@@ -8,19 +8,29 @@ import { getStripeClient } from "@/lib/stripe/client";
 import { useCartStore, cartSubtotal, cartLineKey } from "@/lib/store/cart";
 import { useCountryStore } from "@/lib/store/country";
 import { COUNTRIES, LOYALTY } from "@/lib/constants";
+import type { CountryCode } from "@/lib/constants";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button, buttonVariants } from "@/components/ui/button";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 import { Sparkles, Loader2, ShoppingBag, Tag, X } from "lucide-react";
 import { formatPrice } from "@/lib/utils/format";
+import { toMinorUnits } from "@/lib/utils/currency";
 import { toast } from "sonner";
 import { PaymentForm } from "./PaymentForm";
 
 type ShippingForm = {
-  full_name: string;
+  first_name: string;
+  last_name: string;
   line1: string;
   line2: string;
   city: string;
@@ -29,7 +39,18 @@ type ShippingForm = {
   country: "US" | "CA";
 };
 
+type QuoteLineItem = {
+  productId: string;
+  variantId: string;
+  qty: number;
+  unitPrice: number;
+  priceUsd: number;
+  priceCad: number;
+  name: string;
+};
+
 type Quote = {
+  lineItems: QuoteLineItem[];
   subtotal: number;
   discountTotal: number;
   discountCode: string | null;
@@ -48,30 +69,42 @@ type IntentResp = Quote & {
   currency: "USD" | "CAD";
 };
 
+type CreateIntentResult = { clientSecret: string; orderId: string };
+
 export function CheckoutClient({
-  defaultName,
+  defaultMarket,
+  defaultFirstName,
+  defaultLastName,
   loyaltyPoints,
 }: {
-  defaultName: string;
+  defaultMarket: CountryCode;
+  defaultFirstName: string;
+  defaultLastName: string;
   loyaltyPoints: number;
 }) {
   const { items } = useCartStore();
-  const { country, currency } = useCountryStore();
-  const stripePromise = useMemo(() => getStripeClient(currency), [currency]);
+  const setCountry = useCountryStore((s) => s.setCountry);
   const router = useRouter();
   const [mounted, setMounted] = useState(false);
   useEffect(() => setMounted(true), []);
+  useEffect(() => {
+    setCountry(defaultMarket);
+  }, [defaultMarket, setCountry]);
 
   const [shipping, setShipping] = useState<ShippingForm>({
-    full_name: defaultName,
+    first_name: defaultFirstName,
+    last_name: defaultLastName,
     line1: "",
     line2: "",
     city: "",
     state: "",
     postal_code: "",
-    country,
+    country: defaultMarket,
   });
-  useEffect(() => setShipping((s) => ({ ...s, country })), [country]);
+
+  const checkoutCountry = shipping.country;
+  const checkoutCurrency = COUNTRIES[checkoutCountry].currency;
+  const stripePromise = useMemo(() => getStripeClient(checkoutCurrency), [checkoutCurrency]);
 
   const [pointsToRedeem, setPointsToRedeem] = useState(0);
   const [promoInput, setPromoInput] = useState("");
@@ -79,8 +112,6 @@ export function CheckoutClient({
   const [promoError, setPromoError] = useState<string | null>(null);
   const [quote, setQuote] = useState<Quote | null>(null);
   const [quoteLoading, setQuoteLoading] = useState(false);
-  const [intent, setIntent] = useState<IntentResp | null>(null);
-  const [creating, setCreating] = useState(false);
   const [debouncedState, setDebouncedState] = useState(shipping.state);
 
   useEffect(() => {
@@ -88,9 +119,19 @@ export function CheckoutClient({
     return () => clearTimeout(t);
   }, [shipping.state]);
 
-  const cartItems = useMemo(
-    () => items.map((i) => ({ productId: i.productId, variantId: i.variantId, qty: i.qty })),
+  const cartItemsKey = useMemo(
+    () => items.map((i) => `${i.productId}:${i.variantId}:${i.qty}`).join("|"),
     [items],
+  );
+  const cartItems = useMemo(
+    () =>
+      cartItemsKey
+        ? cartItemsKey.split("|").map((key) => {
+            const [productId, variantId, qty] = key.split(":");
+            return { productId, variantId, qty: Number(qty) };
+          })
+        : [],
+    [cartItemsKey],
   );
 
   const fetchQuote = useCallback(
@@ -106,16 +147,26 @@ export function CheckoutClient({
           headers: { "content-type": "application/json" },
           body: JSON.stringify({
             items: cartItems,
-            currency,
-            country,
+            currency: checkoutCurrency,
+            country: checkoutCountry,
             pointsToRedeem,
             discountCode: code ?? undefined,
-            region: shipping.state.trim() || undefined,
+            region: debouncedState.trim() || undefined,
           }),
         });
         const data = (await res.json()) as Quote & { error?: string };
         if (!res.ok) throw new Error(data.error || "Could not update totals");
         setQuote(data);
+        if (data.lineItems?.length) {
+          useCartStore.getState().syncPrices(
+            data.lineItems.map((li) => ({
+              productId: li.productId,
+              variantId: li.variantId,
+              priceUsd: li.priceUsd,
+              priceCad: li.priceCad,
+            })),
+          );
+        }
         setPromoError(null);
       } catch (err) {
         const msg = err instanceof Error ? err.message : "Could not update totals";
@@ -127,20 +178,19 @@ export function CheckoutClient({
         setQuoteLoading(false);
       }
     },
-    [items.length, cartItems, currency, country, pointsToRedeem, debouncedState],
+    [items.length, cartItems, checkoutCurrency, checkoutCountry, pointsToRedeem, debouncedState],
   );
 
   // Baseline quote (tax/shipping) when cart or region changes — no promo applied.
   useEffect(() => {
-    if (!mounted || intent || items.length === 0 || appliedCode) return;
+    if (!mounted || items.length === 0 || appliedCode) return;
     void fetchQuote(null);
   }, [
     mounted,
-    intent,
     items.length,
     cartItems,
-    currency,
-    country,
+    checkoutCurrency,
+    checkoutCountry,
     pointsToRedeem,
     debouncedState,
     appliedCode,
@@ -149,9 +199,9 @@ export function CheckoutClient({
 
   // Re-quote when points or tax region change while a promo is active.
   useEffect(() => {
-    if (!mounted || intent || items.length === 0 || !appliedCode) return;
+    if (!mounted || items.length === 0 || !appliedCode) return;
     void fetchQuote(appliedCode);
-  }, [mounted, intent, items.length, pointsToRedeem, debouncedState, appliedCode, fetchQuote]);
+  }, [mounted, items.length, pointsToRedeem, debouncedState, appliedCode, checkoutCountry, fetchQuote]);
 
   async function applyPromo() {
     const code = promoInput.trim();
@@ -167,8 +217,8 @@ export function CheckoutClient({
         headers: { "content-type": "application/json" },
         body: JSON.stringify({
           items: cartItems,
-          currency,
-          country,
+          currency: checkoutCurrency,
+          country: checkoutCountry,
           pointsToRedeem,
           discountCode: code,
           region: shipping.state.trim() || debouncedState.trim() || undefined,
@@ -177,11 +227,21 @@ export function CheckoutClient({
       const data = (await res.json()) as Quote & { error?: string };
       if (!res.ok) throw new Error(data.error || "Invalid promo code");
       setQuote(data);
+      if (data.lineItems?.length) {
+        useCartStore.getState().syncPrices(
+          data.lineItems.map((li) => ({
+            productId: li.productId,
+            variantId: li.variantId,
+            priceUsd: li.priceUsd,
+            priceCad: li.priceCad,
+          })),
+        );
+      }
       setAppliedCode(data.discountCode ?? code.toUpperCase());
       setPromoInput("");
       const saved =
         data.discountTotal > 0
-          ? formatPrice(data.discountTotal, currency)
+          ? formatPrice(data.discountTotal, checkoutCurrency)
           : data.freeShipping
             ? "free shipping"
             : "applied";
@@ -203,14 +263,21 @@ export function CheckoutClient({
     toast.message("Promo removed");
   }
 
-  const clientSubtotal = mounted ? cartSubtotal(items, currency) : 0;
+  const clientSubtotal = mounted ? cartSubtotal(items, checkoutCurrency) : 0;
   const clientShipping = clientSubtotal >= 75 ? 0 : 9.99;
+  const quotedUnitByKey = useMemo(() => {
+    const m = new Map<string, number>();
+    for (const li of quote?.lineItems ?? []) {
+      m.set(`${li.productId}:${li.variantId}`, li.unitPrice);
+    }
+    return m;
+  }, [quote?.lineItems]);
   const maxRedeem = Math.min(
     loyaltyPoints,
     Math.floor((quote?.subtotal ?? clientSubtotal) * LOYALTY.POINTS_PER_DOLLAR_REDEEM),
   );
 
-  const summary = intent ?? quote;
+  const summary = quote;
   const subtotal = summary?.subtotal ?? clientSubtotal;
   const discountTotal = summary?.discountTotal ?? 0;
   const tax = summary?.tax ?? 0;
@@ -223,7 +290,8 @@ export function CheckoutClient({
 
   function fieldsValid() {
     return (
-      shipping.full_name.trim() &&
+      shipping.first_name.trim() &&
+      shipping.last_name.trim() &&
       shipping.line1.trim() &&
       shipping.city.trim() &&
       shipping.state.trim() &&
@@ -231,41 +299,54 @@ export function CheckoutClient({
     );
   }
 
-  async function startPayment() {
+  const createPaymentIntent = useCallback(async (): Promise<CreateIntentResult> => {
     if (!fieldsValid()) {
-      toast.error("Please complete the shipping form.");
-      return;
+      throw new Error("Please complete the shipping form.");
     }
-    setCreating(true);
-    try {
-      const res = await fetch("/api/stripe/payment-intent", {
-        method: "POST",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify({
-          items: cartItems,
-          currency,
-          country,
-          pointsToRedeem,
-          discountCode: appliedCode ?? undefined,
-          shippingAddress: shipping,
-        }),
-      });
-      const data = (await res.json()) as IntentResp & { error?: string };
-      if (!res.ok) throw new Error(data.error || "Failed to start payment");
-      setIntent(data);
-      setQuote(data);
-      if (data.discountCode) setAppliedCode(data.discountCode);
-    } catch (err) {
-      const msg = err instanceof Error ? err.message : "Something went wrong";
-      toast.error(msg);
-    } finally {
-      setCreating(false);
+    const full_name = `${shipping.first_name.trim()} ${shipping.last_name.trim()}`.trim();
+    const res = await fetch("/api/stripe/payment-intent", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        items: cartItems,
+        currency: checkoutCurrency,
+        country: checkoutCountry,
+        pointsToRedeem,
+        discountCode: appliedCode ?? undefined,
+        shippingAddress: {
+          full_name,
+          line1: shipping.line1,
+          line2: shipping.line2,
+          city: shipping.city,
+          state: shipping.state,
+          postal_code: shipping.postal_code,
+          country: shipping.country,
+        },
+      }),
+    });
+    const data = (await res.json().catch(() => null)) as IntentResp & { error?: string } | null;
+    if (!res.ok || !data?.clientSecret || !data.orderId) {
+      throw new Error(data?.error || `Failed to start payment (${res.status})`);
     }
-  }
+    if (data.discountCode) setAppliedCode(data.discountCode);
+    setQuote(data);
+    return { clientSecret: data.clientSecret, orderId: data.orderId };
+  }, [
+    cartItems,
+    checkoutCurrency,
+    checkoutCountry,
+    pointsToRedeem,
+    appliedCode,
+    shipping,
+  ]);
+
+  const paymentAmountMinor = toMinorUnits(total);
+  const elementsKey = `${checkoutCurrency}-${paymentAmountMinor}`;
+  const canPay = stripePromise && paymentAmountMinor >= 50 && !quoteLoading;
 
   if (!mounted) return null;
 
-  if (items.length === 0 && !intent) {
+  if (items.length === 0) {
     return (
       <Card>
         <CardContent className="grid place-items-center gap-3 py-20 text-center">
@@ -286,13 +367,22 @@ export function CheckoutClient({
           <CardContent className="space-y-4">
             <h2 className="text-lg font-semibold">Shipping address</h2>
             <div className="grid gap-3 sm:grid-cols-2">
-              <div className="space-y-1.5 sm:col-span-2">
-                <Label htmlFor="full_name">Full name</Label>
+              <div className="space-y-1.5">
+                <Label htmlFor="first_name">First name</Label>
                 <Input
-                  id="full_name"
-                  value={shipping.full_name}
-                  onChange={(e) => setShipping({ ...shipping, full_name: e.target.value })}
-                  disabled={!!intent}
+                  id="first_name"
+                  autoComplete="given-name"
+                  value={shipping.first_name}
+                  onChange={(e) => setShipping({ ...shipping, first_name: e.target.value })}
+                />
+              </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="last_name">Last name</Label>
+                <Input
+                  id="last_name"
+                  autoComplete="family-name"
+                  value={shipping.last_name}
+                  onChange={(e) => setShipping({ ...shipping, last_name: e.target.value })}
                 />
               </div>
               <div className="space-y-1.5 sm:col-span-2">
@@ -301,7 +391,6 @@ export function CheckoutClient({
                   id="line1"
                   value={shipping.line1}
                   onChange={(e) => setShipping({ ...shipping, line1: e.target.value })}
-                  disabled={!!intent}
                 />
               </div>
               <div className="space-y-1.5 sm:col-span-2">
@@ -310,7 +399,6 @@ export function CheckoutClient({
                   id="line2"
                   value={shipping.line2}
                   onChange={(e) => setShipping({ ...shipping, line2: e.target.value })}
-                  disabled={!!intent}
                 />
               </div>
               <div className="space-y-1.5">
@@ -319,7 +407,6 @@ export function CheckoutClient({
                   id="city"
                   value={shipping.city}
                   onChange={(e) => setShipping({ ...shipping, city: e.target.value })}
-                  disabled={!!intent}
                 />
               </div>
               <div className="space-y-1.5">
@@ -328,7 +415,6 @@ export function CheckoutClient({
                   id="state"
                   value={shipping.state}
                   onChange={(e) => setShipping({ ...shipping, state: e.target.value })}
-                  disabled={!!intent}
                 />
               </div>
               <div className="space-y-1.5">
@@ -337,29 +423,41 @@ export function CheckoutClient({
                   id="postal_code"
                   value={shipping.postal_code}
                   onChange={(e) => setShipping({ ...shipping, postal_code: e.target.value })}
-                  disabled={!!intent}
                 />
               </div>
               <div className="space-y-1.5">
-                <Label>Country</Label>
-                <p className="flex h-9 items-center rounded-md border bg-muted/40 px-3 text-sm">
-                  <span aria-hidden className="mr-2">
-                    {COUNTRIES[country].flag}
-                  </span>
-                  {COUNTRIES[country].name}
-                </p>
+                <Label htmlFor="shipping_country">Country</Label>
+                <Select
+                  value={shipping.country}
+                  onValueChange={(v) => {
+                    if (!v) return;
+                    const code = v as CountryCode;
+                    setShipping((s) => ({ ...s, country: code }));
+                    setCountry(code);
+                  }}
+                >
+                  <SelectTrigger id="shipping_country">
+                    <SelectValue>{COUNTRIES[shipping.country].name}</SelectValue>
+                  </SelectTrigger>
+                  <SelectContent>
+                    {(Object.keys(COUNTRIES) as CountryCode[]).map((code) => (
+                      <SelectItem key={code} value={code}>
+                        {COUNTRIES[code].name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
             </div>
           </CardContent>
         </Card>
 
-        {!intent && (
-          <Card>
-            <CardContent className="space-y-3">
-              <div className="flex items-center gap-2">
-                <Tag className="h-4 w-4 text-primary" />
-                <h2 className="text-lg font-semibold">Promo code</h2>
-              </div>
+        <Card>
+          <CardContent className="space-y-3">
+            <div className="flex items-center gap-2">
+              <Tag className="h-4 w-4 text-primary" />
+              <h2 className="text-lg font-semibold">Promo code</h2>
+            </div>
               {appliedCode ? (
                 <div className="flex items-start justify-between gap-3 rounded-lg border border-primary/25 bg-primary/5 p-3">
                   <div className="space-y-1">
@@ -368,7 +466,7 @@ export function CheckoutClient({
                     </Badge>
                     {discountTotal > 0 && (
                       <p className="text-sm font-medium text-primary">
-                        You save {formatPrice(discountTotal, currency)}
+                        You save {formatPrice(discountTotal, checkoutCurrency)}
                       </p>
                     )}
                     {summary?.freeShipping && shippingFee === 0 && (
@@ -404,6 +502,7 @@ export function CheckoutClient({
                     <Button
                       type="button"
                       variant="secondary"
+                      className="shrink-0"
                       onClick={() => void applyPromo()}
                       disabled={quoteLoading || !promoInput.trim()}
                     >
@@ -423,9 +522,8 @@ export function CheckoutClient({
               </p>
             </CardContent>
           </Card>
-        )}
 
-        {loyaltyPoints > 0 && !intent && (
+        {loyaltyPoints > 0 && (
           <Card>
             <CardContent className="space-y-3">
               <div className="flex items-center gap-2">
@@ -449,7 +547,7 @@ export function CheckoutClient({
                   Redeem <strong>{pointsToRedeem.toLocaleString()}</strong> pts
                 </span>
                 <span className="font-semibold tabular-nums">
-                  −{formatPrice(pointsToRedeem / LOYALTY.POINTS_PER_DOLLAR_REDEEM, currency)}
+                  −{formatPrice(pointsToRedeem / LOYALTY.POINTS_PER_DOLLAR_REDEEM, checkoutCurrency)}
                 </span>
               </div>
             </CardContent>
@@ -459,40 +557,38 @@ export function CheckoutClient({
         <Card>
           <CardContent className="space-y-4">
             <h2 className="text-lg font-semibold">Payment</h2>
-            <p className="text-xs text-muted-foreground">
-              By completing payment you agree to our{" "}
-              <Link href="/terms" className="text-primary hover:underline">
-                Terms of Service
-              </Link>{" "}
-              and{" "}
-              <Link href="/privacy" className="text-primary hover:underline">
-                Privacy Policy
-              </Link>
-              .
-            </p>
-            {!intent ? (
-              <Button size="lg" onClick={startPayment} disabled={creating || items.length === 0}>
-                {creating ? (
-                  <>
-                    <Loader2 className="h-4 w-4 animate-spin" /> Preparing payment…
-                  </>
-                ) : (
-                  "Continue to payment"
-                )}
-              </Button>
+            {!stripePromise ? (
+              <p className="rounded-md border border-destructive/30 bg-destructive/5 p-3 text-sm text-destructive">
+                {checkoutCurrency === "CAD"
+                  ? "Canadian payments aren't configured yet. Refresh in a minute — if this persists, contact support."
+                  : "Payments aren't configured for this currency yet. Contact support."}
+              </p>
+            ) : quoteLoading && !quote ? (
+              <div className="flex items-center justify-center gap-2 py-8 text-sm text-muted-foreground">
+                <Loader2 className="h-4 w-4 animate-spin" />
+                Calculating total…
+              </div>
+            ) : paymentAmountMinor < 50 ? (
+              <p className="text-sm text-muted-foreground">
+                Order total is below the minimum charge.
+              </p>
             ) : (
               <Elements
+                key={elementsKey}
                 stripe={stripePromise}
                 options={{
-                  clientSecret: intent.clientSecret,
+                  mode: "payment",
+                  amount: paymentAmountMinor,
+                  currency: checkoutCurrency.toLowerCase(),
                   appearance: { theme: "stripe", variables: { colorPrimary: "#ea580c" } },
                 }}
               >
                 <PaymentForm
-                  orderId={intent.orderId}
-                  onSuccess={() => {
+                  disabled={!canPay}
+                  createPaymentIntent={createPaymentIntent}
+                  onSuccess={(orderId) => {
                     useCartStore.getState().clear();
-                    router.push(`/checkout/success?order=${intent.orderId}`);
+                    router.push(`/checkout/success?order=${orderId}`);
                   }}
                 />
               </Elements>
@@ -506,7 +602,9 @@ export function CheckoutClient({
           <h2 className="text-lg font-semibold">Order summary</h2>
           <ul className="space-y-1.5 text-sm">
             {items.map((i) => {
-              const unit = currency === "CAD" ? i.priceCad : i.priceUsd;
+              const unit =
+                quotedUnitByKey.get(cartLineKey(i)) ??
+                (checkoutCurrency === "CAD" ? i.priceCad : i.priceUsd);
               return (
                 <li key={cartLineKey(i)} className="flex justify-between gap-2">
                   <span className="text-muted-foreground">
@@ -516,25 +614,25 @@ export function CheckoutClient({
                     )}{" "}
                     <span className="text-xs">×{i.qty}</span>
                   </span>
-                  <span className="tabular-nums">{formatPrice(unit * i.qty, currency)}</span>
+                  <span className="tabular-nums">{formatPrice(unit * i.qty, checkoutCurrency)}</span>
                 </li>
               );
             })}
           </ul>
           <Separator />
           <div className="space-y-1 text-sm">
-            <Row label="Subtotal" value={formatPrice(subtotal, currency)} />
+            <Row label="Subtotal" value={formatPrice(subtotal, checkoutCurrency)} />
             {discountTotal > 0 && (
               <Row
                 label={appliedCode ? `Discount (${appliedCode})` : "Discount"}
-                value={`−${formatPrice(discountTotal, currency)}`}
+                value={`−${formatPrice(discountTotal, checkoutCurrency)}`}
               />
             )}
             <Row
               label={
                 summary?.freeShipping && shippingFee === 0 ? "Shipping (promo)" : "Shipping"
               }
-              value={shippingFee === 0 ? "FREE" : formatPrice(shippingFee, currency)}
+              value={shippingFee === 0 ? "FREE" : formatPrice(shippingFee, checkoutCurrency)}
             />
             {tax > 0 && (
               <Row
@@ -543,13 +641,13 @@ export function CheckoutClient({
                     ? `Tax (${(summary.taxRate * 100).toFixed(2)}%)`
                     : "Tax"
                 }
-                value={formatPrice(tax, currency)}
+                value={formatPrice(tax, checkoutCurrency)}
               />
             )}
             {redeemPts > 0 && (
               <Row
                 label={`Points (${redeemPts.toLocaleString()})`}
-                value={`−${formatPrice(redeemValue, currency)}`}
+                value={`−${formatPrice(redeemValue, checkoutCurrency)}`}
               />
             )}
           </div>
@@ -557,14 +655,14 @@ export function CheckoutClient({
           <div className="flex justify-between text-base font-semibold">
             <span>Total</span>
             <span className="tabular-nums">
-              {quoteLoading && !intent ? (
+              {quoteLoading ? (
                 <Loader2 className="inline h-4 w-4 animate-spin" />
               ) : (
-                formatPrice(total, currency)
+                formatPrice(total, checkoutCurrency)
               )}
             </span>
           </div>
-          {!intent && !quote && !quoteLoading && (
+          {!quote && !quoteLoading && (
             <p className="text-xs text-muted-foreground">
               Enter state/province for tax estimate.
             </p>

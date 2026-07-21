@@ -29,7 +29,7 @@ export function VariantPicker({ axes, selection, onSelect, disabledValues }: Pro
                   disabled={disabled}
                   onClick={() => onSelect(axis.key, value)}
                   className={cn(
-                    "rounded-lg border px-3 py-1.5 text-sm font-medium transition-colors",
+                    "rounded-lg border px-3 py-2.5 text-sm font-medium min-h-11 transition-colors",
                     selected
                       ? "border-primary bg-primary/10 text-primary"
                       : "border-border hover:border-primary/50",

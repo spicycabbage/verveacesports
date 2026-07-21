@@ -19,8 +19,6 @@ const updateProductSchema = z.object({
   description: z.string().max(20_000),
   category: categorySchema,
   isActive: z.boolean(),
-  priceUsd: z.coerce.number().nonnegative(),
-  priceCad: z.coerce.number().nonnegative(),
   images: z
     .array(
       z
@@ -61,28 +59,50 @@ export async function updateProductCatalog(
       category: d.category,
       is_active: d.isActive,
       images: d.images,
-      price_usd: d.priceUsd,
-      price_cad: d.priceCad,
     })
     .eq("id", d.productId);
   if (error) return { error: error.message };
 
-  const { data: defaultVariant } = await admin
-    .from("product_variants")
-    .select("id")
-    .eq("product_id", d.productId)
-    .order("position", { ascending: true })
-    .limit(1)
-    .maybeSingle<{ id: string }>();
-
-  if (defaultVariant) {
-    await admin
-      .from("product_variants")
-      .update({ price_usd: d.priceUsd, price_cad: d.priceCad })
-      .eq("id", defaultVariant.id);
-  }
+  await admin.from("product_variants").update({ is_active: d.isActive }).eq("product_id", d.productId);
 
   revalidateCatalog(d.productId, existing.slug);
+  return { ok: true };
+}
+
+const visibilitySchema = z.object({
+  productId: z.string().uuid(),
+  isActive: z.boolean(),
+});
+
+/** Toggles the whole product on the storefront (product + all variants). */
+export async function setProductStorefrontVisibility(
+  input: z.infer<typeof visibilitySchema>,
+): Promise<ActionResult> {
+  const parsed = visibilitySchema.safeParse(input);
+  if (!parsed.success) return { error: "Invalid input" };
+
+  const guard = await requireAdmin();
+  if (!guard.ok) return { error: guard.error };
+
+  const admin = createSupabaseAdminClient();
+  const { productId, isActive } = parsed.data;
+
+  const { data: product, error: fetchErr } = await admin
+    .from("products")
+    .select("slug")
+    .eq("id", productId)
+    .single<{ slug: string }>();
+  if (fetchErr || !product) return { error: "Product not found" };
+
+  const { error: productErr } = await admin
+    .from("products")
+    .update({ is_active: isActive })
+    .eq("id", productId);
+  if (productErr) return { error: productErr.message };
+
+  await admin.from("product_variants").update({ is_active: isActive }).eq("product_id", productId);
+
+  revalidateCatalog(productId, product.slug);
   return { ok: true };
 }
 
@@ -219,9 +239,128 @@ export async function updateVariantDetails(
   return { ok: true };
 }
 
+const deleteProductSchema = z.object({
+  productId: z.string().uuid(),
+});
+
+const deleteProductsSchema = z.object({
+  productIds: z.array(z.string().uuid()).min(1).max(100),
+});
+
+type DeleteProductResult = { ok: true; slug: string } | { error: string };
+
+async function deleteProductRecord(
+  admin: ReturnType<typeof createSupabaseAdminClient>,
+  productId: string,
+): Promise<DeleteProductResult> {
+  const { data: product, error: fetchErr } = await admin
+    .from("products")
+    .select("slug")
+    .eq("id", productId)
+    .single<{ slug: string }>();
+  if (fetchErr || !product) return { error: "Product not found" };
+
+  const { count, error: countErr } = await admin
+    .from("order_items")
+    .select("id", { count: "exact", head: true })
+    .eq("product_id", productId);
+  if (countErr) return { error: countErr.message };
+  if ((count ?? 0) > 0) {
+    return {
+      error:
+        "This product has order history and can't be deleted. Hide it from the storefront instead.",
+    };
+  }
+
+  const { data: stored } = await admin.storage.from(PRODUCT_IMAGE_BUCKET).list(productId);
+  if (stored?.length) {
+    await admin.storage
+      .from(PRODUCT_IMAGE_BUCKET)
+      .remove(stored.map((f) => `${productId}/${f.name}`));
+  }
+
+  const { error: deleteErr } = await admin.from("products").delete().eq("id", productId);
+  if (deleteErr) {
+    return {
+      error: deleteErr.message.includes("foreign key")
+        ? "This product can't be deleted because it's linked to other records. Hide it instead."
+        : deleteErr.message,
+    };
+  }
+
+  return { ok: true, slug: product.slug };
+}
+
+function revalidateAfterProductDelete(slug: string) {
+  revalidatePath("/admin/products");
+  revalidatePath("/products");
+  revalidatePath(`/products/${slug}`);
+  revalidatePath("/");
+}
+
+/** Permanently removes a product. Blocked if any order_items reference it. */
+export async function deleteProduct(
+  input: z.infer<typeof deleteProductSchema>,
+): Promise<ActionResult> {
+  const parsed = deleteProductSchema.safeParse(input);
+  if (!parsed.success) return { error: "Invalid input" };
+
+  const guard = await requireAdmin();
+  if (!guard.ok) return { error: guard.error };
+
+  const admin = createSupabaseAdminClient();
+  const result = await deleteProductRecord(admin, parsed.data.productId);
+  if ("error" in result) return { error: result.error };
+
+  revalidateAfterProductDelete(result.slug);
+  return { ok: true };
+}
+
+export type BulkDeleteProductsResult =
+  | {
+      ok: true;
+      deletedCount: number;
+      failed: { productId: string; error: string }[];
+    }
+  | { error: string };
+
+/** Permanently removes multiple products. Skips items with order history or other blockers. */
+export async function deleteProducts(
+  input: z.infer<typeof deleteProductsSchema>,
+): Promise<BulkDeleteProductsResult> {
+  const parsed = deleteProductsSchema.safeParse(input);
+  if (!parsed.success) return { error: parsed.error.issues[0]?.message ?? "Invalid input" };
+
+  const guard = await requireAdmin();
+  if (!guard.ok) return { error: guard.error };
+
+  const admin = createSupabaseAdminClient();
+  const failed: { productId: string; error: string }[] = [];
+  const deletedSlugs: string[] = [];
+
+  for (const productId of parsed.data.productIds) {
+    const result = await deleteProductRecord(admin, productId);
+    if ("error" in result) {
+      failed.push({ productId, error: result.error });
+    } else {
+      deletedSlugs.push(result.slug);
+    }
+  }
+
+  for (const slug of deletedSlugs) {
+    revalidateAfterProductDelete(slug);
+  }
+
+  if (deletedSlugs.length === 0 && failed.length > 0) {
+    return { error: failed[0]?.error ?? "Could not delete selected products" };
+  }
+
+  return { ok: true, deletedCount: deletedSlugs.length, failed };
+}
+
 function revalidateCatalog(productId: string, slug: string) {
-  revalidatePath("/admin/catalog");
-  revalidatePath(`/admin/catalog/${productId}`);
+  revalidatePath("/admin/products");
+  revalidatePath(`/admin/products/${productId}`);
   revalidatePath("/products");
   revalidatePath(`/products/${slug}`);
   revalidatePath("/");

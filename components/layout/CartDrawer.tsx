@@ -52,58 +52,66 @@ export function CartDrawer() {
               {items.map((i) => {
                 const unit = currency === "CAD" ? i.priceCad : i.priceUsd;
                 return (
-                  <li key={cartLineKey(i)} className="flex gap-3">
-                    <div className="relative h-20 w-20 flex-shrink-0 overflow-hidden rounded-md bg-muted">
-                      {i.image ? (
-                        <Image src={i.image} alt={i.name} fill sizes="80px" className="object-cover" />
-                      ) : null}
-                    </div>
-                    <div className="flex flex-1 flex-col">
-                      <Link
-                        href={`/products/${i.slug}`}
-                        onClick={close}
-                        className="line-clamp-2 text-sm font-medium hover:underline"
-                      >
-                        {i.name}
-                      </Link>
-                      {i.variantLabel !== "Default" && (
-                        <span className="text-xs text-muted-foreground">{i.variantLabel}</span>
-                      )}
-                      <span className="text-xs text-muted-foreground">{formatPrice(unit, currency)}</span>
-                      <div className="mt-1.5 flex items-center justify-between">
-                        <div className="flex items-center rounded-md border">
-                          <Button
-                            type="button"
-                            size="icon"
-                            variant="ghost"
-                            className="h-7 w-7"
-                            onClick={() => setQty(i.productId, i.variantId, i.qty - 1)}
-                          >
-                            <Minus className="h-3 w-3" />
-                          </Button>
-                          <span className="w-8 text-center text-sm">{i.qty}</span>
-                          <Button
-                            type="button"
-                            size="icon"
-                            variant="ghost"
-                            className="h-7 w-7"
-                            onClick={() => setQty(i.productId, i.variantId, i.qty + 1)}
-                          >
-                            <Plus className="h-3 w-3" />
-                          </Button>
+                  <li key={cartLineKey(i)} className="flex flex-col gap-2 sm:flex-row sm:gap-3">
+                    <div className="flex min-w-0 gap-3">
+                      <div className="relative h-20 w-20 shrink-0 overflow-hidden rounded-md bg-white">
+                        {i.image ? (
+                          <Image src={i.image} alt={i.name} fill sizes="80px" className="object-cover" />
+                        ) : null}
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <Link
+                          href={`/products/${i.slug}`}
+                          onClick={close}
+                          className="line-clamp-2 text-sm font-medium hover:underline"
+                        >
+                          {i.name}
+                        </Link>
+                        {i.variantLabel !== "Default" && (
+                          <span className="text-xs text-muted-foreground">{i.variantLabel}</span>
+                        )}
+                        <div className="mt-1 flex items-center justify-between gap-2">
+                          <span className="text-xs text-muted-foreground">{formatPrice(unit, currency)}</span>
+                          <span className="text-sm font-medium tabular-nums sm:hidden">
+                            {formatPrice(unit * i.qty, currency)}
+                          </span>
                         </div>
+                      </div>
+                    </div>
+                    <div className="flex items-center justify-between gap-2 sm:flex-col sm:items-end">
+                      <div className="flex items-center rounded-md border">
                         <Button
                           type="button"
                           size="icon"
                           variant="ghost"
-                          className="h-7 w-7 text-muted-foreground hover:text-destructive"
-                          onClick={() => remove(i.productId, i.variantId)}
+                          className="size-10"
+                          onClick={() => setQty(i.productId, i.variantId, i.qty - 1)}
                         >
-                          <Trash2 className="h-3.5 w-3.5" />
+                          <Minus className="h-4 w-4" />
+                        </Button>
+                        <span className="w-10 text-center text-sm tabular-nums">{i.qty}</span>
+                        <Button
+                          type="button"
+                          size="icon"
+                          variant="ghost"
+                          className="size-10"
+                          onClick={() => setQty(i.productId, i.variantId, i.qty + 1)}
+                        >
+                          <Plus className="h-4 w-4" />
                         </Button>
                       </div>
+                      <Button
+                        type="button"
+                        size="icon"
+                        variant="ghost"
+                        className="size-10 text-muted-foreground hover:text-destructive"
+                        onClick={() => remove(i.productId, i.variantId)}
+                        aria-label="Remove item"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
                     </div>
-                    <div className="text-sm font-medium tabular-nums">
+                    <div className="hidden text-sm font-medium tabular-nums sm:block">
                       {formatPrice(unit * i.qty, currency)}
                     </div>
                   </li>
@@ -114,7 +122,7 @@ export function CartDrawer() {
         </div>
 
         {mounted && items.length > 0 && (
-          <SheetFooter className="border-t">
+          <SheetFooter className="border-t pb-[max(1rem,env(safe-area-inset-bottom))]">
             <div className="w-full space-y-3">
               <div className="flex items-center justify-between text-sm">
                 <span className="text-muted-foreground">Subtotal</span>

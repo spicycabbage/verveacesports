@@ -6,6 +6,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { formatPrice, formatDate } from "@/lib/utils/format";
 import type { Order, FinancialStatus, OrderFulfillmentStatus } from "@/lib/supabase/types";
 import type { Currency } from "@/lib/constants";
+import { countryName } from "@/lib/constants";
 
 export const metadata = { title: "Admin · Orders" };
 
@@ -72,7 +73,7 @@ export default async function AdminOrdersPage() {
                       {o.fulfillment_status.replace("_", " ")}
                     </Badge>
                   </TableCell>
-                  <TableCell>{o.country}</TableCell>
+                  <TableCell>{countryName(o.country)}</TableCell>
                   <TableCell className="text-right tabular-nums">
                     {formatPrice(Number(o.total), o.currency as Currency)}
                   </TableCell>

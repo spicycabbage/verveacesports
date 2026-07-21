@@ -1,6 +1,11 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { getStripe, webhookSecretFor } from "@/lib/stripe/server";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
+import {
+  syncBalanceTransactionForCharge,
+  upsertPayout,
+} from "@/lib/stripe/reconcile";
+import { markOrderPaidFromPaymentIntent } from "@/lib/stripe/mark-order-paid";
 import type { Currency } from "@/lib/constants";
 import type Stripe from "stripe";
 
@@ -38,8 +43,9 @@ export async function POST(req: NextRequest) {
 
   const rawBody = await req.text();
   let event: Stripe.Event;
+  let currency: Currency;
   try {
-    ({ event } = verifyStripeEvent(rawBody, sig));
+    ({ event, currency } = verifyStripeEvent(rawBody, sig));
   } catch (err) {
     const msg = err instanceof Error ? err.message : "Invalid signature";
     return NextResponse.json({ error: msg }, { status: 400 });
@@ -58,14 +64,20 @@ export async function POST(req: NextRequest) {
   try {
     switch (event.type) {
       case "payment_intent.succeeded":
-        await handleSucceeded(admin, event.data.object as Stripe.PaymentIntent);
+        await handleSucceeded(admin, currency, event.data.object as Stripe.PaymentIntent);
         break;
       case "payment_intent.payment_failed":
       case "payment_intent.canceled":
         await handleFailed(admin, event.data.object as Stripe.PaymentIntent);
         break;
       case "charge.refunded":
-        await handleChargeRefunded(admin, event.data.object as Stripe.Charge);
+        await handleChargeRefunded(admin, currency, event.data.object as Stripe.Charge);
+        break;
+      case "payout.paid":
+      case "payout.updated":
+      case "payout.failed":
+      case "payout.canceled":
+        await upsertPayout(admin, currency, event.data.object as Stripe.Payout);
         break;
       default:
         break;
@@ -78,63 +90,14 @@ export async function POST(req: NextRequest) {
 
   await admin
     .from("webhook_events")
-    .insert({ id: event.id, type: event.type })
+    .insert({ id: event.id, type: event.type, payload: event as unknown as Record<string, unknown> })
     .then(() => undefined);
 
   return NextResponse.json({ received: true });
 }
 
-async function handleSucceeded(admin: Admin, pi: Stripe.PaymentIntent) {
-  const orderId = pi.metadata.order_id;
-  if (!orderId) return;
-
-  const { data: order } = await admin
-    .from("orders")
-    .select("id, status, discount_code, discount_total, user_id")
-    .eq("id", orderId)
-    .single();
-  if (!order) return;
-
-  if (order.status !== "paid") {
-    await admin
-      .from("orders")
-      .update({ status: "paid", financial_status: "paid", paid_at: new Date().toISOString() })
-      .eq("id", orderId);
-
-    // Convert reservation into a real sale (atomic, idempotent).
-    await admin.rpc("commit_order_inventory", { p_order: orderId });
-
-    // Record discount redemption + bump usage once.
-    if (order.discount_code) {
-      const { data: disc } = await admin
-        .from("discounts")
-        .select("id, used_count")
-        .ilike("code", order.discount_code)
-        .maybeSingle();
-      if (disc) {
-        const { error: redErr } = await admin.from("discount_redemptions").insert({
-          discount_id: disc.id,
-          order_id: orderId,
-          user_id: order.user_id,
-          amount: order.discount_total ?? 0,
-        });
-        if (!redErr) {
-          await admin
-            .from("discounts")
-            .update({ used_count: (disc.used_count ?? 0) + 1 })
-            .eq("id", disc.id);
-        }
-      }
-    }
-  }
-
-  const charge =
-    typeof pi.latest_charge === "string" ? pi.latest_charge : pi.latest_charge?.id ?? null;
-  await admin
-    .from("payments")
-    .update({ status: "succeeded", stripe_charge_id: charge })
-    .eq("stripe_payment_intent_id", pi.id)
-    .eq("kind", "sale");
+async function handleSucceeded(admin: Admin, currency: Currency, pi: Stripe.PaymentIntent) {
+  await markOrderPaidFromPaymentIntent(admin, currency, pi);
 }
 
 async function handleFailed(admin: Admin, pi: Stripe.PaymentIntent) {
@@ -157,10 +120,11 @@ async function handleFailed(admin: Admin, pi: Stripe.PaymentIntent) {
     })
     .eq("id", orderId);
 
-  // Release the inventory reservation.
+  // Release the inventory reservation and any reserved discount usage.
   await admin.rpc("release_order_inventory", { p_order: orderId });
+  await admin.rpc("release_discount", { p_order: orderId });
 
-  // Refund any reserved loyalty points.
+  // Refund any reserved loyalty points (atomic).
   if (order.points_redeemed && order.points_redeemed > 0) {
     await admin.from("loyalty_transactions").insert({
       user_id: order.user_id,
@@ -169,17 +133,10 @@ async function handleFailed(admin: Admin, pi: Stripe.PaymentIntent) {
       points: order.points_redeemed,
       note: "Refunded redemption (payment failed)",
     });
-    const { data: prof } = await admin
-      .from("profiles")
-      .select("loyalty_points")
-      .eq("id", order.user_id)
-      .single();
-    if (prof) {
-      await admin
-        .from("profiles")
-        .update({ loyalty_points: (prof.loyalty_points ?? 0) + order.points_redeemed })
-        .eq("id", order.user_id);
-    }
+    await admin.rpc("adjust_loyalty_points", {
+      p_user: order.user_id,
+      p_delta: order.points_redeemed,
+    });
   }
 
   await admin
@@ -190,7 +147,7 @@ async function handleFailed(admin: Admin, pi: Stripe.PaymentIntent) {
 }
 
 // Handle refunds initiated outside the app (e.g. Stripe dashboard).
-async function handleChargeRefunded(admin: Admin, charge: Stripe.Charge) {
+async function handleChargeRefunded(admin: Admin, currency: Currency, charge: Stripe.Charge) {
   const piId = typeof charge.payment_intent === "string" ? charge.payment_intent : charge.payment_intent?.id;
   if (!piId) return;
 
@@ -240,4 +197,7 @@ async function handleChargeRefunded(admin: Admin, charge: Stripe.Charge) {
       });
     }
   }
+
+  // Capture refund fees / net for reconciliation.
+  await syncBalanceTransactionForCharge(admin, currency, charge.id, order.id);
 }

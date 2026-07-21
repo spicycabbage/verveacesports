@@ -45,51 +45,61 @@ export function CartView() {
           const unit = currency === "CAD" ? i.priceCad : i.priceUsd;
           return (
             <Card key={cartLineKey(i)}>
-              <CardContent className="flex gap-4">
-                <div className="relative h-24 w-24 flex-shrink-0 overflow-hidden rounded-md bg-muted">
-                  {i.image && (
-                    <Image src={i.image} alt={i.name} fill sizes="96px" className="object-cover" />
-                  )}
-                </div>
-                <div className="flex flex-1 flex-col">
-                  <Link href={`/products/${i.slug}`} className="font-medium hover:underline">
-                    {i.name}
-                  </Link>
-                  {i.variantLabel !== "Default" && (
-                    <span className="text-sm text-muted-foreground">{i.variantLabel}</span>
-                  )}
-                  <span className="text-sm text-muted-foreground">{formatPrice(unit, currency)}</span>
-                  <div className="mt-auto flex items-center gap-3">
-                    <div className="flex items-center rounded-md border">
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-8 w-8"
-                        onClick={() => setQty(i.productId, i.variantId, i.qty - 1)}
-                      >
-                        <Minus className="h-3.5 w-3.5" />
-                      </Button>
-                      <span className="w-8 text-center text-sm">{i.qty}</span>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-8 w-8"
-                        onClick={() => setQty(i.productId, i.variantId, i.qty + 1)}
-                      >
-                        <Plus className="h-3.5 w-3.5" />
-                      </Button>
+              <CardContent className="flex flex-col gap-3 p-4 sm:flex-row sm:gap-4">
+                <div className="flex gap-3 sm:gap-4">
+                  <div className="relative h-20 w-20 shrink-0 overflow-hidden rounded-md bg-white sm:h-24 sm:w-24">
+                    {i.image && (
+                      <Image src={i.image} alt={i.name} fill sizes="96px" className="object-cover" />
+                    )}
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <Link href={`/products/${i.slug}`} className="font-medium hover:underline">
+                      {i.name}
+                    </Link>
+                    {i.variantLabel !== "Default" && (
+                      <p className="text-sm text-muted-foreground">{i.variantLabel}</p>
+                    )}
+                    <div className="mt-1 flex items-center justify-between gap-2 sm:hidden">
+                      <span className="text-sm text-muted-foreground">{formatPrice(unit, currency)}</span>
+                      <span className="text-base font-semibold tabular-nums">
+                        {formatPrice(unit * i.qty, currency)}
+                      </span>
                     </div>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="text-muted-foreground hover:text-destructive"
-                      onClick={() => remove(i.productId, i.variantId)}
-                    >
-                      <Trash2 className="h-3.5 w-3.5" /> Remove
-                    </Button>
+                    <span className="mt-1 hidden text-sm text-muted-foreground sm:inline">
+                      {formatPrice(unit, currency)}
+                    </span>
                   </div>
                 </div>
-                <div className="text-right text-base font-semibold tabular-nums">
+                <div className="flex items-center justify-between gap-3 sm:flex-col sm:items-end sm:justify-start">
+                  <div className="flex items-center rounded-md border">
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="size-10"
+                      onClick={() => setQty(i.productId, i.variantId, i.qty - 1)}
+                    >
+                      <Minus className="h-4 w-4" />
+                    </Button>
+                    <span className="w-10 text-center text-sm tabular-nums">{i.qty}</span>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="size-10"
+                      onClick={() => setQty(i.productId, i.variantId, i.qty + 1)}
+                    >
+                      <Plus className="h-4 w-4" />
+                    </Button>
+                  </div>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="text-muted-foreground hover:text-destructive"
+                    onClick={() => remove(i.productId, i.variantId)}
+                  >
+                    <Trash2 className="h-4 w-4" /> Remove
+                  </Button>
+                </div>
+                <div className="hidden text-right text-base font-semibold tabular-nums sm:block">
                   {formatPrice(unit * i.qty, currency)}
                 </div>
               </CardContent>

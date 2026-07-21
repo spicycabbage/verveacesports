@@ -109,6 +109,10 @@ STRIPE_WEBHOOK_SECRET_CAD=whsec_...
 # Optional: force market locally (CA or US)
 # GEO_COUNTRY_OVERRIDE=CA
 
+# Brevo newsletter (Contacts → Lists → copy list ID; SMTP & API → API keys)
+BREVO_API_KEY=xkeysib-...
+BREVO_LIST_ID=2
+
 NEXT_PUBLIC_SITE_URL=http://localhost:3000
 ```
 

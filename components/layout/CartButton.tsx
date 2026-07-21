@@ -16,12 +16,12 @@ export function CartButton() {
       onClick={open}
       variant="ghost"
       size="icon"
-      className="relative"
+      className="relative size-10"
       aria-label="Open cart"
     >
       <ShoppingBag className="h-5 w-5" />
       {count > 0 && (
-        <span className="absolute -right-1 -top-1 grid h-4 min-w-[1rem] place-items-center rounded-full bg-primary px-1 text-[10px] font-bold text-primary-foreground">
+        <span className="absolute -right-0.5 -top-0.5 grid h-[1.125rem] min-w-[1.125rem] place-items-center rounded-full bg-primary px-1 text-[11px] font-bold text-primary-foreground sm:text-xs">
           {count}
         </span>
       )}

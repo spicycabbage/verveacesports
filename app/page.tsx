@@ -34,21 +34,22 @@ export default async function HomePage({ searchParams }: { searchParams?: HomeSe
 
   return (
     <div>
-      <section className="relative overflow-hidden border-b bg-gradient-to-br from-background via-background to-accent/40">
-        <div className="absolute inset-0 -z-10 opacity-[0.04] [background-image:radial-gradient(circle_at_1px_1px,_black_1px,_transparent_0)] [background-size:20px_20px]" />
-        <div className="mx-auto grid max-w-7xl gap-10 px-4 py-16 md:grid-cols-2 md:items-center md:py-24">
-          <div className="space-y-6">
-            <div className="inline-flex items-center gap-2 rounded-full border bg-background px-3 py-1 text-xs">
-              <Sparkles className="h-3.5 w-3.5 text-primary" />
-              <span className="font-medium">BleeqUp &amp; Power Golf Carts — ships USA &amp; Canada</span>
+      <section className="relative overflow-hidden border-b bg-gradient-to-br from-background via-background to-primary/10">
+        <div className="absolute inset-0 -z-10 opacity-[0.06] [background-image:radial-gradient(circle_at_1px_1px,_white_1px,_transparent_0)] [background-size:20px_20px]" />
+        <div className="mx-auto grid max-w-7xl gap-8 px-4 py-8 sm:py-12 md:grid-cols-2 md:items-center md:gap-10 md:py-24">
+          <div className="order-2 space-y-5 md:order-1 md:space-y-6">
+            <div className="inline-flex max-w-full items-center gap-2 rounded-full border border-border bg-card px-3 py-1 text-xs">
+              <Sparkles className="h-3.5 w-3.5 shrink-0 text-primary" />
+              <span className="font-medium leading-snug">
+                BleeqUp, MGI &amp; Motocaddy — ships USA &amp; Canada
+              </span>
             </div>
-            <h1 className="text-4xl font-bold tracking-tight sm:text-5xl md:text-6xl">
+            <h1 className="text-3xl font-bold tracking-tight sm:text-4xl md:text-5xl lg:text-6xl">
               Capture every moment. <span className="text-primary">Power every round.</span>
             </h1>
-            <p className="max-w-prose text-lg text-muted-foreground">
+            <p className="max-w-prose text-base text-muted-foreground sm:text-lg">
               Shop BleeqUp Ranger AI sports camera glasses and premium electric golf carts from
-              Robera, Volt Caddy, Ego Caddy, and Insanity Golf. Free shipping across USA &amp;
-              Canada on orders over $75.
+              MGI and Motocaddy. Free shipping across USA &amp; Canada on orders over $75.
             </p>
             <div className="flex flex-wrap gap-3">
               <Link href="/products" className={buttonVariants({ size: "lg" })}>
@@ -61,7 +62,7 @@ export default async function HomePage({ searchParams }: { searchParams?: HomeSe
                 BleeqUp Ranger
               </Link>
             </div>
-            <div className="grid gap-3 pt-4 text-sm sm:grid-cols-3">
+            <div className="grid gap-2 pt-2 text-sm sm:grid-cols-3 sm:gap-3 sm:pt-4">
               <div className="flex items-center gap-2">
                 <Truck className="h-4 w-4 text-primary" /> Free shipping $75+
               </div>
@@ -73,21 +74,21 @@ export default async function HomePage({ searchParams }: { searchParams?: HomeSe
               </div>
             </div>
           </div>
-          <div className="relative aspect-[4/5] overflow-hidden rounded-3xl bg-muted shadow-xl md:aspect-square">
+          <div className="relative order-1 aspect-[16/10] min-h-[200px] w-full overflow-hidden rounded-2xl bg-muted shadow-xl sm:aspect-[4/3] sm:min-h-[260px] md:order-2 md:aspect-square md:min-h-0 md:rounded-3xl">
             <Image
               src="https://cdn.shopify.com/s/files/1/0674/8527/0213/files/BleeqUp_Ranger_Black_Standard_Lens.jpg?v=1781082522"
               alt="BleeqUp Ranger AI sports camera glasses"
               fill
               priority
               sizes="(max-width: 768px) 100vw, 50vw"
-              className="object-cover"
+              className="object-cover object-center"
             />
           </div>
         </div>
       </section>
 
       <section className="mx-auto max-w-7xl px-4 py-16">
-        <div className="mb-6 flex items-end justify-between">
+        <div className="mb-6 flex flex-wrap items-end justify-between gap-2">
           <h2 className="text-2xl font-bold tracking-tight md:text-3xl">Shop by category</h2>
           <Link href="/products" className="text-sm font-medium text-primary hover:underline">
             View all →
@@ -119,7 +120,7 @@ export default async function HomePage({ searchParams }: { searchParams?: HomeSe
       </section>
 
       <section className="mx-auto max-w-7xl px-4 pb-16">
-        <div className="mb-6 flex items-end justify-between">
+        <div className="mb-6 flex flex-wrap items-end justify-between gap-2">
           <h2 className="text-2xl font-bold tracking-tight md:text-3xl">Featured products</h2>
           <Link href="/products" className="text-sm font-medium text-primary hover:underline">
             See all →

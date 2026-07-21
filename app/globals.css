@@ -49,72 +49,72 @@
 }
 
 :root {
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.145 0 0);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.145 0 0);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.145 0 0);
-  --primary: oklch(0.62 0.19 35);
-  --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.97 0.01 240);
-  --secondary-foreground: oklch(0.205 0 0);
-  --muted: oklch(0.97 0 0);
-  --muted-foreground: oklch(0.5 0 0);
-  --accent: oklch(0.95 0.04 35);
-  --accent-foreground: oklch(0.3 0.1 35);
-  --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.92 0 0);
-  --input: oklch(0.92 0 0);
-  --ring: oklch(0.62 0.19 35);
-  --chart-1: oklch(0.62 0.19 35);
-  --chart-2: oklch(0.55 0.15 220);
-  --chart-3: oklch(0.65 0.15 145);
-  --chart-4: oklch(0.7 0.18 80);
-  --chart-5: oklch(0.55 0.18 290);
+  --background: #193d63;
+  --foreground: #fafafa;
+  --card: #294b6e;
+  --card-foreground: #fafafa;
+  --popover: #294b6e;
+  --popover-foreground: #fafafa;
+  --primary: #f97316;
+  --primary-foreground: #ffffff;
+  --secondary: #395879;
+  --secondary-foreground: #fafafa;
+  --muted: #325274;
+  --muted-foreground: #a1a1aa;
+  --accent: #464854;
+  --accent-foreground: #fafafa;
+  --destructive: #ef4444;
+  --border: #ffffff1f;
+  --input: #ffffff24;
+  --ring: #f97316;
+  --chart-1: #f97316;
+  --chart-2: #395879;
+  --chart-3: #464854;
+  --chart-4: #325274;
+  --chart-5: #fafafa;
   --radius: 0.5rem;
-  --sidebar: oklch(0.985 0 0);
-  --sidebar-foreground: oklch(0.145 0 0);
-  --sidebar-primary: oklch(0.62 0.19 35);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.95 0.04 35);
-  --sidebar-accent-foreground: oklch(0.3 0.1 35);
-  --sidebar-border: oklch(0.92 0 0);
-  --sidebar-ring: oklch(0.62 0.19 35);
+  --sidebar: #294b6e;
+  --sidebar-foreground: #fafafa;
+  --sidebar-primary: #f97316;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #464854;
+  --sidebar-accent-foreground: #fafafa;
+  --sidebar-border: #ffffff1f;
+  --sidebar-ring: #f97316;
 }
 
 .dark {
-  --background: oklch(0.13 0.01 240);
-  --foreground: oklch(0.985 0 0);
-  --card: oklch(0.18 0.01 240);
-  --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.18 0.01 240);
-  --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.7 0.2 35);
-  --primary-foreground: oklch(0.13 0.01 240);
-  --secondary: oklch(0.25 0.01 240);
-  --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.25 0.01 240);
-  --muted-foreground: oklch(0.7 0 0);
-  --accent: oklch(0.3 0.06 35);
-  --accent-foreground: oklch(0.95 0.04 35);
-  --destructive: oklch(0.704 0.191 22.216);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.7 0.2 35);
-  --chart-1: oklch(0.7 0.2 35);
-  --chart-2: oklch(0.65 0.18 220);
-  --chart-3: oklch(0.7 0.17 145);
-  --chart-4: oklch(0.75 0.2 80);
-  --chart-5: oklch(0.65 0.2 290);
-  --sidebar: oklch(0.18 0.01 240);
-  --sidebar-foreground: oklch(0.985 0 0);
-  --sidebar-primary: oklch(0.7 0.2 35);
-  --sidebar-primary-foreground: oklch(0.13 0.01 240);
-  --sidebar-accent: oklch(0.3 0.06 35);
-  --sidebar-accent-foreground: oklch(0.95 0.04 35);
-  --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.7 0.2 35);
+  --background: #193d63;
+  --foreground: #fafafa;
+  --card: #294b6e;
+  --card-foreground: #fafafa;
+  --popover: #294b6e;
+  --popover-foreground: #fafafa;
+  --primary: #f97316;
+  --primary-foreground: #ffffff;
+  --secondary: #395879;
+  --secondary-foreground: #fafafa;
+  --muted: #325274;
+  --muted-foreground: #a1a1aa;
+  --accent: #464854;
+  --accent-foreground: #fafafa;
+  --destructive: #ef4444;
+  --border: #ffffff1f;
+  --input: #ffffff24;
+  --ring: #f97316;
+  --chart-1: #f97316;
+  --chart-2: #395879;
+  --chart-3: #464854;
+  --chart-4: #325274;
+  --chart-5: #fafafa;
+  --sidebar: #294b6e;
+  --sidebar-foreground: #fafafa;
+  --sidebar-primary: #f97316;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #464854;
+  --sidebar-accent-foreground: #fafafa;
+  --sidebar-border: #ffffff1f;
+  --sidebar-ring: #f97316;
 }
 
 @layer base {
@@ -126,5 +126,6 @@
   }
   html {
     @apply font-sans;
+    color-scheme: dark;
   }
 }

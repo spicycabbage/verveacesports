@@ -25,17 +25,9 @@ type Props = {
 export function UserMenu({ user, loyaltyPoints, isAdmin = false }: Props) {
   if (!user) {
     return (
-      <div className="flex items-center gap-1">
-        <Link href="/login" className={buttonVariants({ size: "sm", variant: "ghost" })}>
-          Sign in
-        </Link>
-        <Link
-          href="/signup"
-          className={buttonVariants({ size: "sm", className: "hidden sm:inline-flex" })}
-        >
-          Sign up
-        </Link>
-      </div>
+      <Link href="/login" className={buttonVariants({ size: "sm", variant: "ghost" })}>
+        Sign in
+      </Link>
     );
   }
 
@@ -62,7 +54,7 @@ export function UserMenu({ user, loyaltyPoints, isAdmin = false }: Props) {
           })}
           aria-label="Account menu"
         >
-          <Avatar className="h-8 w-8">
+          <Avatar className="h-10 w-10">
             <AvatarFallback className="bg-primary text-primary-foreground text-xs font-semibold">
               {initials}
             </AvatarFallback>

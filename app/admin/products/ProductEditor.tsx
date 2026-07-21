@@ -1,8 +1,7 @@
 "use client";
 
-import { useRef, useState, useTransition } from "react";
+import { forwardRef, useImperativeHandle, useRef, useState } from "react";
 import Image from "next/image";
-import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -29,44 +28,40 @@ type ProductDraft = {
   description: string;
   category: Category;
   images: string[];
-  priceUsd: number;
-  priceCad: number;
   isActive: boolean;
 };
 
-export function ProductEditor({ product }: { product: ProductDraft }) {
-  const router = useRouter();
+export type ProductEditorHandle = {
+  save: () => Promise<{ ok: true } | { error: string }>;
+};
+
+export const ProductEditor = forwardRef<ProductEditorHandle, { product: ProductDraft }>(
+  function ProductEditor({ product }, ref) {
   const fileRef = useRef<HTMLInputElement>(null);
-  const [pending, start] = useTransition();
   const [uploading, setUploading] = useState(false);
   const [name, setName] = useState(product.name);
   const [description, setDescription] = useState(product.description);
   const [category, setCategory] = useState<Category>(product.category);
   const [isActive, setIsActive] = useState(product.isActive);
-  const [priceUsd, setPriceUsd] = useState(String(product.priceUsd));
-  const [priceCad, setPriceCad] = useState(String(product.priceCad));
   const [images, setImages] = useState<string[]>(product.images);
   const [newUrl, setNewUrl] = useState("");
 
-  function save() {
-    start(async () => {
-      const res = await updateProductCatalog({
-        productId: product.id,
-        name: name.trim(),
-        description,
-        category,
-        isActive,
-        priceUsd: Number(priceUsd),
-        priceCad: Number(priceCad),
-        images,
-      });
-      if ("error" in res) toast.error(res.error);
-      else {
-        toast.success("Product saved");
-        router.refresh();
-      }
-    });
-  }
+  useImperativeHandle(
+    ref,
+    () => ({
+      async save() {
+        return updateProductCatalog({
+          productId: product.id,
+          name: name.trim(),
+          description,
+          category,
+          isActive,
+          images,
+        });
+      },
+    }),
+    [product.id, name, description, category, isActive, images],
+  );
 
   async function onUpload(file: File) {
     setUploading(true);
@@ -155,45 +150,7 @@ export function ProductEditor({ product }: { product: ProductDraft }) {
             </div>
           </div>
 
-          <div className="space-y-3 rounded-lg border bg-muted/30 p-4">
-            <div>
-              <h2 className="text-sm font-semibold">Regional pricing</h2>
-              <p className="text-xs text-muted-foreground">
-                Set separate storefront prices. Visitors in Canada see CAD; everyone else sees USD.
-              </p>
-            </div>
-            <div className="grid gap-4 sm:grid-cols-2">
-              <div className="space-y-1.5">
-                <Label htmlFor="usd">US price (USD)</Label>
-                <Input
-                  id="usd"
-                  type="number"
-                  min={0}
-                  step="0.01"
-                  className="tabular-nums"
-                  value={priceUsd}
-                  onChange={(e) => setPriceUsd(e.target.value)}
-                />
-              </div>
-              <div className="space-y-1.5">
-                <Label htmlFor="cad">Canada price (CAD)</Label>
-                <Input
-                  id="cad"
-                  type="number"
-                  min={0}
-                  step="0.01"
-                  className="tabular-nums"
-                  value={priceCad}
-                  onChange={(e) => setPriceCad(e.target.value)}
-                />
-              </div>
-            </div>
-          </div>
-
-          <div className="flex flex-wrap gap-2 border-t pt-4">
-            <Button onClick={save} disabled={pending}>
-              {pending ? "Saving…" : "Save changes"}
-            </Button>
+          <div className="border-t pt-4">
             <Button variant="outline" render={<Link href={`/products/${product.slug}`} target="_blank" />}>
               <ExternalLink className="h-4 w-4" />
               View on store
@@ -207,7 +164,8 @@ export function ProductEditor({ product }: { product: ProductDraft }) {
           <CardContent className="space-y-3 py-4">
             <h2 className="text-sm font-semibold">Images</h2>
             <p className="text-xs text-muted-foreground">
-              First image is the main photo. Upload to Supabase or paste a URL (e.g. Unsplash).
+              First image is the main photo. Upload to Supabase Storage (JPEG, PNG, WebP, or GIF,
+              max 5&nbsp;MB — no fixed pixel size) or paste an external URL.
             </p>
 
             <input
@@ -248,32 +206,34 @@ export function ProductEditor({ product }: { product: ProductDraft }) {
               {images.map((src, i) => (
                 <li
                   key={src + i}
-                  className="flex items-center gap-2 rounded-lg border bg-muted/30 p-2"
+                  className="flex flex-col gap-2 rounded-lg border bg-muted/30 p-2 sm:flex-row sm:items-center"
                 >
-                  <div className="flex flex-col gap-0.5">
-                    <button
-                      type="button"
-                      className="text-muted-foreground hover:text-foreground disabled:opacity-30"
-                      disabled={i === 0}
-                      onClick={() => moveImage(i, -1)}
-                      aria-label="Move up"
-                    >
-                      <GripVertical className="h-4 w-4 rotate-180" />
-                    </button>
-                    <button
-                      type="button"
-                      className="text-muted-foreground hover:text-foreground disabled:opacity-30"
-                      disabled={i === images.length - 1}
-                      onClick={() => moveImage(i, 1)}
-                      aria-label="Move down"
-                    >
-                      <GripVertical className="h-4 w-4" />
-                    </button>
+                  <div className="flex items-center gap-2">
+                    <div className="flex flex-col gap-0.5">
+                      <button
+                        type="button"
+                        className="rounded p-1.5 text-muted-foreground hover:bg-accent hover:text-foreground disabled:opacity-30"
+                        disabled={i === 0}
+                        onClick={() => moveImage(i, -1)}
+                        aria-label="Move up"
+                      >
+                        <GripVertical className="h-4 w-4 rotate-180" />
+                      </button>
+                      <button
+                        type="button"
+                        className="rounded p-1.5 text-muted-foreground hover:bg-accent hover:text-foreground disabled:opacity-30"
+                        disabled={i === images.length - 1}
+                        onClick={() => moveImage(i, 1)}
+                        aria-label="Move down"
+                      >
+                        <GripVertical className="h-4 w-4" />
+                      </button>
+                    </div>
+                    <div className="relative h-32 w-full overflow-hidden rounded-md bg-muted sm:h-44 sm:w-44 sm:shrink-0">
+                      <Image src={src} alt="" fill sizes="176px" className="object-cover" />
+                    </div>
                   </div>
-                  <div className="relative h-14 w-14 shrink-0 overflow-hidden rounded-md bg-muted">
-                    <Image src={src} alt="" fill sizes="56px" className="object-cover" />
-                  </div>
-                  <span className="min-w-0 flex-1 truncate text-xs text-muted-foreground">
+                  <span className="min-w-0 flex-1 break-all text-xs text-muted-foreground sm:truncate">
                     {i === 0 && (
                       <span className="mr-1 font-medium text-foreground">Main · </span>
                     )}
@@ -299,4 +259,5 @@ export function ProductEditor({ product }: { product: ProductDraft }) {
       </div>
     </div>
   );
-}
+},
+);

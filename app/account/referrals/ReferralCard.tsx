@@ -46,15 +46,17 @@ export function ReferralCard({ code }: { code: string }) {
         <span className="text-xs font-medium text-muted-foreground">Your code</span>
         <div className="text-2xl font-mono font-bold tracking-wider">{code}</div>
       </div>
-      <div className="flex gap-2">
-        <Input value={link} readOnly className="font-mono text-xs" />
-        <Button onClick={copy} variant="outline">
-          {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
-          {copied ? "Copied" : "Copy"}
-        </Button>
-        <Button onClick={share}>
-          <Share2 className="h-4 w-4" /> Share
-        </Button>
+      <div className="flex flex-col gap-2 sm:flex-row">
+        <Input value={link} readOnly className="min-w-0 font-mono text-xs sm:text-sm" />
+        <div className="flex gap-2">
+          <Button onClick={copy} variant="outline" className="flex-1 sm:flex-none">
+            {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+            {copied ? "Copied" : "Copy"}
+          </Button>
+          <Button onClick={share} className="flex-1 sm:flex-none">
+            <Share2 className="h-4 w-4" /> Share
+          </Button>
+        </div>
       </div>
     </div>
   );

@@ -1,5 +1,6 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { LOYALTY } from "@/lib/constants";
+import { normalizeVariantPrices } from "@/lib/catalog/pricing";
 
 export type QuoteItem = {
   productId: string;
@@ -24,6 +25,10 @@ export type QuoteLineItem = {
   locationId: string;
   qty: number;
   unitPrice: number;
+  priceUsd: number;
+  priceCad: number;
+  unitCostUsd: number | null;
+  unitCostCad: number | null;
   name: string;
   sku: string | null;
   image: string | null;
@@ -72,7 +77,7 @@ export async function computeCheckoutQuote(
   const { data: variants, error: varErr } = await admin
     .from("product_variants")
     .select(
-      "id, product_id, sku, title, price_usd, price_cad, is_active, position, products!inner(id, name, slug, images, is_active)",
+      "id, product_id, sku, title, price_usd, price_cad, cost_usd, cost_cad, is_active, position, products!inner(id, name, slug, images, is_active)",
     )
     .in("product_id", productIds)
     .eq("is_active", true)
@@ -86,6 +91,8 @@ export async function computeCheckoutQuote(
     title: string;
     price_usd: number | string;
     price_cad: number | string;
+    cost_usd: number | string | null;
+    cost_cad: number | string | null;
     is_active: boolean;
     position: number;
     products: { id: string; name: string; slug: string; images: string[]; is_active: boolean };
@@ -105,7 +112,13 @@ export async function computeCheckoutQuote(
     if (!v || !v.products.is_active) {
       throw new QuoteError(`Product unavailable`, 400);
     }
-    const unit = Number(currency === "CAD" ? v.price_cad : v.price_usd);
+    // Integrity check: a client-supplied variantId must belong to the product
+    // it claims, otherwise mismatched price/name snapshots could be forced.
+    if (v.product_id !== it.productId) {
+      throw new QuoteError("Variant does not belong to product", 400);
+    }
+    const prices = normalizeVariantPrices(v);
+    const unit = Number(currency === "CAD" ? prices.priceCad : prices.priceUsd);
     subtotal += unit * it.qty;
     lineItems.push({
       productId: v.product_id,
@@ -113,6 +126,10 @@ export async function computeCheckoutQuote(
       locationId: location.id,
       qty: it.qty,
       unitPrice: unit,
+      priceUsd: prices.priceUsd,
+      priceCad: prices.priceCad,
+      unitCostUsd: v.cost_usd == null ? null : Number(v.cost_usd),
+      unitCostCad: v.cost_cad == null ? null : Number(v.cost_cad),
       name: v.products.name,
       sku: v.sku,
       image: v.products.images?.[0] ?? null,

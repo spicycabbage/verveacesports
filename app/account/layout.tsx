@@ -35,12 +35,12 @@ export default async function AccountLayout({
           <h2 className="mb-2 px-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
             Account
           </h2>
-          <nav className="flex flex-row gap-1 md:flex-col">
+          <nav className="-mx-1 flex gap-1 overflow-x-auto pb-1 md:mx-0 md:flex-col md:overflow-visible [-webkit-overflow-scrolling:touch]">
             {NAV.map((item) => (
               <Link
                 key={item.href}
                 href={item.href}
-                className="flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium hover:bg-accent"
+                className="flex shrink-0 items-center gap-2 whitespace-nowrap rounded-md px-3 py-2.5 text-sm font-medium hover:bg-accent md:shrink md:whitespace-normal md:py-2"
               >
                 <item.icon className="h-4 w-4" /> {item.label}
               </Link>
@@ -57,7 +57,7 @@ export default async function AccountLayout({
         </div>
         <SignOutButton />
       </aside>
-      <section>{children}</section>
+      <section className="min-w-0">{children}</section>
     </div>
   );
 }

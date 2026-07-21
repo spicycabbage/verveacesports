@@ -9,11 +9,11 @@ import type { ProductWithDefaultVariant } from "@/lib/catalog/variants";
 export function ProductCard({ product }: { product: ProductWithDefaultVariant }) {
   const image = product.images?.[0];
   return (
-    <Card className="group flex flex-col overflow-hidden p-0 transition-shadow hover:shadow-lg">
-      <CardContent className="flex flex-col p-0">
+    <Card className="group flex h-full flex-col overflow-hidden p-0 transition-shadow hover:shadow-lg">
+      <CardContent className="flex h-full flex-col p-0">
         <Link
           href={`/products/${product.slug}`}
-          className="relative aspect-square overflow-hidden bg-muted"
+          className="relative aspect-square overflow-hidden bg-white"
         >
           {image && (
             <Image
@@ -39,19 +39,24 @@ export function ProductCard({ product }: { product: ProductWithDefaultVariant })
           <span className="text-xs uppercase tracking-wider text-muted-foreground">
             {product.category}
           </span>
-          <Link href={`/products/${product.slug}`} className="line-clamp-2 text-sm font-semibold hover:underline">
+          <Link
+            href={`/products/${product.slug}`}
+            className="line-clamp-2 min-h-10 text-sm font-semibold leading-5 hover:underline"
+          >
             {product.name}
           </Link>
           <div className="mt-auto flex items-center justify-between gap-2 pt-2">
             <ProductPrice
-              priceUsd={Number(product.price_usd)}
-              priceCad={Number(product.price_cad)}
+              priceUsd={product.defaultPriceUsd}
+              priceCad={product.defaultPriceCad}
               className="text-base font-bold tabular-nums"
             />
             <AddToCartButton
               product={product}
               variantId={product.defaultVariantId}
               variantLabel={product.defaultVariantLabel}
+              priceUsd={product.defaultPriceUsd}
+              priceCad={product.defaultPriceCad}
               compact
             />
           </div>

@@ -86,6 +86,8 @@ const variantSchema = z.object({
   option3: z.string().trim().max(120).optional(),
   priceUsd: z.coerce.number().nonnegative(),
   priceCad: z.coerce.number().nonnegative(),
+  costUsd: z.coerce.number().nonnegative().optional(),
+  costCad: z.coerce.number().nonnegative().optional(),
   initialStock: z.coerce.number().int().min(0).default(0),
 });
 
@@ -109,6 +111,8 @@ export async function createVariant(input: z.infer<typeof variantSchema>): Promi
       option3: d.option3 || null,
       price_usd: d.priceUsd,
       price_cad: d.priceCad,
+      cost_usd: d.costUsd ?? null,
+      cost_cad: d.costCad ?? null,
     })
     .select("id")
     .single();
@@ -131,7 +135,6 @@ export async function createVariant(input: z.infer<typeof variantSchema>): Promi
   }
 
   revalidatePath("/admin/products");
-  revalidatePath("/admin/catalog");
   return { ok: true };
 }
 
@@ -139,6 +142,8 @@ const priceSchema = z.object({
   variantId: z.string().uuid(),
   priceUsd: z.coerce.number().nonnegative(),
   priceCad: z.coerce.number().nonnegative(),
+  costUsd: z.coerce.number().nonnegative().nullable().optional(),
+  costCad: z.coerce.number().nonnegative().nullable().optional(),
   isActive: z.boolean().optional(),
 });
 
@@ -154,6 +159,8 @@ export async function updateVariantPrice(input: z.infer<typeof priceSchema>): Pr
     price_usd: parsed.data.priceUsd,
     price_cad: parsed.data.priceCad,
   };
+  if (parsed.data.costUsd !== undefined) update.cost_usd = parsed.data.costUsd;
+  if (parsed.data.costCad !== undefined) update.cost_cad = parsed.data.costCad;
   if (parsed.data.isActive !== undefined) update.is_active = parsed.data.isActive;
 
   const { error } = await admin
@@ -163,7 +170,6 @@ export async function updateVariantPrice(input: z.infer<typeof priceSchema>): Pr
   if (error) return { error: error.message };
 
   revalidatePath("/admin/products");
-  revalidatePath("/admin/catalog");
   revalidatePath("/products");
   return { ok: true };
 }

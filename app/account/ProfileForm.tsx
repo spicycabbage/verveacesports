@@ -74,12 +74,12 @@ export function ProfileForm({
         <Label htmlFor="country">Country</Label>
         <Select value={c} onValueChange={(v) => v && setC(v as "US" | "CA")}>
           <SelectTrigger id="country">
-            <SelectValue />
+            <SelectValue>{COUNTRIES[c].name}</SelectValue>
           </SelectTrigger>
           <SelectContent>
             {(Object.keys(COUNTRIES) as Array<"US" | "CA">).map((code) => (
               <SelectItem key={code} value={code}>
-                {COUNTRIES[code].flag} {COUNTRIES[code].name}
+                {COUNTRIES[code].name}
               </SelectItem>
             ))}
           </SelectContent>

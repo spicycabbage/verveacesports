@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useState } from "react";
 import { PaymentElement, useElements, useStripe } from "@stripe/react-stripe-js";
 import { Button } from "@/components/ui/button";
@@ -7,11 +8,13 @@ import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
 
 export function PaymentForm({
-  orderId,
+  disabled,
+  createPaymentIntent,
   onSuccess,
 }: {
-  orderId: string;
-  onSuccess: () => void;
+  disabled?: boolean;
+  createPaymentIntent: () => Promise<{ clientSecret: string; orderId: string }>;
+  onSuccess: (orderId: string) => void;
 }) {
   const stripe = useStripe();
   const elements = useElements();
@@ -19,27 +22,48 @@ export function PaymentForm({
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (!stripe || !elements) return;
+    if (!stripe || !elements || disabled) return;
 
     setSubmitting(true);
-    const { error, paymentIntent } = await stripe.confirmPayment({
-      elements,
-      confirmParams: {
-        return_url: `${window.location.origin}/checkout/success?order=${orderId}`,
-      },
-      redirect: "if_required",
-    });
+    try {
+      const { error: submitError } = await elements.submit();
+      if (submitError) {
+        toast.error(submitError.message ?? "Check your payment details");
+        return;
+      }
 
-    if (error) {
-      toast.error(error.message ?? "Payment failed");
+      const { clientSecret, orderId } = await createPaymentIntent();
+
+      const { error, paymentIntent } = await stripe.confirmPayment({
+        elements,
+        clientSecret,
+        confirmParams: {
+          return_url: `${window.location.origin}/checkout/success?order=${orderId}`,
+        },
+        redirect: "if_required",
+      });
+
+      if (error) {
+        toast.error(error.message ?? "Payment failed");
+        return;
+      }
+      if (paymentIntent?.status === "succeeded") {
+        // Navigate immediately — mark-paid runs in parallel so the UI isn't blocked
+        // on Stripe fee sync / extra round-trips.
+        void fetch("/api/stripe/confirm-order", {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({ orderId }),
+          keepalive: true,
+        }).catch(() => null);
+        onSuccess(orderId);
+      }
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : "Payment failed";
+      toast.error(msg);
+    } finally {
       setSubmitting(false);
-      return;
     }
-    if (paymentIntent?.status === "succeeded") {
-      onSuccess();
-      return;
-    }
-    setSubmitting(false);
   }
 
   return (
@@ -50,11 +74,24 @@ export function PaymentForm({
           wallets: { applePay: "auto", googlePay: "auto" },
         }}
       />
-      <Button type="submit" size="lg" className="w-full" disabled={!stripe || submitting}>
-        {submitting ? <Loader2 className="h-4 w-4 animate-spin" /> : "Pay now"}
+      <Button
+        type="submit"
+        size="lg"
+        className="w-full"
+        disabled={!stripe || submitting || disabled}
+      >
+        {submitting ? <Loader2 className="h-4 w-4 animate-spin" /> : "Pay for order"}
       </Button>
       <p className="text-center text-xs text-muted-foreground">
-        Secured by Stripe. Apple Pay &amp; Google Pay shown automatically when supported.
+        By completing payment you agree to our{" "}
+        <Link href="/terms" className="text-primary hover:underline">
+          Terms of Service
+        </Link>{" "}
+        and{" "}
+        <Link href="/privacy" className="text-primary hover:underline">
+          Privacy Policy
+        </Link>
+        . Secured by Stripe.
       </p>
     </form>
   );

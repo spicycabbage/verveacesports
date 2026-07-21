@@ -42,7 +42,7 @@ export default async function LoyaltyPage() {
           <CardDescription className="flex items-center gap-1.5">
             <Sparkles className="h-3.5 w-3.5 text-primary" /> Current balance
           </CardDescription>
-          <CardTitle className="text-4xl tabular-nums">
+          <CardTitle className="text-3xl tabular-nums sm:text-4xl">
             {formatPoints(profile?.loyalty_points ?? 0)} pts
           </CardTitle>
         </CardHeader>
@@ -62,35 +62,62 @@ export default async function LoyaltyPage() {
           {transactions.length === 0 ? (
             <p className="px-6 pb-6 text-sm text-muted-foreground">No activity yet.</p>
           ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Date</TableHead>
-                  <TableHead>Type</TableHead>
-                  <TableHead>Note</TableHead>
-                  <TableHead className="text-right">Points</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
+            <>
+              <div className="divide-y md:hidden">
                 {transactions.map((t) => (
-                  <TableRow key={t.id}>
-                    <TableCell className="text-muted-foreground">{formatDate(t.created_at)}</TableCell>
-                    <TableCell>
-                      <Badge variant="outline">{TYPE_LABEL[t.type]}</Badge>
-                    </TableCell>
-                    <TableCell className="text-muted-foreground">{t.note ?? ""}</TableCell>
-                    <TableCell
-                      className={`text-right font-semibold tabular-nums ${
-                        t.points >= 0 ? "text-primary" : "text-destructive"
-                      }`}
-                    >
-                      {t.points >= 0 ? "+" : ""}
-                      {formatPoints(t.points)}
-                    </TableCell>
-                  </TableRow>
+                  <div key={t.id} className="space-y-1.5 p-4">
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="min-w-0">
+                        <Badge variant="outline">{TYPE_LABEL[t.type]}</Badge>
+                        <p className="mt-1 text-xs text-muted-foreground">{formatDate(t.created_at)}</p>
+                      </div>
+                      <span
+                        className={`shrink-0 font-semibold tabular-nums ${
+                          t.points >= 0 ? "text-primary" : "text-destructive"
+                        }`}
+                      >
+                        {t.points >= 0 ? "+" : ""}
+                        {formatPoints(t.points)}
+                      </span>
+                    </div>
+                    {t.note && (
+                      <p className="text-sm text-muted-foreground break-words">{t.note}</p>
+                    )}
+                  </div>
                 ))}
-              </TableBody>
-            </Table>
+              </div>
+              <div className="hidden md:block">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Date</TableHead>
+                      <TableHead>Type</TableHead>
+                      <TableHead>Note</TableHead>
+                      <TableHead className="text-right">Points</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {transactions.map((t) => (
+                      <TableRow key={t.id}>
+                        <TableCell className="text-muted-foreground">{formatDate(t.created_at)}</TableCell>
+                        <TableCell>
+                          <Badge variant="outline">{TYPE_LABEL[t.type]}</Badge>
+                        </TableCell>
+                        <TableCell className="text-muted-foreground">{t.note ?? ""}</TableCell>
+                        <TableCell
+                          className={`text-right font-semibold tabular-nums ${
+                            t.points >= 0 ? "text-primary" : "text-destructive"
+                          }`}
+                        >
+                          {t.points >= 0 ? "+" : ""}
+                          {formatPoints(t.points)}
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+            </>
           )}
         </CardContent>
       </Card>

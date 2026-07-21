@@ -5,6 +5,8 @@ import { Card, CardContent } from "@/components/ui/card";
 import { buttonVariants } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { createSupabaseAdminClient } from "@/lib/supabase/admin";
+import { reconcileOrderIfPaid } from "@/lib/stripe/mark-order-paid";
 import { formatPrice } from "@/lib/utils/format";
 import type { Currency } from "@/lib/constants";
 
@@ -27,11 +29,32 @@ export default async function SuccessPage({
   } = await supabase.auth.getUser();
   if (!user) redirect("/login");
 
+  // Fast path: if confirm-order already flipped it, skip Stripe. Otherwise reconcile
+  // without fee sync so this page isn't blocked on balance-transaction fetches.
+  try {
+    await reconcileOrderIfPaid(createSupabaseAdminClient(), orderId, { syncFees: false });
+  } catch (err) {
+    console.error("checkout success reconcile failed", err);
+  }
+
   const { data: order } = await supabase
     .from("orders")
-    .select("id, status, currency, subtotal, shipping, total, points_redeemed, points_value")
+    .select(
+      "id, status, financial_status, currency, subtotal, shipping, total, points_redeemed, points_value",
+    )
     .eq("id", orderId)
     .single();
+
+  const isPaid =
+    order?.status === "paid" ||
+    order?.financial_status === "paid" ||
+    order?.financial_status === "partially_refunded";
+
+  const statusLabel = isPaid
+    ? "Paid"
+    : order?.status === "cancelled"
+      ? "Cancelled"
+      : "Processing";
 
   return (
     <div className="mx-auto max-w-xl px-4 py-16">
@@ -50,13 +73,23 @@ export default async function SuccessPage({
               <Row
                 label="Status"
                 value={
-                  <span className="capitalize rounded-full bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary">
-                    {order.status}
+                  <span className="rounded-full bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary">
+                    {statusLabel}
                   </span>
                 }
               />
-              <Row label="Subtotal" value={formatPrice(Number(order.subtotal), order.currency as Currency)} />
-              <Row label="Shipping" value={Number(order.shipping) === 0 ? "FREE" : formatPrice(Number(order.shipping), order.currency as Currency)} />
+              <Row
+                label="Subtotal"
+                value={formatPrice(Number(order.subtotal), order.currency as Currency)}
+              />
+              <Row
+                label="Shipping"
+                value={
+                  Number(order.shipping) === 0
+                    ? "FREE"
+                    : formatPrice(Number(order.shipping), order.currency as Currency)
+                }
+              />
               {Number(order.points_value) > 0 && (
                 <Row
                   label="Points redeemed"
@@ -66,13 +99,19 @@ export default async function SuccessPage({
               <Separator />
               <Row
                 label={<strong>Total paid</strong>}
-                value={<strong>{formatPrice(Number(order.total), order.currency as Currency)}</strong>}
+                value={
+                  <strong>{formatPrice(Number(order.total), order.currency as Currency)}</strong>
+                }
               />
             </div>
           )}
           <div className="flex items-center justify-center gap-2 rounded-md bg-accent p-3 text-sm text-accent-foreground">
             <Sparkles className="h-4 w-4" />
-            <span>Loyalty points are awarded once payment clears.</span>
+            <span>
+              {isPaid
+                ? "Payment received. Loyalty points for this order will show in your account shortly."
+                : "We’re confirming payment with Stripe — this usually takes a few seconds."}
+            </span>
           </div>
           <div className="flex flex-col gap-2 sm:flex-row sm:justify-center">
             <Link href={`/account/orders/${orderId}`} className={buttonVariants({})}>

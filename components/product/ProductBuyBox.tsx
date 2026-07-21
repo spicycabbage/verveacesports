@@ -23,15 +23,27 @@ type Props = {
   product: Product;
   variants: StorefrontVariant[];
   productOptions?: ProductOption[];
+  selection?: Partial<Record<VariantOptionKey, string>>;
+  onSelectionChange?: (selection: Partial<Record<VariantOptionKey, string>>) => void;
 };
 
-export function ProductBuyBox({ product, variants, productOptions = [] }: Props) {
+export function ProductBuyBox({
+  product,
+  variants,
+  productOptions = [],
+  selection: controlledSelection,
+  onSelectionChange,
+}: Props) {
   const axes = useMemo(
     () => buildOptionAxes(variants, productOptions),
     [variants, productOptions],
   );
   const showPicker = shouldShowVariantPicker(variants, axes);
-  const [selection, setSelection] = useState(() => initialSelection(variants, axes));
+  const [internalSelection, setInternalSelection] = useState(() =>
+    initialSelection(variants, axes),
+  );
+  const selection = controlledSelection ?? internalSelection;
+  const setSelection = onSelectionChange ?? setInternalSelection;
   const [qty, setQty] = useState(1);
   const { add, open } = useCartStore();
 
@@ -56,14 +68,14 @@ export function ProductBuyBox({ product, variants, productOptions = [] }: Props)
   }, [axes, selection, variants]);
 
   function onSelect(key: VariantOptionKey, value: string) {
-    setSelection((prev) => ({ ...prev, [key]: value }));
+    setSelection({ ...selection, [key]: value });
     setQty(1);
   }
 
-  const stock = selected?.available ?? product.stock;
+  const stock = selected?.available ?? 0;
   const disabled = !selected || stock === 0;
-  const priceUsd = selected?.priceUsd ?? Number(product.price_usd);
-  const priceCad = selected?.priceCad ?? Number(product.price_cad);
+  const priceUsd = selected?.priceUsd ?? 0;
+  const priceCad = selected?.priceCad ?? 0;
 
   function handleAdd() {
     if (!selected) return;
@@ -74,7 +86,7 @@ export function ProductBuyBox({ product, variants, productOptions = [] }: Props)
         variantLabel: variantLabel(selected),
         slug: product.slug,
         name: product.name,
-        image: product.images?.[0] ?? "",
+        image: selected?.imageUrl ?? product.images?.[0] ?? "",
         priceUsd,
         priceCad,
         stock,
@@ -89,12 +101,12 @@ export function ProductBuyBox({ product, variants, productOptions = [] }: Props)
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center gap-3">
+    <div className="space-y-5 sm:space-y-6">
+      <div className="flex flex-wrap items-center gap-2 sm:gap-3">
         <ProductPrice
           priceUsd={priceUsd}
           priceCad={priceCad}
-          className="text-2xl font-bold tabular-nums"
+          className="text-xl font-bold tabular-nums sm:text-2xl"
         />
         {stock === 0 ? (
           <Badge variant="secondary">Sold out</Badge>
@@ -116,11 +128,12 @@ export function ProductBuyBox({ product, variants, productOptions = [] }: Props)
         />
       )}
 
-      <div className="flex flex-wrap items-center gap-3">
-        <div className="flex items-center rounded-md border">
+      <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center">
+        <div className="flex w-full items-center rounded-md border sm:w-fit">
           <Button
             variant="ghost"
             size="icon"
+            className="size-10"
             onClick={() => setQty((q) => Math.max(1, q - 1))}
             disabled={disabled}
           >
@@ -130,13 +143,14 @@ export function ProductBuyBox({ product, variants, productOptions = [] }: Props)
           <Button
             variant="ghost"
             size="icon"
+            className="size-10"
             onClick={() => setQty((q) => Math.min(stock, q + 1))}
             disabled={disabled}
           >
             <Plus className="h-4 w-4" />
           </Button>
         </div>
-        <Button size="lg" onClick={handleAdd} disabled={disabled} className="flex-1">
+        <Button size="lg" onClick={handleAdd} disabled={disabled} className="w-full sm:min-w-[12rem] sm:flex-1">
           <ShoppingBag className="h-4 w-4" />
           {disabled ? "Out of stock" : "Add to cart"}
         </Button>

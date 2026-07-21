@@ -1,6 +1,13 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import {
+  forwardRef,
+  useImperativeHandle,
+  useRef,
+  useState,
+  useTransition,
+  type RefObject,
+} from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { Card, CardContent } from "@/components/ui/card";
@@ -8,7 +15,6 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Badge } from "@/components/ui/badge";
 import {
   Table,
   TableBody,
@@ -18,10 +24,9 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { updateProductOptions, updateVariantDetails } from "@/lib/actions/catalog";
-import { createVariant } from "@/lib/actions/inventory";
+import { createVariant, setInventoryOnHand } from "@/lib/actions/inventory";
 import type { ProductOption } from "@/lib/supabase/types";
 import { Plus } from "lucide-react";
-import Link from "next/link";
 
 export type AdminVariantRow = {
   id: string;
@@ -33,29 +38,34 @@ export type AdminVariantRow = {
   priceUsd: number;
   priceCad: number;
   isActive: boolean;
+  onHand: number;
+  reserved: number;
   available: number;
 };
 
 type Props = {
   productId: string;
+  locationId: string;
   productOptions: ProductOption[];
   variants: AdminVariantRow[];
   defaultPriceUsd: number;
   defaultPriceCad: number;
 };
 
-export function VariantManager({
-  productId,
-  productOptions,
-  variants,
-  defaultPriceUsd,
-  defaultPriceCad,
-}: Props) {
+export type VariantManagerHandle = {
+  saveAll: () => Promise<{ ok: true } | { error: string } | null>;
+};
+
+export const VariantManager = forwardRef<VariantManagerHandle, Props>(function VariantManager(
+  { productId, locationId, productOptions, variants, defaultPriceUsd, defaultPriceCad },
+  ref,
+) {
   const router = useRouter();
   const [pending, start] = useTransition();
   const [opt1Name, setOpt1Name] = useState(productOptions[0]?.name ?? "");
   const [opt2Name, setOpt2Name] = useState(productOptions[1]?.name ?? "");
   const [opt3Name, setOpt3Name] = useState(productOptions[2]?.name ?? "");
+  const rowRefs = useRef<Map<string, VariantRowHandle>>(new Map());
 
   const [newSku, setNewSku] = useState("");
   const [newTitle, setNewTitle] = useState("");
@@ -66,43 +76,43 @@ export function VariantManager({
   const [newCad, setNewCad] = useState(String(defaultPriceCad));
   const [newStock, setNewStock] = useState("0");
 
-  function saveOptionNames() {
-    start(async () => {
-      const res = await updateProductOptions({
-        productId,
-        option1Name: opt1Name || undefined,
-        option2Name: opt2Name || undefined,
-        option3Name: opt3Name || undefined,
-      });
-      if ("error" in res) toast.error(res.error);
-      else {
-        toast.success("Option labels saved");
-        router.refresh();
-      }
-    });
-  }
+  const optionLabelsDirty =
+    opt1Name !== (productOptions[0]?.name ?? "") ||
+    opt2Name !== (productOptions[1]?.name ?? "") ||
+    opt3Name !== (productOptions[2]?.name ?? "");
 
-  function saveVariant(v: AdminVariantRow, patch: Partial<AdminVariantRow>) {
-    start(async () => {
-      const res = await updateVariantDetails({
-        variantId: v.id,
-        productId,
-        sku: patch.sku ?? v.sku ?? undefined,
-        title: patch.title ?? v.title,
-        option1: patch.option1 ?? v.option1 ?? undefined,
-        option2: patch.option2 ?? v.option2 ?? undefined,
-        option3: patch.option3 ?? v.option3 ?? undefined,
-        priceUsd: patch.priceUsd ?? v.priceUsd,
-        priceCad: patch.priceCad ?? v.priceCad,
-        isActive: patch.isActive ?? v.isActive,
-      });
-      if ("error" in res) toast.error(res.error);
-      else {
-        toast.success("Variant updated");
-        router.refresh();
-      }
-    });
-  }
+  useImperativeHandle(
+    ref,
+    () => ({
+      async saveAll() {
+        if (optionLabelsDirty) {
+          const res = await updateProductOptions({
+            productId,
+            option1Name: opt1Name || undefined,
+            option2Name: opt2Name || undefined,
+            option3Name: opt3Name || undefined,
+          });
+          if ("error" in res) return res;
+        }
+
+        let anyVariantChange = false;
+        for (const v of variants) {
+          const handle = rowRefs.current.get(v.id);
+          if (!handle) continue;
+          const res = await handle.saveIfDirty();
+          if (res === null) continue;
+          anyVariantChange = true;
+          if ("error" in res) return res;
+        }
+
+        if (!optionLabelsDirty && !anyVariantChange) {
+          return null;
+        }
+        return { ok: true };
+      },
+    }),
+    [optionLabelsDirty, opt1Name, opt2Name, opt3Name, productId, variants],
+  );
 
   function addVariant() {
     if (!newTitle.trim()) {
@@ -142,8 +152,8 @@ export function VariantManager({
           <div>
             <h2 className="text-sm font-semibold">Variant options</h2>
             <p className="text-xs text-muted-foreground">
-              Labels shown on the product page picker (e.g. Size, Color). Values come from each
-              variant row below.
+              Labels shown on the product page picker (e.g. Size, Color). Saved with{" "}
+              <strong>Save product</strong> below.
             </p>
           </div>
           <div className="grid gap-3 sm:grid-cols-3">
@@ -175,23 +185,15 @@ export function VariantManager({
               />
             </div>
           </div>
-          <Button size="sm" variant="secondary" onClick={saveOptionNames} disabled={pending}>
-            Save option labels
-          </Button>
         </CardContent>
       </Card>
 
       <Card>
         <CardContent className="space-y-3 py-4">
-          <div className="flex items-center justify-between gap-2">
-            <h2 className="text-sm font-semibold">Variants ({variants.length})</h2>
-            <Link
-              href="/admin/products"
-              className="text-xs text-primary underline-offset-2 hover:underline"
-            >
-              Adjust stock in Inventory →
-            </Link>
-          </div>
+          <h2 className="text-sm font-semibold">Variants & inventory ({variants.length})</h2>
+          <p className="text-xs text-muted-foreground">
+            Edit rows below, then use <strong>Save product</strong> at the bottom.
+          </p>
           <div className="overflow-x-auto">
             <Table>
               <TableHeader>
@@ -202,7 +204,7 @@ export function VariantManager({
                   <TableHead>{opt2Name || "Opt 2"}</TableHead>
                   <TableHead>USD</TableHead>
                   <TableHead>CAD</TableHead>
-                  <TableHead>Avail</TableHead>
+                  <TableHead>Stock</TableHead>
                   <TableHead>Active</TableHead>
                 </TableRow>
               </TableHeader>
@@ -210,11 +212,12 @@ export function VariantManager({
                 {variants.map((v) => (
                   <VariantRow
                     key={v.id}
+                    productId={productId}
+                    locationId={locationId}
                     variant={v}
                     opt1Label={opt1Name}
                     opt2Label={opt2Name}
-                    onSave={saveVariant}
-                    disabled={pending}
+                    rowRefs={rowRefs}
                   />
                 ))}
               </TableBody>
@@ -226,6 +229,9 @@ export function VariantManager({
       <Card>
         <CardContent className="space-y-3 py-4">
           <h2 className="text-sm font-semibold">Add variant</h2>
+          <p className="text-xs text-muted-foreground">
+            New variants are created immediately — they do not wait for Save product.
+          </p>
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
             <Field label="Title" value={newTitle} onChange={setNewTitle} placeholder="Default" />
             <Field label="SKU" value={newSku} onChange={setNewSku} placeholder="APEXRUNNERM" />
@@ -253,7 +259,7 @@ export function VariantManager({
       </Card>
     </div>
   );
-}
+});
 
 function Field({
   label,
@@ -282,18 +288,24 @@ function Field({
   );
 }
 
+export type VariantRowHandle = {
+  saveIfDirty: () => Promise<{ ok: true } | { error: string } | null>;
+};
+
 function VariantRow({
+  productId,
+  locationId,
   variant: v,
   opt1Label,
   opt2Label,
-  onSave,
-  disabled,
+  rowRefs,
 }: {
+  productId: string;
+  locationId: string;
   variant: AdminVariantRow;
   opt1Label: string;
   opt2Label: string;
-  onSave: (v: AdminVariantRow, patch: Partial<AdminVariantRow>) => void;
-  disabled: boolean;
+  rowRefs: RefObject<Map<string, VariantRowHandle>>;
 }) {
   const [title, setTitle] = useState(v.title);
   const [sku, setSku] = useState(v.sku ?? "");
@@ -302,8 +314,9 @@ function VariantRow({
   const [usd, setUsd] = useState(String(v.priceUsd));
   const [cad, setCad] = useState(String(v.priceCad));
   const [active, setActive] = useState(v.isActive);
+  const [qty, setQty] = useState("");
 
-  const dirty =
+  const variantDirty =
     title !== v.title ||
     sku !== (v.sku ?? "") ||
     opt1 !== (v.option1 ?? "") ||
@@ -311,6 +324,59 @@ function VariantRow({
     usd !== String(v.priceUsd) ||
     cad !== String(v.priceCad) ||
     active !== v.isActive;
+
+  const handleRef = useRef<VariantRowHandle>({ saveIfDirty: async () => null });
+
+  handleRef.current.saveIfDirty = async () => {
+    const stockTarget = qty.trim() === "" ? null : Number.parseInt(qty, 10);
+    const stockDirty =
+      stockTarget !== null &&
+      !Number.isNaN(stockTarget) &&
+      stockTarget >= 0 &&
+      stockTarget !== v.onHand;
+
+    if (!variantDirty && !stockDirty) {
+      return null;
+    }
+
+    if (stockTarget !== null && (Number.isNaN(stockTarget) || stockTarget < 0)) {
+      return { error: "Enter a valid stock quantity (0 or higher)" };
+    }
+
+    const usdNum = Number(usd);
+    const cadNum = Number(cad);
+    if (Number.isNaN(usdNum) || usdNum < 0 || Number.isNaN(cadNum) || cadNum < 0) {
+      return { error: "Enter valid variant prices (0 or higher)" };
+    }
+
+    if (variantDirty) {
+      const res = await updateVariantDetails({
+        variantId: v.id,
+        productId,
+        sku: sku || undefined,
+        title,
+        option1: opt1 || undefined,
+        option2: opt2 || undefined,
+        priceUsd: usdNum,
+        priceCad: cadNum,
+        isActive: active,
+      });
+      if ("error" in res) return res;
+    }
+
+    if (stockDirty && stockTarget !== null) {
+      const res = await setInventoryOnHand({
+        variantId: v.id,
+        locationId,
+        onHand: stockTarget,
+      });
+      if ("error" in res) return res;
+    }
+
+    return { ok: true };
+  };
+
+  rowRefs.current.set(v.id, handleRef.current);
 
   return (
     <TableRow>
@@ -333,32 +399,21 @@ function VariantRow({
         <Input className="h-8 w-20 tabular-nums" type="number" step="0.01" value={cad} onChange={(e) => setCad(e.target.value)} />
       </TableCell>
       <TableCell>
-        <Badge variant={v.available <= 0 ? "destructive" : "outline"}>{v.available}</Badge>
+        <div className="flex items-center gap-1.5">
+          <span className="w-8 tabular-nums text-sm">{v.onHand}</span>
+          <Input
+            type="number"
+            min={0}
+            step={1}
+            placeholder={String(v.onHand)}
+            className="h-8 w-16 tabular-nums"
+            value={qty}
+            onChange={(e) => setQty(e.target.value)}
+          />
+        </div>
       </TableCell>
       <TableCell>
-        <div className="flex items-center gap-2">
-          <Checkbox checked={active} onCheckedChange={(c) => setActive(c === true)} />
-          {dirty && (
-            <Button
-              size="xs"
-              variant="secondary"
-              disabled={disabled}
-              onClick={() =>
-                onSave(v, {
-                  title,
-                  sku,
-                  option1: opt1,
-                  option2: opt2,
-                  priceUsd: Number(usd),
-                  priceCad: Number(cad),
-                  isActive: active,
-                })
-              }
-            >
-              Save
-            </Button>
-          )}
-        </div>
+        <Checkbox checked={active} onCheckedChange={(c) => setActive(c === true)} />
       </TableCell>
     </TableRow>
   );

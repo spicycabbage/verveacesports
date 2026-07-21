@@ -91,11 +91,13 @@ export type ProductVariant = {
   compare_at_usd: number | null;
   compare_at_cad: number | null;
   cost_usd: number | null;
+  cost_cad: number | null;
   weight_grams: number;
   requires_shipping: boolean;
   taxable: boolean;
   position: number;
   is_active: boolean;
+  image_url: string | null;
   created_at: string;
 };
 
@@ -155,6 +157,8 @@ export type OrderItem = {
   fulfilled_qty: number;
   refunded_qty: number;
   unit_price: number;
+  cost_usd: number | null;
+  cost_cad: number | null;
   currency: string;
   product_name: string;
   product_image: string | null;
@@ -246,6 +250,19 @@ export type Discount = {
   created_at: string;
 };
 
+export type ShippingRateWithZone = {
+  id: string;
+  zone_id: string;
+  name: string;
+  price_usd: number;
+  price_cad: number;
+  min_subtotal: number;
+  free_over: number | null;
+  is_active: boolean;
+  position: number;
+  shipping_zones: { name: string; countries: string[] };
+};
+
 export type OrderWithItems = Order & { order_items: OrderItem[] };
 
 export type ShippingAddress = {
@@ -275,4 +292,38 @@ export type Referral = {
   status: ReferralStatus;
   qualified_at: string | null;
   created_at: string;
+};
+
+export type RefundLineItem = {
+  id: string;
+  refund_id: string;
+  order_item_id: string;
+  qty: number;
+  amount: number;
+};
+
+export type StripeBalanceTransaction = {
+  id: string;
+  stripe_charge_id: string | null;
+  stripe_refund_id: string | null;
+  stripe_payout_id: string | null;
+  order_id: string | null;
+  type: string;
+  currency: "USD" | "CAD";
+  gross: number;
+  fee: number;
+  net: number;
+  available_on: string | null;
+  created_at: string;
+};
+
+export type StripePayout = {
+  id: string;
+  currency: "USD" | "CAD";
+  amount: number;
+  status: string;
+  arrival_date: string | null;
+  description: string | null;
+  created_at: string;
+  updated_at: string;
 };

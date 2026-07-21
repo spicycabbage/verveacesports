@@ -10,6 +10,8 @@ type Props = {
   product: Product;
   variantId: string;
   variantLabel?: string;
+  priceUsd: number;
+  priceCad: number;
   qty?: number;
   compact?: boolean;
 };
@@ -18,6 +20,8 @@ export function AddToCartButton({
   product,
   variantId,
   variantLabel = "Default",
+  priceUsd,
+  priceCad,
   qty = 1,
   compact = false,
 }: Props) {
@@ -34,8 +38,8 @@ export function AddToCartButton({
         slug: product.slug,
         name: product.name,
         image: product.images?.[0] ?? "",
-        priceUsd: Number(product.price_usd),
-        priceCad: Number(product.price_cad),
+        priceUsd,
+        priceCad,
         stock: product.stock,
       },
       qty,
@@ -53,7 +57,7 @@ export function AddToCartButton({
         disabled={disabled}
         onClick={handleAdd}
         aria-label="Add to cart"
-        className="h-8 w-8"
+        className="size-10"
       >
         <Plus className="h-4 w-4" />
       </Button>

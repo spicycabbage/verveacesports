@@ -1,14 +1,15 @@
 import Link from "next/link";
 import { redirect, notFound } from "next/navigation";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
-import { LayoutDashboard, Package, Boxes, Ticket, BookOpen } from "lucide-react";
+import { LayoutDashboard, Package, Boxes, Ticket, Truck, BarChart3 } from "lucide-react";
 
 const NAV = [
   { href: "/admin", label: "Overview", icon: LayoutDashboard },
   { href: "/admin/orders", label: "Orders", icon: Package },
-  { href: "/admin/catalog", label: "Catalog", icon: BookOpen },
-  { href: "/admin/products", label: "Inventory", icon: Boxes },
-  { href: "/admin/discounts", label: "Discounts", icon: Ticket },
+  { href: "/admin/finance", label: "Finance", icon: BarChart3 },
+  { href: "/admin/products", label: "Products", icon: Boxes },
+  { href: "/admin/discounts", label: "Coupons", icon: Ticket },
+  { href: "/admin/shipping", label: "Shipping", icon: Truck },
 ];
 
 export default async function AdminLayout({
@@ -31,23 +32,23 @@ export default async function AdminLayout({
 
   return (
     <div className="mx-auto grid max-w-6xl gap-6 px-4 py-8 md:grid-cols-[200px_1fr]">
-      <aside className="space-y-1">
+      <aside className="min-w-0 space-y-1">
         <h2 className="mb-2 px-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
           Admin
         </h2>
-        <nav className="flex flex-row gap-1 md:flex-col">
+        <nav className="-mx-1 flex gap-1 overflow-x-auto pb-1 md:mx-0 md:flex-col md:overflow-visible [-webkit-overflow-scrolling:touch]">
           {NAV.map((item) => (
             <Link
               key={item.href}
               href={item.href}
-              className="flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium hover:bg-accent"
+              className="flex shrink-0 items-center gap-2 whitespace-nowrap rounded-md px-3 py-2.5 text-sm font-medium hover:bg-accent md:shrink md:whitespace-normal md:py-2"
             >
               <item.icon className="h-4 w-4" /> {item.label}
             </Link>
           ))}
         </nav>
       </aside>
-      <section>{children}</section>
+      <section className="min-w-0">{children}</section>
     </div>
   );
 }

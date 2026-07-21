@@ -22,6 +22,11 @@ export const CATEGORY_LABELS: Record<Category, string> = {
   "golf-gear": "Golf Gear",
 };
 
+export function countryName(code: string | null | undefined): string {
+  if (code === "US" || code === "CA") return COUNTRIES[code].name;
+  return code ?? "";
+}
+
 export function categoryLabel(category: string): string {
   if ((CATEGORIES as readonly string[]).includes(category)) {
     return CATEGORY_LABELS[category as Category];

@@ -34,7 +34,7 @@ export function ProductFilters() {
       <div className="flex flex-wrap items-center gap-2">
         <Link
           href="/products"
-          className={`rounded-full border px-3 py-1 text-xs font-medium ${!category ? "bg-foreground text-background" : "hover:bg-accent"}`}
+          className={`rounded-full border px-3 py-2 text-sm font-medium min-h-11 flex items-center ${!category ? "bg-foreground text-background" : "hover:bg-accent"}`}
         >
           All
         </Link>
@@ -42,14 +42,14 @@ export function ProductFilters() {
           <Link
             key={c}
             href={`/products?category=${c}`}
-            className={`rounded-full border px-3 py-1 text-xs font-medium ${category === c ? "bg-foreground text-background" : "hover:bg-accent"}`}
+            className={`rounded-full border px-3 py-2 text-sm font-medium min-h-11 flex items-center ${category === c ? "bg-foreground text-background" : "hover:bg-accent"}`}
           >
             {categoryLabel(c)}
           </Link>
         ))}
-        <div className="ml-auto">
+        <div className="w-full sm:ml-auto sm:w-auto">
           <Select value={sort} onValueChange={(v) => setParam("sort", v === "newest" ? null : v)}>
-            <SelectTrigger className="w-[160px]">
+            <SelectTrigger className="w-full sm:w-[160px]">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -70,7 +70,7 @@ export function ProductFilters() {
               type="button"
               variant="ghost"
               size="icon"
-              className="-mr-1 h-4 w-4"
+              className="-mr-1 size-8"
               onClick={() => setParam("q", null)}
               aria-label="Clear search"
             >
