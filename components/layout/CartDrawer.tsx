@@ -9,28 +9,38 @@ import {
 } from "@/components/ui/sheet";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
+import { CartPromoFields } from "@/components/cart/CartPromoFields";
 import { useCartStore, cartSubtotal, cartLineKey } from "@/lib/store/cart";
 import { useCountryStore } from "@/lib/store/country";
+import { useCartPromo } from "@/lib/store/use-cart-promo";
 import { formatPrice } from "@/lib/utils/format";
 import { Minus, Plus, Trash2, ShoppingBag } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import { useDictionary } from "@/lib/i18n/I18nProvider";
+import { sizedImageUrl } from "@/lib/images/cdn";
 
 export function CartDrawer() {
+  const dict = useDictionary();
   const { items, isOpen, close, setQty, remove } = useCartStore();
   const { currency } = useCountryStore();
   const [mounted, setMounted] = useState(false);
   useEffect(() => setMounted(true), []);
 
-  const subtotal = mounted ? cartSubtotal(items, currency) : 0;
+  const promo = useCartPromo(mounted && isOpen && items.length > 0);
+  const subtotal = mounted
+    ? (promo.quote?.subtotal ?? cartSubtotal(items, currency))
+    : 0;
+  const discountTotal = promo.discountTotal;
+  const estimated = Math.max(0, subtotal - discountTotal);
 
   return (
     <Sheet open={isOpen} onOpenChange={(o) => (o ? null : close())}>
       <SheetContent className="flex w-full flex-col gap-0 sm:max-w-md">
         <SheetHeader className="border-b">
           <SheetTitle className="flex items-center gap-2">
-            <ShoppingBag className="h-5 w-5" /> Your Cart
+            <ShoppingBag className="h-5 w-5" /> {dict.cart.title}
           </SheetTitle>
         </SheetHeader>
 
@@ -38,13 +48,13 @@ export function CartDrawer() {
           {!mounted ? null : items.length === 0 ? (
             <div className="grid place-items-center gap-2 py-20 text-center text-sm text-muted-foreground">
               <ShoppingBag className="h-10 w-10 opacity-30" />
-              <p>Your cart is empty.</p>
+              <p>{dict.cart.empty}</p>
               <Link
                 href="/products"
                 onClick={close}
                 className={buttonVariants({ variant: "link" })}
               >
-                Browse products
+                {dict.cart.browseProducts}
               </Link>
             </div>
           ) : (
@@ -56,7 +66,13 @@ export function CartDrawer() {
                     <div className="flex min-w-0 gap-3">
                       <div className="relative h-20 w-20 shrink-0 overflow-hidden rounded-md bg-white">
                         {i.image ? (
-                          <Image src={i.image} alt={i.name} fill sizes="80px" className="object-cover" />
+                          <Image
+                            src={sizedImageUrl(i.image, 160)}
+                            alt={i.name}
+                            fill
+                            sizes="80px"
+                            className="object-cover"
+                          />
                         ) : null}
                       </div>
                       <div className="min-w-0 flex-1">
@@ -106,7 +122,7 @@ export function CartDrawer() {
                         variant="ghost"
                         className="size-10 text-muted-foreground hover:text-destructive"
                         onClick={() => remove(i.productId, i.variantId)}
-                        aria-label="Remove item"
+                        aria-label={dict.cart.removeItem}
                       >
                         <Trash2 className="h-4 w-4" />
                       </Button>
@@ -124,22 +140,41 @@ export function CartDrawer() {
         {mounted && items.length > 0 && (
           <SheetFooter className="border-t pb-[max(1rem,env(safe-area-inset-bottom))]">
             <div className="w-full space-y-3">
+              <CartPromoFields promo={promo} compact />
+              <Separator />
               <div className="flex items-center justify-between text-sm">
-                <span className="text-muted-foreground">Subtotal</span>
+                <span className="text-muted-foreground">{dict.cart.subtotal}</span>
                 <span className="font-semibold tabular-nums">
                   {formatPrice(subtotal, currency)}
                 </span>
               </div>
+              {discountTotal > 0 && (
+                <div className="flex items-center justify-between text-sm text-primary">
+                  <span>
+                    {dict.cart.discount}
+                    {promo.promoCode ? ` (${promo.promoCode})` : ""}
+                  </span>
+                  <span className="font-semibold tabular-nums">
+                    −{formatPrice(discountTotal, currency)}
+                  </span>
+                </div>
+              )}
+              {discountTotal > 0 && (
+                <div className="flex items-center justify-between text-sm font-semibold">
+                  <span>{dict.cart.estimatedTotal}</span>
+                  <span className="tabular-nums">{formatPrice(estimated, currency)}</span>
+                </div>
+              )}
               <Separator />
               <Link
                 href="/checkout"
                 onClick={close}
                 className={buttonVariants({ size: "lg", className: "w-full" })}
               >
-                Checkout
+                {dict.cart.checkout}
               </Link>
               <p className="text-center text-xs text-muted-foreground">
-                Shipping &amp; taxes calculated at checkout.
+                {dict.cart.shippingTaxesNote}
               </p>
             </div>
           </SheetFooter>
@@ -148,3 +183,4 @@ export function CartDrawer() {
     </Sheet>
   );
 }
+

@@ -5,17 +5,24 @@ import Image from "next/image";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
+import { CartPromoFields } from "@/components/cart/CartPromoFields";
 import { useCartStore, cartSubtotal, cartLineKey } from "@/lib/store/cart";
 import { useCountryStore } from "@/lib/store/country";
+import { useCartPromo } from "@/lib/store/use-cart-promo";
 import { formatPrice } from "@/lib/utils/format";
+import { useDictionary } from "@/lib/i18n/I18nProvider";
+import { sizedImageUrl } from "@/lib/images/cdn";
 import { Minus, Plus, ShoppingBag, Trash2 } from "lucide-react";
 import { useEffect, useState } from "react";
 
 export function CartView() {
+  const dict = useDictionary();
   const { items, setQty, remove } = useCartStore();
   const { currency } = useCountryStore();
   const [mounted, setMounted] = useState(false);
   useEffect(() => setMounted(true), []);
+
+  const promo = useCartPromo(mounted && items.length > 0);
 
   if (!mounted) return null;
 
@@ -24,19 +31,19 @@ export function CartView() {
       <Card>
         <CardContent className="grid place-items-center gap-3 py-20 text-center">
           <ShoppingBag className="h-10 w-10 text-muted-foreground/50" />
-          <h2 className="text-lg font-semibold">Your cart is empty</h2>
-          <p className="text-sm text-muted-foreground">
-            Discover gear that pushes your performance.
-          </p>
+          <h2 className="text-lg font-semibold">{dict.cart.empty}</h2>
+          <p className="text-sm text-muted-foreground">{dict.cart.emptyHint}</p>
           <Link href="/products" className={buttonVariants({ className: "mt-2" })}>
-            Browse products
+            {dict.cart.browseProducts}
           </Link>
         </CardContent>
       </Card>
     );
   }
 
-  const subtotal = cartSubtotal(items, currency);
+  const subtotal = promo.quote?.subtotal ?? cartSubtotal(items, currency);
+  const discountTotal = promo.discountTotal;
+  const estimated = Math.max(0, subtotal - discountTotal);
 
   return (
     <div className="grid gap-6 lg:grid-cols-3">
@@ -49,7 +56,13 @@ export function CartView() {
                 <div className="flex gap-3 sm:gap-4">
                   <div className="relative h-20 w-20 shrink-0 overflow-hidden rounded-md bg-white sm:h-24 sm:w-24">
                     {i.image && (
-                      <Image src={i.image} alt={i.name} fill sizes="96px" className="object-cover" />
+                      <Image
+                        src={sizedImageUrl(i.image, 192)}
+                        alt={i.name}
+                        fill
+                        sizes="96px"
+                        className="object-cover"
+                      />
                     )}
                   </div>
                   <div className="min-w-0 flex-1">
@@ -96,7 +109,7 @@ export function CartView() {
                     className="text-muted-foreground hover:text-destructive"
                     onClick={() => remove(i.productId, i.variantId)}
                   >
-                    <Trash2 className="h-4 w-4" /> Remove
+                    <Trash2 className="h-4 w-4" /> {dict.cart.remove}
                   </Button>
                 </div>
                 <div className="hidden text-right text-base font-semibold tabular-nums sm:block">
@@ -110,22 +123,33 @@ export function CartView() {
 
       <Card className="h-fit lg:sticky lg:top-24">
         <CardContent className="space-y-4">
-          <h2 className="text-lg font-semibold">Order summary</h2>
+          <h2 className="text-lg font-semibold">{dict.cart.orderSummary}</h2>
+          <CartPromoFields promo={promo} />
+          <Separator />
           <div className="flex justify-between text-sm">
-            <span className="text-muted-foreground">Subtotal</span>
+            <span className="text-muted-foreground">{dict.cart.subtotal}</span>
             <span className="tabular-nums">{formatPrice(subtotal, currency)}</span>
           </div>
+          {discountTotal > 0 && (
+            <div className="flex justify-between text-sm text-primary">
+              <span>
+                {dict.cart.discount}
+                {promo.promoCode ? ` (${promo.promoCode})` : ""}
+              </span>
+              <span className="tabular-nums">−{formatPrice(discountTotal, currency)}</span>
+            </div>
+          )}
           <div className="flex justify-between text-sm">
-            <span className="text-muted-foreground">Shipping</span>
-            <span className="text-muted-foreground">Calculated at checkout</span>
+            <span className="text-muted-foreground">{dict.cart.shipping}</span>
+            <span className="text-muted-foreground">{dict.cart.shippingCalc}</span>
           </div>
           <Separator />
           <div className="flex justify-between text-base font-semibold">
-            <span>Estimated total</span>
-            <span className="tabular-nums">{formatPrice(subtotal, currency)}</span>
+            <span>{dict.cart.estimatedTotal}</span>
+            <span className="tabular-nums">{formatPrice(estimated, currency)}</span>
           </div>
           <Link href="/checkout" className={buttonVariants({ size: "lg", className: "w-full" })}>
-            Proceed to checkout
+            {dict.cart.proceedCheckout}
           </Link>
         </CardContent>
       </Card>

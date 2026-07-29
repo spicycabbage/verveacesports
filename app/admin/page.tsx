@@ -3,7 +3,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { formatPrice, formatDate } from "@/lib/utils/format";
-import { COUNTRIES, countryName } from "@/lib/constants";
+import { countryName } from "@/lib/constants";
 import type { Order, OrderStatus } from "@/lib/supabase/types";
 import type { Currency } from "@/lib/constants";
 import Link from "next/link";
@@ -23,18 +23,13 @@ export default async function AdminOverviewPage() {
 
   const { data: paidOrders } = await supabase
     .from("orders")
-    .select("currency, country, total")
+    .select("currency, total")
     .eq("status", "paid");
-  const orders = (paidOrders ?? []) as Pick<Order, "currency" | "country" | "total">[];
+  const orders = (paidOrders ?? []) as Pick<Order, "currency" | "total">[];
 
   const byCurrency: Record<Currency, number> = { USD: 0, CAD: 0 };
-  const byCountry: Record<"US" | "CA", number> = { US: 0, CA: 0 };
   for (const o of orders) {
-    const cur = o.currency as Currency;
-    const country = o.country as "US" | "CA";
-    const total = Number(o.total);
-    byCurrency[cur] += total;
-    byCountry[country] += total;
+    byCurrency[o.currency as Currency] += Number(o.total);
   }
 
   const { data: recent } = await supabase
@@ -69,51 +64,6 @@ export default async function AdminOverviewPage() {
           value={String(paidCount ?? 0)}
           hint={`${customerCount ?? 0} customers`}
         />
-      </div>
-
-      <div className="grid gap-4 sm:grid-cols-2">
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base">By country</CardTitle>
-            <CardDescription>Native-currency totals.</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-2 text-sm">
-            <Row
-              label="United States"
-              value={formatPrice(byCountry.US, "USD")}
-            />
-            <Row
-              label="Canada"
-              value={formatPrice(byCountry.CA, "CAD")}
-            />
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base">Quick actions</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-2 text-sm">
-            <Link href="/admin/orders" className="block hover:underline">
-              View all orders →
-            </Link>
-            <Link href="/admin/finance" className="block hover:underline">
-              Finance reports →
-            </Link>
-            <Link href="/admin/products" className="block hover:underline">
-              Manage products & inventory →
-            </Link>
-            <Link href="/admin/discounts" className="block hover:underline">
-              Manage coupons →
-            </Link>
-            <Link href="/admin/shipping" className="block hover:underline">
-              Shipping fees →
-            </Link>
-            <Link href="/products" className="block hover:underline">
-              Browse storefront →
-            </Link>
-          </CardContent>
-        </Card>
       </div>
 
       <Card>
@@ -209,14 +159,5 @@ function KpiCard({
         {hint && <p className="mt-1 text-xs text-muted-foreground">{hint}</p>}
       </CardContent>
     </Card>
-  );
-}
-
-function Row({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="flex justify-between">
-      <span>{label}</span>
-      <span className="font-medium tabular-nums">{value}</span>
-    </div>
   );
 }

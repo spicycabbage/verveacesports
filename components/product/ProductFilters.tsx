@@ -2,7 +2,10 @@
 
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { CATEGORIES, categoryLabel } from "@/lib/constants";
+import { type Category } from "@/lib/constants";
+import { useSite } from "@/lib/site/SiteProvider";
+import { useDictionary } from "@/lib/i18n/I18nProvider";
+import { categoryLabelFromDict } from "@/lib/i18n/helpers";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { X } from "lucide-react";
@@ -14,7 +17,14 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
-export function ProductFilters() {
+export function ProductFilters({
+  categories: categoriesProp,
+}: {
+  categories?: readonly Category[];
+} = {}) {
+  const site = useSite();
+  const dict = useDictionary();
+  const categories = categoriesProp ?? site.categories;
   const sp = useSearchParams();
   const router = useRouter();
   const pathname = usePathname();
@@ -34,17 +44,17 @@ export function ProductFilters() {
       <div className="flex flex-wrap items-center gap-2">
         <Link
           href="/products"
-          className={`rounded-full border px-3 py-2 text-sm font-medium min-h-11 flex items-center ${!category ? "bg-foreground text-background" : "hover:bg-accent"}`}
+          className={`flex min-h-11 items-center rounded-full border px-3 py-2 text-sm font-medium ${!category ? "bg-foreground text-background" : "hover:bg-accent"}`}
         >
-          All
+          {dict.products.all}
         </Link>
-        {CATEGORIES.map((c) => (
+        {categories.map((c) => (
           <Link
             key={c}
             href={`/products?category=${c}`}
-            className={`rounded-full border px-3 py-2 text-sm font-medium min-h-11 flex items-center ${category === c ? "bg-foreground text-background" : "hover:bg-accent"}`}
+            className={`flex min-h-11 items-center rounded-full border px-3 py-2 text-sm font-medium ${category === c ? "bg-foreground text-background" : "hover:bg-accent"}`}
           >
-            {categoryLabel(c)}
+            {categoryLabelFromDict(dict, c)}
           </Link>
         ))}
         <div className="w-full sm:ml-auto sm:w-auto">
@@ -53,17 +63,17 @@ export function ProductFilters() {
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="newest">Newest</SelectItem>
-              <SelectItem value="price_asc">Price: Low to High</SelectItem>
-              <SelectItem value="price_desc">Price: High to Low</SelectItem>
-              <SelectItem value="name_asc">Name A–Z</SelectItem>
+              <SelectItem value="newest">{dict.products.sortNewest}</SelectItem>
+              <SelectItem value="price_asc">{dict.products.sortPriceAsc}</SelectItem>
+              <SelectItem value="price_desc">{dict.products.sortPriceDesc}</SelectItem>
+              <SelectItem value="name_asc">{dict.products.sortNameAsc}</SelectItem>
             </SelectContent>
           </Select>
         </div>
       </div>
       {q && (
         <div className="flex items-center gap-2 text-sm text-muted-foreground">
-          <span>Searching:</span>
+          <span>{dict.products.searching}</span>
           <Badge variant="secondary" className="gap-1">
             {q}
             <Button
@@ -72,7 +82,7 @@ export function ProductFilters() {
               size="icon"
               className="-mr-1 size-8"
               onClick={() => setParam("q", null)}
-              aria-label="Clear search"
+              aria-label={dict.products.clearSearch}
             >
               <X className="h-3 w-3" />
             </Button>

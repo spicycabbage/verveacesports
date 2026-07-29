@@ -5,7 +5,9 @@ import { cookies, headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
+import { sendAccountWelcomeEmail } from "@/lib/brevo/emails";
 import { REFERRAL_COOKIE } from "@/lib/constants";
+import { getSite } from "@/lib/site/get-site";
 
 const credentialsSchema = z.object({
   email: z.string().email(),
@@ -14,14 +16,19 @@ const credentialsSchema = z.object({
   lastName: z.string().trim().min(1, "Enter your last name").max(80),
 });
 
-const emailOnlySchema = z.object({ email: z.string().email() });
-
 /**
  * Base URL for auth redirects. Pinned to configuration only — never derived
  * from request headers, which are attacker-controlled (host-header injection
- * would poison magic-link / OAuth redirect targets).
+ * would poison OAuth redirect targets).
  */
 async function resolveSiteUrl(): Promise<string> {
+  const site = await getSite();
+  if (site.id === "bleeq-ca") {
+    const bleeq =
+      process.env.NEXT_PUBLIC_BLEEQ_SITE_URL?.trim().replace(/\/+$/, "") ?? "";
+    if (bleeq) return bleeq;
+  }
+
   const envUrl =
     process.env.NEXT_PUBLIC_SITE_URL?.trim().replace(/\/+$/, "") ?? "";
   if (envUrl) return envUrl;
@@ -43,6 +50,7 @@ export async function signUpWithPassword(input: z.infer<typeof credentialsSchema
 
   const supabase = await createSupabaseServerClient();
   const ref = await getRefCode();
+  const site = await getSite();
 
   const fn = parsed.data.firstName.trim();
   const ln = parsed.data.lastName.trim();
@@ -60,10 +68,22 @@ export async function signUpWithPassword(input: z.infer<typeof credentialsSchema
         last_name: ln,
         full_name: composed,
         ref,
+        site_id: site.id,
       },
     },
   });
   if (error) return { error: error.message };
+
+  // Do not auto-enroll into marketing lists on signup — email may be unverified
+  // and account creation is not newsletter consent. Explicit opt-in: /api/newsletter/subscribe.
+  void sendAccountWelcomeEmail({
+    siteId: site.id,
+    toEmail: parsed.data.email,
+    firstName: fn,
+  }).catch((err) => {
+    console.error("account welcome email failed:", err);
+  });
+
   return { ok: true };
 }
 
@@ -75,25 +95,6 @@ export async function signInWithPassword(input: { email: string; password: strin
   const { error } = await supabase.auth.signInWithPassword(parsed.data);
   if (error) return { error: error.message };
   revalidatePath("/", "layout");
-  return { ok: true };
-}
-
-export async function signInWithMagicLink(input: { email: string }) {
-  const parsed = emailOnlySchema.safeParse(input);
-  if (!parsed.success) return { error: "Invalid email" };
-
-  const supabase = await createSupabaseServerClient();
-  const ref = await getRefCode();
-  const base = await resolveSiteUrl();
-
-  const { error } = await supabase.auth.signInWithOtp({
-    email: parsed.data.email,
-    options: {
-      emailRedirectTo: `${base}/callback`,
-      data: { ref },
-    },
-  });
-  if (error) return { error: error.message };
   return { ok: true };
 }
 

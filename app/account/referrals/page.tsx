@@ -1,12 +1,21 @@
+import { cookies } from "next/headers";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Gift } from "lucide-react";
 import { ReferralCard } from "./ReferralCard";
+import { LOCALE_COOKIE, parseLocaleCookie } from "@/lib/i18n/locale";
+import { getDictionary } from "@/lib/i18n/dictionary";
 
-export const metadata = { title: "Referrals" };
+export async function generateMetadata() {
+  const cookieStore = await cookies();
+  const dict = getDictionary(parseLocaleCookie(cookieStore.get(LOCALE_COOKIE)?.value));
+  return { title: dict.account.referrals };
+}
 
 export default async function ReferralsPage() {
   const supabase = await createSupabaseServerClient();
+  const cookieStore = await cookies();
+  const dict = getDictionary(parseLocaleCookie(cookieStore.get(LOCALE_COOKIE)?.value));
   const {
     data: { user },
   } = await supabase.auth.getUser();
@@ -33,12 +42,9 @@ export default async function ReferralsPage() {
       <Card className="bg-gradient-to-br from-accent to-background">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <Gift className="h-5 w-5 text-primary" /> Refer a friend, earn points
+            <Gift className="h-5 w-5 text-primary" /> {dict.account.referralsTitle}
           </CardTitle>
-          <CardDescription>
-            Share your code. When a friend signs up and makes their first purchase, you both earn
-            <strong> 100 bonus points</strong>.
-          </CardDescription>
+          <CardDescription>{dict.account.referralsDesc}</CardDescription>
         </CardHeader>
         <CardContent>
           <ReferralCard code={code} />

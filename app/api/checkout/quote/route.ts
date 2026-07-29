@@ -3,6 +3,7 @@ import { z } from "zod";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { computeCheckoutQuote, QuoteError } from "@/lib/checkout/quote";
+import { getSiteFromRequest } from "@/lib/site/get-site";
 
 export const runtime = "nodejs";
 
@@ -30,6 +31,11 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Invalid request" }, { status: 400 });
   }
 
+  const expectedCurrency = parsed.data.country === "CA" ? "CAD" : "USD";
+  if (parsed.data.currency !== expectedCurrency) {
+    return NextResponse.json({ error: "Currency does not match market" }, { status: 400 });
+  }
+
   const supabase = await createSupabaseServerClient();
   const {
     data: { user },
@@ -44,6 +50,7 @@ export async function POST(req: NextRequest) {
       currency: parsed.data.currency,
       country: parsed.data.country,
       userId: user.id,
+      site: getSiteFromRequest(req),
       pointsToRedeem: parsed.data.pointsToRedeem,
       discountCode: parsed.data.discountCode,
       region: parsed.data.region,

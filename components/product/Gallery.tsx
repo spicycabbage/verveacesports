@@ -4,6 +4,7 @@ import Image from "next/image";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { sizedImageUrl } from "@/lib/images/cdn";
 import { cn } from "@/lib/utils";
 
 export function Gallery({
@@ -67,7 +68,7 @@ export function Gallery({
       <div className="relative mx-auto aspect-[5/6] w-full max-h-[min(70vh,560px)] overflow-hidden rounded-xl bg-white sm:aspect-square sm:max-h-none sm:rounded-2xl">
         {safe[active] && (
           <Image
-            src={safe[active]}
+            src={sizedImageUrl(safe[active], 1280)}
             alt={alt}
             fill
             sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 640px"
@@ -114,7 +115,13 @@ export function Gallery({
                   )}
                 >
                   {src && (
-                    <Image src={src} alt="" fill sizes="72px" className="object-cover" />
+                    <Image
+                      src={sizedImageUrl(src, 160)}
+                      alt=""
+                      fill
+                      sizes="72px"
+                      className="object-cover"
+                    />
                   )}
                 </span>
                 <span

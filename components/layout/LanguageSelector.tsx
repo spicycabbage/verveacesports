@@ -12,6 +12,7 @@ import {
 } from "@/components/ui/select";
 import { LOCALE_LIST, type Locale } from "@/lib/i18n/locale";
 import { useLocaleStore } from "@/lib/store/locale";
+import { useDictionary } from "@/lib/i18n/I18nProvider";
 
 type Props = {
   className?: string;
@@ -21,6 +22,7 @@ export function LanguageSelector({ className }: Props) {
   const router = useRouter();
   const locale = useLocaleStore((s) => s.locale);
   const [pending, setPending] = useState(false);
+  const dict = useDictionary();
 
   async function onValueChange(next: string | null) {
     if (!next || next === locale || pending) return;
@@ -41,7 +43,7 @@ export function LanguageSelector({ className }: Props) {
 
   return (
     <Select value={locale} onValueChange={onValueChange} disabled={pending}>
-      <SelectTrigger size="sm" aria-label="Language" className={className}>
+      <SelectTrigger size="sm" aria-label={dict.nav.language} className={className}>
         <Languages className="size-4 shrink-0 text-muted-foreground sm:hidden" />
         <SelectValue />
       </SelectTrigger>

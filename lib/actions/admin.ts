@@ -78,3 +78,76 @@ export async function updateOrderStatus(input: {
   revalidatePath(`/account/orders/${parsed.data.orderId}`);
   return { ok: true };
 }
+
+const deleteUserSchema = z.object({
+  userId: z.string().uuid(),
+});
+
+export async function deleteAdminUser(input: { userId: string }) {
+  const parsed = deleteUserSchema.safeParse(input);
+  if (!parsed.success) return { error: "Invalid input" };
+
+  const guard = await requireAdmin();
+  if (!guard.ok) return { error: guard.error };
+
+  const supabase = await createSupabaseServerClient();
+  const {
+    data: { user: actor },
+  } = await supabase.auth.getUser();
+  if (!actor) return { error: "Not authenticated" };
+  if (actor.id === parsed.data.userId) {
+    return { error: "You can’t delete your own account from here" };
+  }
+
+  const admin = createSupabaseAdminClient();
+  const { data: target } = await admin
+    .from("profiles")
+    .select("id, email, is_admin")
+    .eq("id", parsed.data.userId)
+    .maybeSingle();
+  if (!target) return { error: "User not found" };
+
+  const { error } = await admin.auth.admin.deleteUser(parsed.data.userId);
+  if (error) {
+    const msg = error.message || "Failed to delete user";
+    if (/foreign key|restrict|orders/i.test(msg)) {
+      return {
+        error:
+          "This user has orders and can’t be deleted until migration 0035_orders_user_id_set_null.sql is applied.",
+      };
+    }
+    return { error: msg };
+  }
+
+  revalidatePath("/admin/users");
+  return { ok: true as const, email: target.email as string };
+}
+
+const deleteLeadSchema = z.object({
+  subscriberId: z.string().uuid(),
+});
+
+export async function deleteNewsletterLead(input: { subscriberId: string }) {
+  const parsed = deleteLeadSchema.safeParse(input);
+  if (!parsed.success) return { error: "Invalid input" };
+
+  const guard = await requireAdmin();
+  if (!guard.ok) return { error: guard.error };
+
+  const admin = createSupabaseAdminClient();
+  const { data: target } = await admin
+    .from("newsletter_subscribers")
+    .select("id, email")
+    .eq("id", parsed.data.subscriberId)
+    .maybeSingle();
+  if (!target) return { error: "Lead not found" };
+
+  const { error } = await admin
+    .from("newsletter_subscribers")
+    .delete()
+    .eq("id", parsed.data.subscriberId);
+  if (error) return { error: error.message };
+
+  revalidatePath("/admin/users");
+  return { ok: true as const, email: target.email as string };
+}

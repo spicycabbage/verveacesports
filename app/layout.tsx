@@ -4,17 +4,25 @@ import { cookies } from "next/headers";
 import { Geist, Geist_Mono } from "next/font/google";
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
+import { BleeqHeaderShell } from "@/components/bleeq/BleeqHeaderShell";
+import { BleeqFooter } from "@/components/bleeq/BleeqFooter";
 import { CartDrawer } from "@/components/layout/CartDrawer";
 import { ChatWidget } from "@/components/chat/ChatWidget";
 import { NewsletterPopup } from "@/components/newsletter/NewsletterPopup";
 import { Toaster } from "@/components/ui/sonner";
 import { ThemeProvider } from "@/components/theme/ThemeProvider";
+import { SiteProvider } from "@/lib/site/SiteProvider";
+import { getSite } from "@/lib/site/get-site";
+import { siteBaseUrl, siteOgImage } from "@/lib/site/seo";
+import { JsonLd } from "@/components/seo/JsonLd";
 import { THEME_STORAGE_KEY } from "@/lib/theme/tokens";
 import {
   LOCALE_COOKIE,
   localeHtmlLang,
   parseLocaleCookie,
 } from "@/lib/i18n/locale";
+import { getDictionary } from "@/lib/i18n/dictionary";
+import { I18nProvider } from "@/lib/i18n/I18nProvider";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -27,14 +35,44 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
-export const metadata: Metadata = {
-  title: {
-    default: "VerveaceSports — Premium Sporting Goods",
-    template: "%s | VerveaceSports",
-  },
-  description:
-    "Authorized retailer for BleeqUp AI sports camera glasses and MGI & Motocaddy electric golf trolleys, caddies, and gear.",
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const site = await getSite();
+  const base = siteBaseUrl(site);
+  const title = `${site.name} — ${site.tagline}`;
+  return {
+    metadataBase: new URL(base),
+    title: {
+      default: title,
+      template: `%s | ${site.name}`,
+    },
+    description: site.description,
+    applicationName: site.name,
+    openGraph: {
+      type: "website",
+      siteName: site.name,
+      title,
+      description: site.description,
+      url: base,
+      images: [{ url: siteOgImage(site), alt: title }],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title,
+      description: site.description,
+      images: [siteOgImage(site)],
+    },
+    robots: {
+      index: true,
+      follow: true,
+      googleBot: {
+        index: true,
+        follow: true,
+        "max-image-preview": "large",
+        "max-snippet": -1,
+      },
+    },
+  };
+}
 
 const THEME_INIT_SCRIPT = `(function(){try{
 var d=document.documentElement;
@@ -59,8 +97,35 @@ if(c.primary){d.style.setProperty('--ring',c.primary);d.style.setProperty('--col
 export default async function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
+  const site = await getSite();
   const cookieStore = await cookies();
   const locale = parseLocaleCookie(cookieStore.get(LOCALE_COOKIE)?.value);
+  const dictionary = getDictionary(locale);
+  const isBleeq = site.id === "bleeq-ca";
+  const base = siteBaseUrl(site);
+  const organizationJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "OnlineStore",
+    name: site.name,
+    url: base,
+    ...(isBleeq ? {} : { logo: `${base}/verveace_logo.webp` }),
+    description: site.description,
+    email: site.supportEmail,
+  };
+  const webSiteJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    name: site.name,
+    url: base,
+    potentialAction: {
+      "@type": "SearchAction",
+      target: {
+        "@type": "EntryPoint",
+        urlTemplate: `${base}/products?q={search_term_string}`,
+      },
+      "query-input": "required name=search_term_string",
+    },
+  };
 
   return (
     <html
@@ -72,14 +137,20 @@ export default async function RootLayout({
         <Script id="theme-init" strategy="beforeInteractive">
           {THEME_INIT_SCRIPT}
         </Script>
-        <ThemeProvider>
-          <Header />
-          <main className="min-w-0 flex-1">{children}</main>
-          <Footer />
-          <CartDrawer />
-          <ChatWidget />
-          <NewsletterPopup />
-        </ThemeProvider>
+        <JsonLd data={organizationJsonLd} />
+        <JsonLd data={webSiteJsonLd} />
+        <SiteProvider siteId={site.id}>
+          <I18nProvider locale={locale} dictionary={dictionary}>
+            <ThemeProvider>
+              {isBleeq ? <BleeqHeaderShell /> : <Header />}
+              <main className="min-w-0 flex-1">{children}</main>
+              {isBleeq ? <BleeqFooter /> : <Footer />}
+              <CartDrawer />
+              <ChatWidget />
+              <NewsletterPopup />
+            </ThemeProvider>
+          </I18nProvider>
+        </SiteProvider>
         <Toaster richColors position="top-center" />
       </body>
     </html>

@@ -1,8 +1,39 @@
 "use client";
 
 import { create } from "zustand";
-import { persist } from "zustand/middleware";
+import { createJSONStorage, persist } from "zustand/middleware";
 import type { Currency } from "@/lib/constants";
+import { SITE_COOKIE, SITES, type SiteId } from "@/lib/site/config";
+
+function readSiteIdFromCookie(): SiteId {
+  if (typeof document === "undefined") return "verveace";
+  const match = document.cookie.match(
+    new RegExp(`(?:^|; )${SITE_COOKIE.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}=([^;]*)`),
+  );
+  const id = match?.[1];
+  if (id === "bleeq-ca" || id === "verveace") return id;
+  return "verveace";
+}
+
+function cartPersistName(): string {
+  return SITES[readSiteIdFromCookie()].cartStorageKey;
+}
+
+/** localStorage adapter that namespaces the cart key per storefront. */
+const siteCartStorage = createJSONStorage(() => ({
+  getItem: () => {
+    if (typeof localStorage === "undefined") return null;
+    return localStorage.getItem(cartPersistName());
+  },
+  setItem: (_name, value) => {
+    if (typeof localStorage === "undefined") return;
+    localStorage.setItem(cartPersistName(), value);
+  },
+  removeItem: () => {
+    if (typeof localStorage === "undefined") return;
+    localStorage.removeItem(cartPersistName());
+  },
+}));
 
 export type CartItem = {
   productId: string;
@@ -23,6 +54,7 @@ export function cartLineKey(item: Pick<CartItem, "productId" | "variantId">): st
 
 type CartState = {
   items: CartItem[];
+  promoCode: string | null;
   isOpen: boolean;
   add: (item: Omit<CartItem, "qty">, qty?: number) => void;
   remove: (productId: string, variantId: string) => void;
@@ -30,6 +62,7 @@ type CartState = {
   syncPrices: (
     updates: { productId: string; variantId: string; priceUsd: number; priceCad: number }[],
   ) => void;
+  setPromoCode: (code: string | null) => void;
   clear: () => void;
   open: () => void;
   close: () => void;
@@ -40,6 +73,7 @@ export const useCartStore = create<CartState>()(
   persist(
     (set) => ({
       items: [],
+      promoCode: null,
       isOpen: false,
       add: (item, qty = 1) =>
         set((state) => {
@@ -86,14 +120,17 @@ export const useCartStore = create<CartState>()(
           });
           return changed ? { items } : state;
         }),
-      clear: () => set({ items: [] }),
+      setPromoCode: (code) =>
+        set({ promoCode: code?.trim() ? code.trim().toUpperCase() : null }),
+      clear: () => set({ items: [], promoCode: null }),
       open: () => set({ isOpen: true }),
       close: () => set({ isOpen: false }),
       toggle: () => set((s) => ({ isOpen: !s.isOpen })),
     }),
     {
-      name: "verveacesports_cart_v2",
-      partialize: (s) => ({ items: s.items }),
+      name: "cart",
+      storage: siteCartStorage,
+      partialize: (s) => ({ items: s.items, promoCode: s.promoCode }),
     },
   ),
 );

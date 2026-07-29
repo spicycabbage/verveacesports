@@ -2,6 +2,7 @@
 
 import { useRef, useState } from "react";
 import { Pause, Play, Volume2, VolumeX } from "lucide-react";
+import { sizedImageUrl } from "@/lib/images/cdn";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 
@@ -11,6 +12,8 @@ type NativeVideoPlayerProps = {
   title: string;
   className?: string;
   autoPlay?: boolean;
+  /** Display-slot width hint for CDN poster sizing (default 960). */
+  posterWidth?: number;
 };
 
 export function NativeVideoPlayer({
@@ -19,10 +22,12 @@ export function NativeVideoPlayer({
   title,
   className,
   autoPlay = false,
+  posterWidth = 960,
 }: NativeVideoPlayerProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const [playing, setPlaying] = useState(autoPlay);
   const [muted, setMuted] = useState(true);
+  const posterSrc = poster ? sizedImageUrl(poster, posterWidth) : undefined;
 
   const togglePlay = () => {
     const video = videoRef.current;
@@ -54,7 +59,7 @@ export function NativeVideoPlayer({
       <video
         ref={videoRef}
         src={src}
-        poster={poster}
+        poster={posterSrc}
         playsInline
         loop
         muted={muted}

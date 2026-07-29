@@ -1,3 +1,4 @@
+import { cookies } from "next/headers";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -5,8 +6,14 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { formatDate, formatPoints } from "@/lib/utils/format";
 import { Sparkles } from "lucide-react";
 import type { LoyaltyTransaction, LoyaltyTxType } from "@/lib/supabase/types";
+import { LOCALE_COOKIE, parseLocaleCookie } from "@/lib/i18n/locale";
+import { getDictionary, interpolate } from "@/lib/i18n/dictionary";
 
-export const metadata = { title: "Loyalty points" };
+export async function generateMetadata() {
+  const cookieStore = await cookies();
+  const dict = getDictionary(parseLocaleCookie(cookieStore.get(LOCALE_COOKIE)?.value));
+  return { title: dict.account.loyaltyTitle };
+}
 
 const TYPE_LABEL: Record<LoyaltyTxType, string> = {
   earn_purchase: "Purchase",
@@ -17,6 +24,8 @@ const TYPE_LABEL: Record<LoyaltyTxType, string> = {
 
 export default async function LoyaltyPage() {
   const supabase = await createSupabaseServerClient();
+  const cookieStore = await cookies();
+  const dict = getDictionary(parseLocaleCookie(cookieStore.get(LOCALE_COOKIE)?.value));
   const {
     data: { user },
   } = await supabase.auth.getUser();
@@ -48,7 +57,10 @@ export default async function LoyaltyPage() {
         </CardHeader>
         <CardContent>
           <p className="text-sm text-muted-foreground">
-            Worth ${((profile?.loyalty_points ?? 0) / 100).toFixed(2)} at checkout. 100 pts = $1.
+            {interpolate(dict.account.worthAtCheckout, {
+              amount: ((profile?.loyalty_points ?? 0) / 100).toFixed(2),
+            })}
+            . 100 pts = $1.
           </p>
         </CardContent>
       </Card>

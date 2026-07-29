@@ -1,18 +1,20 @@
 import type Stripe from "stripe";
 import type { SupabaseClient } from "@supabase/supabase-js";
+import { sendOrderConfirmationEmail } from "@/lib/brevo/emails";
 import type { Currency } from "@/lib/constants";
+import type { SiteId } from "@/lib/site/config";
 import { getStripe } from "@/lib/stripe/server";
 import { syncBalanceTransactionForPaymentIntent } from "@/lib/stripe/reconcile";
+import type { OrderItem, ShippingAddress } from "@/lib/supabase/types";
 
 type Admin = SupabaseClient;
 
 /**
  * Marks an order paid from a succeeded PaymentIntent.
- * Shared by the Stripe webhook and the checkout success page (webhook race).
+ * Shared by the Stripe webhook and the checkout confirm/success paths.
  *
- * Fee / balance-transaction sync is optional — skip it on the checkout hot path
- * so the success page isn't blocked on extra Stripe round-trips. Webhook still
- * syncs fees in the background.
+ * Fee sync defaults on. Pass `syncFees: false` only when latency matters and
+ * another path (webhook / confirm-order) will capture fees.
  */
 export async function markOrderPaidFromPaymentIntent(
   admin: Admin,
@@ -26,7 +28,9 @@ export async function markOrderPaidFromPaymentIntent(
 
   const { data: order } = await admin
     .from("orders")
-    .select("id, status, discount_code, discount_total, user_id, total, currency")
+    .select(
+      "id, status, discount_code, discount_total, user_id, total, currency, email, site_id, subtotal, tax, shipping, points_value, shipping_address",
+    )
     .eq("id", orderId)
     .single();
   if (!order) return;
@@ -39,6 +43,12 @@ export async function markOrderPaidFromPaymentIntent(
     );
     throw new Error("Payment amount does not match order total");
   }
+
+  const orderCurrency = (order.currency === "CAD" ? "CAD" : "USD") as Currency;
+  const feeCurrency =
+    (pi.currency?.toUpperCase() === "CAD" || pi.currency?.toUpperCase() === "USD"
+      ? (pi.currency.toUpperCase() as Currency)
+      : null) ?? orderCurrency ?? currency;
 
   if (order.status !== "paid") {
     await admin
@@ -69,6 +79,10 @@ export async function markOrderPaidFromPaymentIntent(
         }
       }
     }
+
+    void sendOrderPaidEmail(admin, order).catch((err) => {
+      console.error("order confirmation email failed:", err);
+    });
   }
 
   const charge =
@@ -80,7 +94,53 @@ export async function markOrderPaidFromPaymentIntent(
     .eq("kind", "sale");
 
   if (opts.syncFees === false) return;
-  await syncBalanceTransactionForPaymentIntent(admin, currency, pi, orderId);
+  await syncBalanceTransactionForPaymentIntent(admin, feeCurrency, pi, orderId);
+}
+
+async function sendOrderPaidEmail(
+  admin: Admin,
+  order: {
+    id: string;
+    email: string | null;
+    site_id: string;
+    currency: string;
+    subtotal: number;
+    tax: number;
+    shipping: number;
+    discount_code: string | null;
+    discount_total: number;
+    points_value: number;
+    total: number;
+    shipping_address: ShippingAddress | null;
+  },
+): Promise<void> {
+  const siteId: SiteId = order.site_id === "bleeq-ca" ? "bleeq-ca" : "verveace";
+  const { data: items } = await admin
+    .from("order_items")
+    .select("product_name, qty, unit_price, currency")
+    .eq("order_id", order.id);
+
+  const result = await sendOrderConfirmationEmail({
+    siteId,
+    order: {
+      id: order.id,
+      email: order.email,
+      currency: order.currency === "CAD" ? "CAD" : "USD",
+      subtotal: Number(order.subtotal),
+      tax: Number(order.tax),
+      shipping: Number(order.shipping),
+      discount_code: order.discount_code,
+      discount_total: Number(order.discount_total ?? 0),
+      points_value: Number(order.points_value ?? 0),
+      total: Number(order.total),
+      shipping_address: order.shipping_address,
+    },
+    items: (items ?? []) as Pick<OrderItem, "product_name" | "qty" | "unit_price" | "currency">[],
+  });
+
+  if (!result.ok) {
+    console.error("order confirmation email not sent:", result.error);
+  }
 }
 
 /** If the order is still pending, check Stripe and mark paid when the PI succeeded. */
@@ -96,14 +156,22 @@ export async function reconcileOrderIfPaid(
     .maybeSingle();
 
   if (!order) return false;
-  if (order.status === "paid" || order.financial_status === "paid") return true;
   if (!order.stripe_pi_id) return false;
 
   const currency = (order.currency === "CAD" ? "CAD" : "USD") as Currency;
+  const alreadyPaid = order.status === "paid" || order.financial_status === "paid";
+
+  // Still sync fees for already-paid orders when requested (confirm-order / repair).
+  if (alreadyPaid && opts.syncFees === false) return true;
+
   const stripe = getStripe(currency);
-  const pi = await stripe.paymentIntents.retrieve(order.stripe_pi_id);
+  const pi = await stripe.paymentIntents.retrieve(order.stripe_pi_id, {
+    expand: ["latest_charge.balance_transaction", "latest_charge.refunds.data.balance_transaction"],
+  });
   if (pi.status !== "succeeded") return false;
 
-  await markOrderPaidFromPaymentIntent(admin, currency, pi, opts);
+  await markOrderPaidFromPaymentIntent(admin, currency, pi, {
+    syncFees: opts.syncFees !== false,
+  });
   return true;
 }

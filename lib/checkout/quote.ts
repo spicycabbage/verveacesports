@@ -1,6 +1,7 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
-import { LOYALTY } from "@/lib/constants";
+import { LOYALTY, normalizeTaxRegion } from "@/lib/constants";
 import { normalizeVariantPrices } from "@/lib/catalog/pricing";
+import { siteAllowsCategory, type SiteConfig } from "@/lib/site/config";
 
 export type QuoteItem = {
   productId: string;
@@ -13,10 +14,17 @@ export type QuoteInput = {
   currency: "USD" | "CAD";
   country: "US" | "CA";
   userId: string;
+  /** Active storefront — enforces lockMarket + category catalog. */
+  site: SiteConfig;
   pointsToRedeem?: number;
   discountCode?: string;
   /** State/province for regional tax; omit to use country default rate. */
   region?: string;
+  /**
+   * When true (payment charge), US/CA require a valid normalized region.
+   * When false (quote preview), a supplied region must still be valid if present.
+   */
+  requireValidRegion?: boolean;
 };
 
 export type QuoteLineItem = {
@@ -64,7 +72,36 @@ export async function computeCheckoutQuote(
   admin: SupabaseClient,
   input: QuoteInput,
 ): Promise<QuoteResult> {
-  const { items, currency, country, userId, pointsToRedeem = 0, discountCode, region } = input;
+  const {
+    items,
+    currency,
+    country,
+    userId,
+    site,
+    pointsToRedeem = 0,
+    discountCode,
+    region,
+    requireValidRegion = false,
+  } = input;
+
+  if (site.lockMarket) {
+    if (country !== site.lockMarket) {
+      throw new QuoteError("Market not available on this storefront", 400);
+    }
+    const expectedCurrency = site.lockMarket === "CA" ? "CAD" : "USD";
+    if (currency !== expectedCurrency) {
+      throw new QuoteError("Currency does not match storefront market", 400);
+    }
+  }
+
+  const regionTrimmed = region?.trim() ?? "";
+  const taxRegion = regionTrimmed ? normalizeTaxRegion(country, regionTrimmed) : null;
+  if (regionTrimmed && !taxRegion && (country === "US" || country === "CA")) {
+    throw new QuoteError("Invalid state/province", 400);
+  }
+  if (requireValidRegion && (country === "US" || country === "CA") && !taxRegion) {
+    throw new QuoteError("State/province is required", 400);
+  }
 
   const { data: location } = await admin
     .from("locations")
@@ -77,7 +114,7 @@ export async function computeCheckoutQuote(
   const { data: variants, error: varErr } = await admin
     .from("product_variants")
     .select(
-      "id, product_id, sku, title, price_usd, price_cad, cost_usd, cost_cad, is_active, position, products!inner(id, name, slug, images, is_active)",
+      "id, product_id, sku, title, price_usd, price_cad, cost_usd, cost_cad, is_active, position, products!inner(id, name, slug, images, is_active, category)",
     )
     .in("product_id", productIds)
     .eq("is_active", true)
@@ -95,7 +132,14 @@ export async function computeCheckoutQuote(
     cost_cad: number | string | null;
     is_active: boolean;
     position: number;
-    products: { id: string; name: string; slug: string; images: string[]; is_active: boolean };
+    products: {
+      id: string;
+      name: string;
+      slug: string;
+      images: string[];
+      is_active: boolean;
+      category: string;
+    };
   };
   const variantList = variants as unknown as VariantRow[];
 
@@ -116,6 +160,9 @@ export async function computeCheckoutQuote(
     // it claims, otherwise mismatched price/name snapshots could be forced.
     if (v.product_id !== it.productId) {
       throw new QuoteError("Variant does not belong to product", 400);
+    }
+    if (!siteAllowsCategory(site, v.products.category)) {
+      throw new QuoteError("Product not available on this storefront", 400);
     }
     const prices = normalizeVariantPrices(v);
     const unit = Number(currency === "CAD" ? prices.priceCad : prices.priceUsd);
@@ -177,7 +224,7 @@ export async function computeCheckoutQuote(
 
   const { data: taxRate } = await admin.rpc("tax_rate_for", {
     p_country: country,
-    p_region: region?.trim() || null,
+    p_region: taxRegion,
   });
   const rate = Number(taxRate) || 0;
   const taxableBase = Math.max(0, round2(discountedSubtotal - redeemValue));

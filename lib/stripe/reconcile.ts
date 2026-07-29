@@ -11,6 +11,52 @@ function chargeId(charge: Stripe.Charge | string | null | undefined): string | n
   return typeof charge === "string" ? charge : charge.id;
 }
 
+function currencyFromStripe(code: string | null | undefined, fallback: Currency): Currency {
+  const upper = (code ?? "").toUpperCase();
+  return upper === "CAD" || upper === "USD" ? upper : fallback;
+}
+
+type BtRow = {
+  id: string;
+  stripe_charge_id: string | null;
+  stripe_refund_id: string | null;
+  stripe_payout_id: string | null;
+  order_id: string | null;
+  type: string;
+  currency: Currency;
+  gross: number;
+  fee: number;
+  net: number;
+  available_on: string | null;
+};
+
+function rowFromBalanceTransaction(
+  bt: Stripe.BalanceTransaction,
+  opts: {
+    fallbackCurrency: Currency;
+    chargeId: string | null;
+    refundId: string | null;
+    payoutId: string | null;
+    orderId: string | null;
+  },
+): BtRow {
+  return {
+    id: bt.id,
+    stripe_charge_id: opts.chargeId,
+    stripe_refund_id: opts.refundId,
+    stripe_payout_id: opts.payoutId,
+    order_id: opts.orderId,
+    type: bt.type,
+    currency: currencyFromStripe(bt.currency, opts.fallbackCurrency),
+    gross: fromMinorUnits(bt.amount),
+    fee: fromMinorUnits(bt.fee),
+    net: fromMinorUnits(bt.net),
+    available_on: bt.available_on
+      ? new Date(bt.available_on * 1000).toISOString()
+      : null,
+  };
+}
+
 // Fetch a charge's balance transaction (gross/fee/net) and upsert it so bank
 // deposits can be reconciled against orders. Safe to call repeatedly.
 export async function syncBalanceTransactionForCharge(
@@ -27,61 +73,39 @@ export async function syncBalanceTransactionForCharge(
     chargeObj = await stripe.charges.retrieve(charge, {
       expand: ["balance_transaction", "refunds.data.balance_transaction"],
     });
-  } catch {
+  } catch (err) {
+    console.error("syncBalanceTransactionForCharge retrieve failed", charge, err);
     return;
   }
 
-  const rows: {
-    id: string;
-    stripe_charge_id: string | null;
-    stripe_refund_id: string | null;
-    stripe_payout_id: string | null;
-    order_id: string | null;
-    type: string;
-    currency: Currency;
-    gross: number;
-    fee: number;
-    net: number;
-    available_on: string | null;
-  }[] = [];
+  const rows: BtRow[] = [];
+  const fallback = currencyFromStripe(chargeObj.currency, currency);
 
   const chargeBt = chargeObj.balance_transaction;
   if (chargeBt && typeof chargeBt !== "string") {
-    rows.push({
-      id: chargeBt.id,
-      stripe_charge_id: chargeObj.id,
-      stripe_refund_id: null,
-      stripe_payout_id: null,
-      order_id: orderId,
-      type: chargeBt.type,
-      currency,
-      gross: fromMinorUnits(chargeBt.amount),
-      fee: fromMinorUnits(chargeBt.fee),
-      net: fromMinorUnits(chargeBt.net),
-      available_on: chargeBt.available_on
-        ? new Date(chargeBt.available_on * 1000).toISOString()
-        : null,
-    });
+    rows.push(
+      rowFromBalanceTransaction(chargeBt, {
+        fallbackCurrency: fallback,
+        chargeId: chargeObj.id,
+        refundId: null,
+        payoutId: null,
+        orderId,
+      }),
+    );
   }
 
   for (const refund of chargeObj.refunds?.data ?? []) {
     const refundBt = refund.balance_transaction;
     if (refundBt && typeof refundBt !== "string") {
-      rows.push({
-        id: refundBt.id,
-        stripe_charge_id: chargeObj.id,
-        stripe_refund_id: refund.id,
-        stripe_payout_id: null,
-        order_id: orderId,
-        type: refundBt.type,
-        currency,
-        gross: fromMinorUnits(refundBt.amount),
-        fee: fromMinorUnits(refundBt.fee),
-        net: fromMinorUnits(refundBt.net),
-        available_on: refundBt.available_on
-          ? new Date(refundBt.available_on * 1000).toISOString()
-          : null,
-      });
+      rows.push(
+        rowFromBalanceTransaction(refundBt, {
+          fallbackCurrency: fallback,
+          chargeId: chargeObj.id,
+          refundId: refund.id,
+          payoutId: null,
+          orderId,
+        }),
+      );
     }
   }
 
@@ -96,7 +120,72 @@ export async function syncBalanceTransactionForPaymentIntent(
   pi: Stripe.PaymentIntent,
   orderId: string | null,
 ): Promise<void> {
-  await syncBalanceTransactionForCharge(admin, currency, chargeId(pi.latest_charge), orderId);
+  const latest = pi.latest_charge;
+  // Prefer already-expanded charge + BT to avoid an extra retrieve.
+  if (latest && typeof latest !== "string") {
+    const chargeBt = latest.balance_transaction;
+    const rows: BtRow[] = [];
+    const fallback = currencyFromStripe(pi.currency ?? latest.currency, currency);
+
+    if (chargeBt && typeof chargeBt !== "string") {
+      rows.push(
+        rowFromBalanceTransaction(chargeBt, {
+          fallbackCurrency: fallback,
+          chargeId: latest.id,
+          refundId: null,
+          payoutId: null,
+          orderId,
+        }),
+      );
+    }
+
+    for (const refund of latest.refunds?.data ?? []) {
+      const refundBt = refund.balance_transaction;
+      if (refundBt && typeof refundBt !== "string") {
+        rows.push(
+          rowFromBalanceTransaction(refundBt, {
+            fallbackCurrency: fallback,
+            chargeId: latest.id,
+            refundId: refund.id,
+            payoutId: null,
+            orderId,
+          }),
+        );
+      }
+    }
+
+    if (rows.length > 0) {
+      await admin.from("stripe_balance_transactions").upsert(rows, { onConflict: "id" });
+      return;
+    }
+  }
+
+  await syncBalanceTransactionForCharge(admin, currency, chargeId(latest), orderId);
+}
+
+/** Backfill fees for paid orders that are missing balance-transaction rows. */
+export async function backfillOrderFees(admin: Admin): Promise<{ synced: number; failed: number }> {
+  const { data: payments } = await admin
+    .from("payments")
+    .select("order_id, currency, stripe_charge_id, stripe_payment_intent_id")
+    .eq("kind", "sale")
+    .eq("status", "succeeded")
+    .not("stripe_charge_id", "is", null);
+
+  let synced = 0;
+  let failed = 0;
+  for (const p of payments ?? []) {
+    if (!p.stripe_charge_id || !p.order_id) continue;
+    const currency = (p.currency === "CAD" ? "CAD" : "USD") as Currency;
+    try {
+      await syncBalanceTransactionForCharge(admin, currency, p.stripe_charge_id, p.order_id);
+      synced += 1;
+    } catch (err) {
+      console.error("backfillOrderFees failed", p.order_id, err);
+      failed += 1;
+    }
+  }
+  return { synced, failed };
 }
 
 export async function upsertPayout(
@@ -104,10 +193,11 @@ export async function upsertPayout(
   currency: Currency,
   payout: Stripe.Payout,
 ): Promise<void> {
+  const payoutCurrency = currencyFromStripe(payout.currency, currency);
   await admin.from("stripe_payouts").upsert(
     {
       id: payout.id,
-      currency,
+      currency: payoutCurrency,
       amount: fromMinorUnits(payout.amount),
       status: payout.status,
       arrival_date: payout.arrival_date
@@ -127,36 +217,42 @@ export async function upsertPayout(
       limit: 100,
     })) {
       const source = txn.source;
-      const srcId = typeof source === "string" ? source : source?.id ?? null;
-      await admin
-        .from("stripe_balance_transactions")
-        .update({ stripe_payout_id: payout.id })
-        .eq("id", txn.id);
-      // Best effort: if the BT wasn't captured at charge time, insert a minimal row.
+      const srcId = typeof source === "string" ? source : (source?.id ?? null);
+      const isChargeLike = txn.type === "charge" || txn.type === "payment";
+      const isRefundLike = txn.type === "refund" || txn.type === "payment_refund";
+      const row = rowFromBalanceTransaction(txn, {
+        fallbackCurrency: payoutCurrency,
+        chargeId: isChargeLike ? srcId : null,
+        refundId: isRefundLike ? srcId : null,
+        payoutId: payout.id,
+        orderId: null,
+      });
+
       const { data: existing } = await admin
         .from("stripe_balance_transactions")
-        .select("id")
+        .select("id, order_id, stripe_charge_id")
         .eq("id", txn.id)
         .maybeSingle();
-      if (!existing) {
-        await admin.from("stripe_balance_transactions").insert({
-          id: txn.id,
-          stripe_charge_id: txn.type === "charge" ? srcId : null,
-          stripe_refund_id: txn.type === "refund" ? srcId : null,
-          stripe_payout_id: payout.id,
-          order_id: null,
-          type: txn.type,
-          currency,
-          gross: fromMinorUnits(txn.amount),
-          fee: fromMinorUnits(txn.fee),
-          net: fromMinorUnits(txn.net),
-          available_on: txn.available_on
-            ? new Date(txn.available_on * 1000).toISOString()
-            : null,
-        });
+
+      if (existing) {
+        await admin
+          .from("stripe_balance_transactions")
+          .update({
+            stripe_payout_id: payout.id,
+            currency: row.currency,
+            fee: row.fee,
+            gross: row.gross,
+            net: row.net,
+            // Keep existing order/charge links if already set.
+            stripe_charge_id: existing.stripe_charge_id ?? row.stripe_charge_id,
+            order_id: existing.order_id,
+          })
+          .eq("id", txn.id);
+      } else {
+        await admin.from("stripe_balance_transactions").insert(row);
       }
     }
-  } catch {
-    // Non-fatal: payout header is recorded even if line linking fails.
+  } catch (err) {
+    console.error("upsertPayout balance transaction link failed", payout.id, err);
   }
 }

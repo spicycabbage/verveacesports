@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { ProductPrice } from "./ProductPrice";
 import { VariantPicker } from "./VariantPicker";
 import { useCartStore } from "@/lib/store/cart";
+import { useDictionary, useT } from "@/lib/i18n/I18nProvider";
 import type { Product, ProductOption } from "@/lib/supabase/types";
 import {
   buildOptionAxes,
@@ -34,6 +35,8 @@ export function ProductBuyBox({
   selection: controlledSelection,
   onSelectionChange,
 }: Props) {
+  const dict = useDictionary();
+  const t = useT();
   const axes = useMemo(
     () => buildOptionAxes(variants, productOptions),
     [variants, productOptions],
@@ -95,8 +98,8 @@ export function ProductBuyBox({
     );
     const label = variantLabel(selected);
     const suffix = label !== "Default" ? ` (${label})` : "";
-    toast.success(`${product.name}${suffix} ×${qty} added to cart`, {
-      action: { label: "View cart", onClick: () => open() },
+    toast.success(t("product.addedToast", { name: `${product.name}${suffix} ×${qty}` }), {
+      action: { label: dict.product.viewCart, onClick: () => open() },
     });
   }
 
@@ -109,12 +112,12 @@ export function ProductBuyBox({
           className="text-xl font-bold tabular-nums sm:text-2xl"
         />
         {stock === 0 ? (
-          <Badge variant="secondary">Sold out</Badge>
+          <Badge variant="secondary">{dict.product.soldOut}</Badge>
         ) : stock <= 5 ? (
-          <Badge variant="destructive">Only {stock} left</Badge>
+          <Badge variant="destructive">{t("product.onlyNLeft", { n: stock })}</Badge>
         ) : (
           <Badge variant="outline" className="border-primary/30 text-primary">
-            In stock
+            {dict.product.inStock}
           </Badge>
         )}
       </div>
@@ -152,7 +155,7 @@ export function ProductBuyBox({
         </div>
         <Button size="lg" onClick={handleAdd} disabled={disabled} className="w-full sm:min-w-[12rem] sm:flex-1">
           <ShoppingBag className="h-4 w-4" />
-          {disabled ? "Out of stock" : "Add to cart"}
+          {disabled ? dict.product.outOfStock : dict.product.addToCart}
         </Button>
       </div>
     </div>

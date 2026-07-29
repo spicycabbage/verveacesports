@@ -20,6 +20,7 @@ import {
   ProductSelectionProvider,
 } from "./ProductBulkSelect";
 import { Pencil } from "lucide-react";
+import { sizedImageUrl } from "@/lib/images/cdn";
 
 export const metadata = { title: "Admin · Products" };
 
@@ -170,7 +171,13 @@ export default async function AdminProductsPage({
                       <ProductSelectCheckbox productId={p.id} />
                       <div className="relative h-20 w-20 shrink-0 overflow-hidden rounded-lg bg-muted">
                         {thumb ? (
-                          <Image src={thumb} alt="" fill sizes="80px" className="object-cover" />
+                          <Image
+                            src={sizedImageUrl(thumb, 160)}
+                            alt=""
+                            fill
+                            sizes="80px"
+                            className="object-cover"
+                          />
                         ) : (
                           <div className="flex h-full items-center justify-center text-xs text-muted-foreground">
                             No image

@@ -4,8 +4,12 @@ import { useEffect, useMemo, useState } from "react";
 import { ShieldCheck, Sparkles, Truck } from "lucide-react";
 import { Gallery } from "@/components/product/Gallery";
 import { ProductBuyBox } from "@/components/product/ProductBuyBox";
+import { ReviewStars } from "@/components/product/ReviewStars";
 import { Separator } from "@/components/ui/separator";
 import { parseProductOptions } from "@/lib/catalog/variants";
+import type { ProductReviewSummary } from "@/lib/reviews/summary";
+import { useSite } from "@/lib/site/SiteProvider";
+import { useDictionary, useT } from "@/lib/i18n/I18nProvider";
 import type { Product } from "@/lib/supabase/types";
 import {
   buildOptionAxes,
@@ -20,6 +24,7 @@ type Props = {
   variants: StorefrontVariant[];
   productOptions?: ReturnType<typeof parseProductOptions>;
   categoryLabel: string;
+  reviewSummary?: ProductReviewSummary;
 };
 
 export function ProductDetailPanel({
@@ -27,7 +32,11 @@ export function ProductDetailPanel({
   variants,
   productOptions = [],
   categoryLabel,
+  reviewSummary,
 }: Props) {
+  const site = useSite();
+  const dict = useDictionary();
+  const t = useT();
   const axes = useMemo(
     () => buildOptionAxes(variants, productOptions),
     [variants, productOptions],
@@ -77,6 +86,17 @@ export function ProductDetailPanel({
           <h1 className="mt-1 break-words text-2xl font-bold tracking-tight sm:text-3xl">
             {product.name}
           </h1>
+          {reviewSummary && reviewSummary.count > 0 ? (
+            <a
+              href="#reviews-heading"
+              className="mt-2 inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground"
+            >
+              <ReviewStars rating={reviewSummary.average} />
+              <span>
+                {reviewSummary.average.toFixed(1)} ({reviewSummary.count})
+              </span>
+            </a>
+          ) : null}
         </div>
 
         <ProductBuyBox
@@ -92,16 +112,21 @@ export function ProductDetailPanel({
         <Separator />
         <ul className="space-y-2 text-sm">
           <li className="flex items-start gap-2 text-muted-foreground">
-            <Truck className="mt-0.5 h-4 w-4 shrink-0 text-primary" /> Free shipping on orders over
-            $75 (USA &amp; CA)
+            <Truck className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
+            {t(
+              site.id === "bleeq-ca"
+                ? "product.freeShippingCanada"
+                : "product.freeShippingUsaCa",
+              { amount: site.freeShippingOver },
+            )}
           </li>
           <li className="flex items-start gap-2 text-muted-foreground">
-            <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-primary" /> 30-day hassle-free
-            returns
+            <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
+            {dict.product.returns30}
           </li>
           <li className="flex items-start gap-2 text-muted-foreground">
-            <Sparkles className="mt-0.5 h-4 w-4 shrink-0 text-primary" /> Earn{" "}
-            {Math.floor(selected?.priceUsd ?? 0)} points on this order
+            <Sparkles className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
+            {t("product.earnPoints", { n: Math.floor(selected?.priceUsd ?? 0) })}
           </li>
         </ul>
       </div>

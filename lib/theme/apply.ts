@@ -6,6 +6,17 @@ import {
   type ThemeColors,
   type ThemeMode,
 } from "./tokens";
+import { SITE_COOKIE, SITES, type SiteId } from "@/lib/site/config";
+
+function themeStorageKey(): string {
+  if (typeof document === "undefined") return THEME_STORAGE_KEY;
+  const match = document.cookie.match(
+    new RegExp(`(?:^|; )${SITE_COOKIE.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}=([^;]*)`),
+  );
+  const id = match?.[1] as SiteId | undefined;
+  if (id === "bleeq-ca" || id === "verveace") return SITES[id].themeStorageKey;
+  return THEME_STORAGE_KEY;
+}
 
 export type StoredTheme = {
   mode: ThemeMode;
@@ -96,7 +107,7 @@ function repairSurfaces(theme: StoredTheme): StoredTheme {
 export function readStoredTheme(): StoredTheme | null {
   if (typeof window === "undefined") return null;
   try {
-    const current = localStorage.getItem(THEME_STORAGE_KEY);
+    const current = localStorage.getItem(themeStorageKey());
     if (current) {
       const parsed = parseStoredTheme(current);
       if (!parsed) return null;
@@ -122,11 +133,11 @@ export function readStoredTheme(): StoredTheme | null {
 }
 
 export function saveTheme(theme: StoredTheme) {
-  localStorage.setItem(THEME_STORAGE_KEY, JSON.stringify(theme));
+  localStorage.setItem(themeStorageKey(), JSON.stringify(theme));
 }
 
 export function clearStoredTheme() {
-  localStorage.removeItem(THEME_STORAGE_KEY);
+  localStorage.removeItem(themeStorageKey());
   for (const key of LEGACY_THEME_STORAGE_KEYS) {
     localStorage.removeItem(key);
   }

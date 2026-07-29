@@ -45,7 +45,7 @@ export async function POST(req: NextRequest) {
   }
 
   try {
-      const paid = await reconcileOrderIfPaid(admin, order.id, { syncFees: false });
+      const paid = await reconcileOrderIfPaid(admin, order.id, { syncFees: true });
     return NextResponse.json({ paid });
   } catch (err) {
     console.error("confirm-order reconcile failed", err);

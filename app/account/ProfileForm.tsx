@@ -15,6 +15,7 @@ import { toast } from "sonner";
 import { updateProfile } from "@/lib/actions/profile";
 import { COUNTRIES } from "@/lib/constants";
 import { Loader2 } from "lucide-react";
+import { useDictionary } from "@/lib/i18n/I18nProvider";
 
 type Props = {
   email: string;
@@ -31,6 +32,7 @@ export function ProfileForm({
   country,
   referralCode,
 }: Props) {
+  const dict = useDictionary();
   const [pending, start] = useTransition();
   const [fn, setFn] = useState(firstName);
   const [ln, setLn] = useState(lastName);
@@ -47,31 +49,31 @@ export function ProfileForm({
             country: c,
           });
           if (res?.error) toast.error(res.error);
-          else toast.success("Profile updated");
+          else toast.success(dict.account.profileUpdated);
         });
       }}
       className="grid gap-4 sm:grid-cols-2"
     >
       <div className="space-y-1.5">
-        <Label htmlFor="email">Email</Label>
+        <Label htmlFor="email">{dict.account.email}</Label>
         <Input id="email" value={email} disabled />
       </div>
       <div className="space-y-1.5">
-        <Label htmlFor="referral">Your referral code</Label>
+        <Label htmlFor="referral">{dict.account.yourReferralCode}</Label>
         <Input id="referral" value={referralCode} disabled className="font-mono uppercase" />
       </div>
       <div className="grid gap-3 sm:col-span-2 sm:grid-cols-2 sm:gap-4">
         <div className="space-y-1.5">
-          <Label htmlFor="first_name">First name</Label>
+          <Label htmlFor="first_name">{dict.account.firstName}</Label>
           <Input id="first_name" value={fn} onChange={(e) => setFn(e.target.value)} required maxLength={80} />
         </div>
         <div className="space-y-1.5">
-          <Label htmlFor="last_name">Last name</Label>
+          <Label htmlFor="last_name">{dict.account.lastName}</Label>
           <Input id="last_name" value={ln} onChange={(e) => setLn(e.target.value)} required maxLength={80} />
         </div>
       </div>
       <div className="space-y-1.5">
-        <Label htmlFor="country">Country</Label>
+        <Label htmlFor="country">{dict.account.country}</Label>
         <Select value={c} onValueChange={(v) => v && setC(v as "US" | "CA")}>
           <SelectTrigger id="country">
             <SelectValue>{COUNTRIES[c].name}</SelectValue>
@@ -87,7 +89,7 @@ export function ProfileForm({
       </div>
       <div className="sm:col-span-2">
         <Button type="submit" disabled={pending}>
-          {pending ? <Loader2 className="h-4 w-4 animate-spin" /> : "Save changes"}
+          {pending ? <Loader2 className="h-4 w-4 animate-spin" /> : dict.account.saveChanges}
         </Button>
       </div>
     </form>

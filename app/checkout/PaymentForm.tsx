@@ -6,6 +6,7 @@ import { PaymentElement, useElements, useStripe } from "@stripe/react-stripe-js"
 import { Button } from "@/components/ui/button";
 import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
+import { useDictionary } from "@/lib/i18n/I18nProvider";
 
 export function PaymentForm({
   disabled,
@@ -19,6 +20,7 @@ export function PaymentForm({
   const stripe = useStripe();
   const elements = useElements();
   const [submitting, setSubmitting] = useState(false);
+  const dict = useDictionary();
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -80,7 +82,7 @@ export function PaymentForm({
         className="w-full"
         disabled={!stripe || submitting || disabled}
       >
-        {submitting ? <Loader2 className="h-4 w-4 animate-spin" /> : "Pay for order"}
+        {submitting ? <Loader2 className="h-4 w-4 animate-spin" /> : dict.checkout.payForOrder}
       </Button>
       <p className="text-center text-xs text-muted-foreground">
         By completing payment you agree to our{" "}

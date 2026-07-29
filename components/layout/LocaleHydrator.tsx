@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useLayoutEffect } from "react";
 import { useLocaleStore } from "@/lib/store/locale";
 import type { Locale } from "@/lib/i18n/locale";
 
@@ -8,7 +8,7 @@ import type { Locale } from "@/lib/i18n/locale";
 export function LocaleHydrator({ locale }: { locale: Locale }) {
   const setLocale = useLocaleStore((s) => s.setLocale);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     setLocale(locale);
   }, [locale, setLocale]);
 

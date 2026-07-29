@@ -9,9 +9,11 @@ import { signInWithGoogle, signUpWithPassword } from "@/lib/actions/auth";
 import { Loader2 } from "lucide-react";
 import { useTransition } from "react";
 import { toast } from "sonner";
+import { useDictionary } from "@/lib/i18n/I18nProvider";
 
 export function SignupForm() {
   const [pending, start] = useTransition();
+  const dict = useDictionary();
 
   return (
     <div className="space-y-4">
@@ -23,13 +25,13 @@ export function SignupForm() {
         onClick={() => start(async () => { await signInWithGoogle(); })}
       >
         <GoogleIcon />
-        Continue with Google
+        {dict.auth.continueGoogle}
       </Button>
 
       <div className="relative">
         <Separator />
         <span className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 bg-card px-2 text-xs text-muted-foreground">
-          OR
+          {dict.auth.or}
         </span>
       </div>
 
@@ -46,13 +48,13 @@ export function SignupForm() {
               lastName: String(fd.get("lastName")),
             });
             if (res?.error) toast.error(res.error);
-            else toast.success("Check your email to confirm your account.");
+            else toast.success(dict.auth.checkEmailConfirm);
           });
         }}
       >
         <div className="grid gap-3 sm:grid-cols-2">
           <div className="space-y-1.5">
-            <Label htmlFor="signup-first">First name</Label>
+            <Label htmlFor="signup-first">{dict.auth.firstName}</Label>
             <Input
               id="signup-first"
               name="firstName"
@@ -62,7 +64,7 @@ export function SignupForm() {
             />
           </div>
           <div className="space-y-1.5">
-            <Label htmlFor="signup-last">Last name</Label>
+            <Label htmlFor="signup-last">{dict.auth.lastName}</Label>
             <Input
               id="signup-last"
               name="lastName"
@@ -73,11 +75,11 @@ export function SignupForm() {
           </div>
         </div>
         <div className="space-y-1.5">
-          <Label htmlFor="signup-email">Email</Label>
+          <Label htmlFor="signup-email">{dict.auth.email}</Label>
           <Input id="signup-email" name="email" type="email" required autoComplete="email" />
         </div>
         <div className="space-y-1.5">
-          <Label htmlFor="signup-password">Password</Label>
+          <Label htmlFor="signup-password">{dict.auth.password}</Label>
           <Input
             id="signup-password"
             name="password"
@@ -86,19 +88,19 @@ export function SignupForm() {
             required
             autoComplete="new-password"
           />
-          <p className="text-xs text-muted-foreground">Min 8 characters.</p>
+          <p className="text-xs text-muted-foreground">{dict.auth.min8}</p>
         </div>
         <Button type="submit" className="w-full" disabled={pending}>
-          {pending ? <Loader2 className="h-4 w-4 animate-spin" /> : "Create account"}
+          {pending ? <Loader2 className="h-4 w-4 animate-spin" /> : dict.auth.createAccount}
         </Button>
         <p className="text-center text-xs text-muted-foreground">
-          By creating an account you agree to our{" "}
+          {dict.auth.agreeTerms}{" "}
           <Link href="/terms" className="text-primary hover:underline">
-            Terms
+            {dict.auth.terms}
           </Link>{" "}
-          and{" "}
+          {dict.auth.and}{" "}
           <Link href="/privacy" className="text-primary hover:underline">
-            Privacy Policy
+            {dict.auth.privacyPolicy}
           </Link>
           .
         </p>

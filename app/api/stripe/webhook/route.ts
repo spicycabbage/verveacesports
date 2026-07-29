@@ -20,19 +20,30 @@ function verifyStripeEvent(
 ): { event: Stripe.Event; currency: Currency } {
   const currencies: Currency[] = ["USD", "CAD"];
   let lastError: string | undefined;
+  let verified: Stripe.Event | undefined;
 
   for (const currency of currencies) {
     const secret = webhookSecretFor(currency);
     if (!secret) continue;
     try {
-      const event = getStripe(currency).webhooks.constructEvent(rawBody, sig, secret);
-      return { event, currency };
+      verified = getStripe(currency).webhooks.constructEvent(rawBody, sig, secret);
+      // Prefer payload currency — USD/CAD secrets may be identical (same Stripe account).
+      return { event: verified, currency: currencyFromEvent(verified, currency) };
     } catch (err) {
       lastError = err instanceof Error ? err.message : "Invalid signature";
     }
   }
 
   throw new Error(lastError ?? "No webhook secret configured");
+}
+
+function currencyFromEvent(event: Stripe.Event, fallback: Currency): Currency {
+  const obj = event.data.object as {
+    currency?: string | null;
+  };
+  const code = (obj.currency ?? "").toUpperCase();
+  if (code === "CAD" || code === "USD") return code;
+  return fallback;
 }
 
 export async function POST(req: NextRequest) {

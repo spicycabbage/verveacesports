@@ -3,8 +3,14 @@ import { cookies } from "next/headers";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { parseMarketCookie, MARKET_COOKIE } from "@/lib/geo/market";
 import { CheckoutClient } from "./CheckoutClient";
+import { LOCALE_COOKIE, parseLocaleCookie } from "@/lib/i18n/locale";
+import { getDictionary } from "@/lib/i18n/dictionary";
 
-export const metadata = { title: "Checkout" };
+export async function generateMetadata() {
+  const cookieStore = await cookies();
+  const dict = getDictionary(parseLocaleCookie(cookieStore.get(LOCALE_COOKIE)?.value));
+  return { title: dict.checkout.title, robots: { index: false, follow: false } };
+}
 
 function splitLegacyFullName(fullName: string): { first: string; last: string } {
   const parts = fullName.trim().split(/\s+/).filter(Boolean);
@@ -22,6 +28,7 @@ export default async function CheckoutPage() {
 
   const cookieStore = await cookies();
   const defaultMarket = parseMarketCookie(cookieStore.get(MARKET_COOKIE)?.value);
+  const dict = getDictionary(parseLocaleCookie(cookieStore.get(LOCALE_COOKIE)?.value));
 
   const { data: profile } = await supabase
     .from("profiles")
@@ -41,7 +48,7 @@ export default async function CheckoutPage() {
 
   return (
     <div className="mx-auto max-w-5xl px-4 py-8">
-      <h1 className="mb-6 text-2xl font-bold tracking-tight sm:text-3xl">Checkout</h1>
+      <h1 className="mb-6 text-2xl font-bold tracking-tight sm:text-3xl">{dict.checkout.title}</h1>
       <CheckoutClient
         defaultMarket={defaultMarket}
         defaultFirstName={first || legacy.first}

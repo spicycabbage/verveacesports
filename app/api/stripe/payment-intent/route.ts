@@ -4,6 +4,8 @@ import { getStripe } from "@/lib/stripe/server";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { computeCheckoutQuote, QuoteError } from "@/lib/checkout/quote";
+import { normalizeTaxRegion } from "@/lib/constants";
+import { getSiteFromRequest } from "@/lib/site/get-site";
 import { toMinorUnits } from "@/lib/utils/currency";
 import { clientIp, rateLimit } from "@/lib/utils/rate-limit";
 
@@ -58,6 +60,11 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Shipping country does not match market" }, { status: 400 });
   }
 
+  const normalizedRegion = normalizeTaxRegion(country, shippingAddress.state);
+  if (!normalizedRegion) {
+    return NextResponse.json({ error: "Invalid state/province" }, { status: 400 });
+  }
+
   const supabase = await createSupabaseServerClient();
   const {
     data: { user },
@@ -74,6 +81,7 @@ export async function POST(req: NextRequest) {
     );
   }
 
+  const site = getSiteFromRequest(req);
   const admin = createSupabaseAdminClient();
 
   let quote;
@@ -83,9 +91,11 @@ export async function POST(req: NextRequest) {
       currency,
       country,
       userId: user.id,
+      site,
       pointsToRedeem,
       discountCode,
       region: shippingAddress.state,
+      requireValidRegion: true,
     });
   } catch (err) {
     if (err instanceof QuoteError) {
@@ -93,6 +103,11 @@ export async function POST(req: NextRequest) {
     }
     return NextResponse.json({ error: "Failed to price order" }, { status: 500 });
   }
+
+  const normalizedShipping = {
+    ...shippingAddress,
+    state: normalizedRegion,
+  };
 
   if (quote.total < 0.5) {
     return NextResponse.json(
@@ -105,6 +120,7 @@ export async function POST(req: NextRequest) {
     .from("orders")
     .insert({
       user_id: user.id,
+      site_id: site.id,
       status: "pending",
       financial_status: "pending",
       fulfillment_status: "unfulfilled",
@@ -120,7 +136,7 @@ export async function POST(req: NextRequest) {
       points_value: quote.redeemValue,
       total: quote.total,
       country,
-      shipping_address: shippingAddress,
+      shipping_address: normalizedShipping,
     })
     .select()
     .single();

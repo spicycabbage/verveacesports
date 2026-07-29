@@ -1,3 +1,5 @@
+"use client";
+
 import Image from "next/image";
 import Link from "next/link";
 import { Card, CardContent } from "@/components/ui/card";
@@ -5,9 +7,14 @@ import { Badge } from "@/components/ui/badge";
 import { ProductPrice } from "./ProductPrice";
 import { AddToCartButton } from "./AddToCartButton";
 import type { ProductWithDefaultVariant } from "@/lib/catalog/variants";
+import { sizedImageUrl } from "@/lib/images/cdn";
+import { useDictionary, useT } from "@/lib/i18n/I18nProvider";
+import { categoryLabelFromDict } from "@/lib/i18n/helpers";
 
 export function ProductCard({ product }: { product: ProductWithDefaultVariant }) {
-  const image = product.images?.[0];
+  const dict = useDictionary();
+  const t = useT();
+  const image = sizedImageUrl(product.images?.[0], 900);
   return (
     <Card className="group flex h-full flex-col overflow-hidden p-0 transition-shadow hover:shadow-lg">
       <CardContent className="flex h-full flex-col p-0">
@@ -26,18 +33,18 @@ export function ProductCard({ product }: { product: ProductWithDefaultVariant })
           )}
           {product.stock <= 5 && product.stock > 0 && (
             <Badge variant="destructive" className="absolute left-2 top-2">
-              Low stock
+              {t("product.onlyNLeft", { n: product.stock })}
             </Badge>
           )}
           {product.stock === 0 && (
             <Badge variant="secondary" className="absolute left-2 top-2">
-              Sold out
+              {dict.product.soldOut}
             </Badge>
           )}
         </Link>
         <div className="flex flex-1 flex-col gap-2 p-3">
           <span className="text-xs uppercase tracking-wider text-muted-foreground">
-            {product.category}
+            {categoryLabelFromDict(dict, product.category)}
           </span>
           <Link
             href={`/products/${product.slug}`}

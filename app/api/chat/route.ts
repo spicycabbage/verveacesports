@@ -9,9 +9,15 @@ import {
   type UIMessage,
 } from "ai";
 import { buildChatSystemPrompt } from "@/lib/chat/system-prompt";
+import {
+  extractLatestUserQuestion,
+  logChatQuestion,
+} from "@/lib/chat/log-question";
 import { COUNTRIES } from "@/lib/constants";
 import { MARKET_COOKIE, parseMarketCookie } from "@/lib/geo/market";
 import { LOCALE_COOKIE, parseLocaleCookie } from "@/lib/i18n/locale";
+import { getSiteFromRequest } from "@/lib/site/get-site";
+import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { clientIp, rateLimit } from "@/lib/utils/rate-limit";
 
 export const runtime = "nodejs";
@@ -54,8 +60,33 @@ export async function POST(req: NextRequest) {
 
   const cookieStore = await cookies();
   const locale = parseLocaleCookie(cookieStore.get(LOCALE_COOKIE)?.value);
-  const country = parseMarketCookie(cookieStore.get(MARKET_COOKIE)?.value);
+  const site = getSiteFromRequest(req);
+  const country =
+    site.lockMarket ?? parseMarketCookie(cookieStore.get(MARKET_COOKIE)?.value);
   const currency = COUNTRIES[country].currency;
+
+  const question = extractLatestUserQuestion(messages);
+  if (question) {
+    let userId: string | null = null;
+    try {
+      const supabase = await createSupabaseServerClient();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      userId = user?.id ?? null;
+    } catch {
+      userId = null;
+    }
+    void logChatQuestion({
+      siteId: site.id,
+      question,
+      locale,
+      country,
+      currency,
+      userId,
+      messageCount: messages.length,
+    });
+  }
 
   const result = streamText({
     model: xai("grok-4.20-reasoning"),
@@ -63,6 +94,7 @@ export async function POST(req: NextRequest) {
       locale,
       currency,
       country,
+      siteId: site.id,
     }),
     messages: await convertToModelMessages(messages),
   });

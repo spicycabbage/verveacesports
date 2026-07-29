@@ -86,14 +86,29 @@ export async function getFinanceSummary(range: DateRange): Promise<CurrencyFinan
     }
   }
 
-  // Stripe fees from balance transactions in range.
+  // Stripe fees: prefer BTs linked to orders in range; fall back to BT created_at.
   const feesByCurrency: Record<Currency, number> = { USD: 0, CAD: 0 };
+  const countedBt = new Set<string>();
+  if (orderIds.length > 0) {
+    const { data: linkedFees } = await admin
+      .from("stripe_balance_transactions")
+      .select("id, currency, fee, order_id")
+      .in("order_id", orderIds);
+    for (const bt of linkedFees ?? []) {
+      countedBt.add(bt.id);
+      feesByCurrency[bt.currency as Currency] += Math.abs(Number(bt.fee) || 0);
+    }
+  }
   const { data: btData } = await admin
     .from("stripe_balance_transactions")
-    .select("currency, fee, created_at")
+    .select("id, currency, fee, order_id, created_at")
     .gte("created_at", range.from)
-    .lte("created_at", range.to);
+    .lte("created_at", range.to)
+    .in("type", ["charge", "payment", "refund", "payment_refund"]);
   for (const bt of btData ?? []) {
+    if (countedBt.has(bt.id)) continue;
+    // Skip orphans already covered by an order outside this range.
+    if (bt.order_id && !orderIds.includes(bt.order_id)) continue;
     feesByCurrency[bt.currency as Currency] += Math.abs(Number(bt.fee) || 0);
   }
 

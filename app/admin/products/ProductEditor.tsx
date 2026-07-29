@@ -17,6 +17,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { CATEGORIES, CATEGORY_LABELS, type Category } from "@/lib/constants";
+import { sizedImageUrl } from "@/lib/images/cdn";
 import { updateProductCatalog, uploadProductImage } from "@/lib/actions/catalog";
 import { ExternalLink, GripVertical, Trash2, Upload } from "lucide-react";
 import Link from "next/link";
@@ -230,7 +231,13 @@ export const ProductEditor = forwardRef<ProductEditorHandle, { product: ProductD
                       </button>
                     </div>
                     <div className="relative h-32 w-full overflow-hidden rounded-md bg-muted sm:h-44 sm:w-44 sm:shrink-0">
-                      <Image src={src} alt="" fill sizes="176px" className="object-cover" />
+                      <Image
+                        src={sizedImageUrl(src, 352)}
+                        alt=""
+                        fill
+                        sizes="176px"
+                        className="object-cover"
+                      />
                     </div>
                   </div>
                   <span className="min-w-0 flex-1 break-all text-xs text-muted-foreground sm:truncate">

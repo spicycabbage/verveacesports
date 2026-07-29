@@ -4,24 +4,62 @@ export type BrevoSubscribeResult =
   | { ok: true; created: boolean }
   | { ok: false; error: string };
 
-function getBrevoListId(): number | null {
-  const raw = process.env.BREVO_LIST_ID?.trim();
-  if (!raw) return null;
-  const listId = Number.parseInt(raw, 10);
+export type BrevoSubscribeOptions = {
+  /** Storefront that collected the email — picks the Brevo list. */
+  siteId: "verveace" | "bleeq-ca";
+  /** UI / flow surface, e.g. popup | account-signup */
+  source?: string;
+  firstName?: string;
+  lastName?: string;
+};
+
+function parseListId(raw: string | undefined): number | null {
+  if (!raw?.trim()) return null;
+  const listId = Number.parseInt(raw.trim(), 10);
   return Number.isFinite(listId) ? listId : null;
 }
 
-export function isBrevoConfigured(): boolean {
-  return Boolean(process.env.BREVO_API_KEY?.trim() && getBrevoListId());
+/**
+ * Two-list model:
+ * - verveace → BREVO_LIST_ID
+ * - bleeq-ca → BREVO_LIST_ID_BLEEQ_CA
+ * No fallback between lists (keeps segments clean).
+ */
+export function getBrevoListId(siteId: BrevoSubscribeOptions["siteId"]): number | null {
+  if (siteId === "bleeq-ca") {
+    return parseListId(process.env.BREVO_LIST_ID_BLEEQ_CA);
+  }
+  return parseListId(process.env.BREVO_LIST_ID);
 }
 
-export async function subscribeToBrevoList(email: string): Promise<BrevoSubscribeResult> {
+export function isBrevoConfigured(siteId: BrevoSubscribeOptions["siteId"] = "verveace"): boolean {
+  return Boolean(process.env.BREVO_API_KEY?.trim() && getBrevoListId(siteId) !== null);
+}
+
+export async function subscribeToBrevoList(
+  email: string,
+  options: BrevoSubscribeOptions,
+): Promise<BrevoSubscribeResult> {
   const apiKey = process.env.BREVO_API_KEY?.trim();
-  const listId = getBrevoListId();
+  const listId = getBrevoListId(options.siteId);
 
   if (!apiKey || listId === null) {
-    return { ok: false, error: "Newsletter is not configured" };
+    return {
+      ok: false,
+      error:
+        options.siteId === "bleeq-ca"
+          ? "Newsletter is not configured (set BREVO_LIST_ID_BLEEQ_CA)"
+          : "Newsletter is not configured (set BREVO_LIST_ID)",
+    };
   }
+
+  const attributes: Record<string, string> = {
+    SITE_ID: options.siteId,
+    STOREFRONT: options.siteId === "bleeq-ca" ? "BleeqUp Canada" : "VerveaceSports",
+    SOURCE: options.source?.slice(0, 64) || "popup",
+  };
+  if (options.firstName?.trim()) attributes.FIRSTNAME = options.firstName.trim().slice(0, 80);
+  if (options.lastName?.trim()) attributes.LASTNAME = options.lastName.trim().slice(0, 80);
 
   const response = await fetch(BREVO_CONTACTS_URL, {
     method: "POST",
@@ -34,6 +72,7 @@ export async function subscribeToBrevoList(email: string): Promise<BrevoSubscrib
       email,
       listIds: [listId],
       updateEnabled: true,
+      attributes,
     }),
   });
 

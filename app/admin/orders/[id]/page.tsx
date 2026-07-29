@@ -9,6 +9,7 @@ import { ArrowLeft } from "lucide-react";
 import { formatPrice, formatDate } from "@/lib/utils/format";
 import type { Currency } from "@/lib/constants";
 import { countryName } from "@/lib/constants";
+import { SITES, type SiteId } from "@/lib/site/config";
 import type {
   Order,
   OrderItem,
@@ -22,6 +23,10 @@ import { OrderFulfillPanel } from "./OrderFulfillPanel";
 import { OrderRefundPanel } from "./OrderRefundPanel";
 
 export const metadata = { title: "Admin · Order" };
+
+function isSiteId(value: string | undefined | null): value is SiteId {
+  return value === "verveace" || value === "bleeq-ca";
+}
 
 const FIN_VARIANTS: Record<FinancialStatus, "default" | "secondary" | "outline" | "destructive"> = {
   pending: "secondary",
@@ -49,6 +54,7 @@ export default async function AdminOrderDetailPage({ params }: { params: Params 
   if (!orderData) notFound();
   const order = orderData as Order;
   const currency = order.currency as Currency;
+  const orderSite = isSiteId(order.site_id) ? order.site_id : "verveace";
 
   const [{ data: itemsData }, { data: paymentsData }, { data: refundsData }, { data: fulfillmentsData }] =
     await Promise.all([
@@ -86,6 +92,9 @@ export default async function AdminOrderDetailPage({ params }: { params: Params 
                   {order.email && <p className="text-sm text-muted-foreground">{order.email}</p>}
                 </div>
                 <div className="flex flex-col items-end gap-1">
+                  <Badge variant={orderSite === "bleeq-ca" ? "secondary" : "default"}>
+                    {SITES[orderSite].name}
+                  </Badge>
                   <Badge variant={FIN_VARIANTS[order.financial_status]} className="capitalize">
                     {order.financial_status.replace("_", " ")}
                   </Badge>

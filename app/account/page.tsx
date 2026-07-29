@@ -1,13 +1,18 @@
+import { cookies } from "next/headers";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Sparkles } from "lucide-react";
 import { ProfileForm } from "./ProfileForm";
 import { formatPoints } from "@/lib/utils/format";
+import { LOCALE_COOKIE, parseLocaleCookie } from "@/lib/i18n/locale";
+import { getDictionary, interpolate } from "@/lib/i18n/dictionary";
 
 export const metadata = { title: "Profile" };
 
 export default async function ProfilePage() {
   const supabase = await createSupabaseServerClient();
+  const cookieStore = await cookies();
+  const dict = getDictionary(parseLocaleCookie(cookieStore.get(LOCALE_COOKIE)?.value));
   const {
     data: { user },
   } = await supabase.auth.getUser();
@@ -40,7 +45,7 @@ export default async function ProfilePage() {
         <Card>
           <CardHeader className="space-y-0 pb-2">
             <CardDescription className="flex items-center gap-1.5">
-              <Sparkles className="h-3.5 w-3.5 text-primary" /> Loyalty points
+              <Sparkles className="h-3.5 w-3.5 text-primary" /> {dict.account.loyaltyPoints}
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -48,13 +53,15 @@ export default async function ProfilePage() {
               {formatPoints(profile?.loyalty_points ?? 0)}
             </p>
             <p className="mt-1 text-xs text-muted-foreground">
-              Worth ${((profile?.loyalty_points ?? 0) / 100).toFixed(2)} at checkout
+              {interpolate(dict.account.worthAtCheckout, {
+                amount: ((profile?.loyalty_points ?? 0) / 100).toFixed(2),
+              })}
             </p>
           </CardContent>
         </Card>
         <Card>
           <CardHeader className="space-y-0 pb-2">
-            <CardDescription>Member since</CardDescription>
+            <CardDescription>{dict.account.memberSince}</CardDescription>
           </CardHeader>
           <CardContent>
             <p className="text-3xl font-bold">
@@ -72,8 +79,8 @@ export default async function ProfilePage() {
 
       <Card>
         <CardHeader>
-          <CardTitle>Profile</CardTitle>
-          <CardDescription>Keep your details up to date.</CardDescription>
+          <CardTitle>{dict.account.profileTitle}</CardTitle>
+          <CardDescription>{dict.account.profileDesc}</CardDescription>
         </CardHeader>
         <CardContent>
           <ProfileForm

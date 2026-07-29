@@ -1,6 +1,6 @@
 "use client";
 
-import Link from "next/link";
+import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { Loader2, Mail } from "lucide-react";
@@ -20,19 +20,31 @@ import {
   markNewsletterSubscribed,
   shouldShowNewsletterPopup,
 } from "@/lib/newsletter/storage";
+import { useSite } from "@/lib/site/SiteProvider";
+import { useDictionary } from "@/lib/i18n/I18nProvider";
 
 const POPUP_DELAY_MS = 2500;
 
 export function NewsletterPopup() {
   const pathname = usePathname();
+  const site = useSite();
+  const dict = useDictionary();
   const [open, setOpen] = useState(false);
   const [email, setEmail] = useState("");
   const [submitting, setSubmitting] = useState(false);
 
   const isAdminRoute = pathname.startsWith("/admin");
+  const isDrawPage = pathname === "/draw";
+  const isAuthSurface =
+    pathname.startsWith("/account") ||
+    pathname.startsWith("/login") ||
+    pathname.startsWith("/signup") ||
+    pathname.startsWith("/callback") ||
+    pathname.startsWith("/checkout");
+  const isBleeq = site.id === "bleeq-ca";
 
   useEffect(() => {
-    if (isAdminRoute) return;
+    if (isAdminRoute || isDrawPage || isAuthSurface) return;
 
     const timer = window.setTimeout(() => {
       if (shouldShowNewsletterPopup()) {
@@ -41,7 +53,7 @@ export function NewsletterPopup() {
     }, POPUP_DELAY_MS);
 
     return () => window.clearTimeout(timer);
-  }, [isAdminRoute, pathname]);
+  }, [isAdminRoute, isDrawPage, isAuthSurface, pathname]);
 
   const closePopup = (dismissed: boolean) => {
     setOpen(false);
@@ -60,12 +72,15 @@ export function NewsletterPopup() {
       const res = await fetch("/api/newsletter/subscribe", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: trimmed, source: "popup" }),
+        body: JSON.stringify({
+          email: trimmed,
+          source: isBleeq ? "bleeq-ca-popup" : "verveace-popup",
+        }),
       });
       const data = (await res.json()) as { error?: string; alreadySubscribed?: boolean };
 
       if (!res.ok) {
-        toast.error(data.error ?? "Something went wrong. Try again.");
+        toast.error(data.error ?? dict.newsletter.toastError);
         return;
       }
 
@@ -73,17 +88,17 @@ export function NewsletterPopup() {
       setOpen(false);
       toast.success(
         data.alreadySubscribed
-          ? "You're already on the list — thanks!"
-          : "You're subscribed. Watch your inbox for updates.",
+          ? dict.newsletter.toastAlready
+          : dict.newsletter.toastSuccess,
       );
     } catch {
-      toast.error("Could not subscribe. Check your connection and try again.");
+      toast.error(dict.newsletter.toastConnError);
     } finally {
       setSubmitting(false);
     }
   };
 
-  if (isAdminRoute) return null;
+  if (isAdminRoute || isDrawPage || isAuthSurface) return null;
 
   return (
     <Dialog
@@ -93,27 +108,56 @@ export function NewsletterPopup() {
         else setOpen(true);
       }}
     >
-      <DialogContent className="gap-0 overflow-hidden p-0 sm:max-w-md">
-        <div className="border-b bg-primary/10 px-6 py-8 text-center">
-          <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-primary text-primary-foreground">
-            <Mail className="h-6 w-6" />
+      <DialogContent
+        className={
+          isBleeq
+            ? "gap-0 overflow-hidden p-0 sm:max-w-lg"
+            : "gap-0 overflow-hidden p-0 sm:max-w-md"
+        }
+      >
+        {isBleeq ? (
+          <div className="relative w-full overflow-hidden bg-black pb-[calc(56.25%+50px)] sm:pb-[calc(50%+50px)]">
+            <Image
+              src="/bleeq-newsletter-nbda.webp"
+              alt="Meet BleeqUp at NBDA Canada 2026"
+              fill
+              className="object-cover object-top"
+              sizes="(max-width: 640px) 100vw, 512px"
+              quality={82}
+              priority
+            />
           </div>
-          <DialogHeader className="items-center text-center">
-            <DialogTitle className="text-xl sm:text-2xl">Stay in the loop</DialogTitle>
-            <DialogDescription className="max-w-sm text-base">
-              Get BleeqUp drops, exclusive deals, and new product alerts from VerveaceSports.
-            </DialogDescription>
-          </DialogHeader>
-        </div>
+        ) : (
+          <div className="border-b bg-primary/10 px-6 py-8 text-center">
+            <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-primary text-primary-foreground">
+              <Mail className="h-6 w-6" />
+            </div>
+            <DialogHeader className="items-center text-center">
+              <DialogTitle className="text-xl sm:text-2xl">{dict.newsletter.title}</DialogTitle>
+              <DialogDescription className="max-w-sm text-base">
+                {dict.newsletter.descVerveace}
+              </DialogDescription>
+            </DialogHeader>
+          </div>
+        )}
 
         <form onSubmit={handleSubmit} className="space-y-4 px-6 py-6">
+          {isBleeq && (
+            <DialogHeader className="space-y-2 text-left sm:text-center">
+              <DialogTitle className="sr-only">{dict.newsletter.title}</DialogTitle>
+              <DialogDescription className="text-base font-medium leading-snug text-foreground">
+                {dict.newsletter.descBleeq}
+              </DialogDescription>
+            </DialogHeader>
+          )}
+
           <div className="space-y-2">
-            <Label htmlFor="newsletter-email">Email address</Label>
+            <Label htmlFor="newsletter-email">{dict.newsletter.email}</Label>
             <Input
               id="newsletter-email"
               type="email"
               autoComplete="email"
-              placeholder="you@example.com"
+              placeholder={dict.newsletter.emailPlaceholder}
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
@@ -126,20 +170,12 @@ export function NewsletterPopup() {
             {submitting ? (
               <>
                 <Loader2 className="animate-spin" />
-                Subscribing…
+                {dict.newsletter.subscribing}
               </>
             ) : (
-              "Subscribe"
+              dict.newsletter.subscribe
             )}
           </Button>
-
-          <p className="text-center text-xs leading-relaxed text-muted-foreground">
-            Unsubscribe anytime. See our{" "}
-            <Link href="/privacy" className="text-primary hover:underline" onClick={() => closePopup(true)}>
-              Privacy Policy
-            </Link>
-            .
-          </p>
 
           <button
             type="button"
@@ -147,7 +183,7 @@ export function NewsletterPopup() {
             onClick={() => closePopup(true)}
             disabled={submitting}
           >
-            No thanks
+            {dict.newsletter.noThanks}
           </button>
         </form>
       </DialogContent>

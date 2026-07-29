@@ -3,6 +3,8 @@ import { updateSession } from "@/lib/supabase/middleware";
 import { REFERRAL_COOKIE, REFERRAL_COOKIE_DAYS } from "@/lib/constants";
 import { isValidReferralCode } from "@/lib/utils/referral";
 import { detectMarketFromRequest, MARKET_COOKIE } from "@/lib/geo/market";
+import { SITE_COOKIE } from "@/lib/site/config";
+import { getSiteFromRequest } from "@/lib/site/get-site";
 
 export async function proxy(request: NextRequest) {
   // Do not refresh the session on sign-out — that can re-write auth cookies before the route clears them.
@@ -18,8 +20,15 @@ export async function proxy(request: NextRequest) {
   }
 
   const response = await updateSession(request);
+  const site = getSiteFromRequest(request);
 
-  const market = detectMarketFromRequest(request);
+  response.cookies.set(SITE_COOKIE, site.id, {
+    path: "/",
+    sameSite: "lax",
+    maxAge: 60 * 60 * 24 * 365,
+  });
+
+  const market = site.lockMarket ?? detectMarketFromRequest(request);
   response.cookies.set(MARKET_COOKIE, market, {
     path: "/",
     sameSite: "lax",

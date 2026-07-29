@@ -1,13 +1,30 @@
 import Link from "next/link";
 import { redirect, notFound } from "next/navigation";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
-import { LayoutDashboard, Package, Boxes, Ticket, Truck, BarChart3 } from "lucide-react";
+import {
+  LayoutDashboard,
+  Package,
+  Boxes,
+  Ticket,
+  Truck,
+  BarChart3,
+  MessageCircle,
+  Shield,
+  Users,
+} from "lucide-react";
+
+export const metadata = {
+  robots: { index: false, follow: false },
+};
 
 const NAV = [
   { href: "/admin", label: "Overview", icon: LayoutDashboard },
   { href: "/admin/orders", label: "Orders", icon: Package },
+  { href: "/admin/users", label: "Users", icon: Users },
   { href: "/admin/finance", label: "Finance", icon: BarChart3 },
   { href: "/admin/products", label: "Products", icon: Boxes },
+  { href: "/admin/chat", label: "Chat", icon: MessageCircle },
+  { href: "/admin/warranty", label: "Warranty", icon: Shield },
   { href: "/admin/discounts", label: "Coupons", icon: Ticket },
   { href: "/admin/shipping", label: "Shipping", icon: Truck },
 ];

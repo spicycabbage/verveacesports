@@ -7,7 +7,7 @@ import { Elements } from "@stripe/react-stripe-js";
 import { getStripeClient } from "@/lib/stripe/client";
 import { useCartStore, cartSubtotal, cartLineKey } from "@/lib/store/cart";
 import { useCountryStore } from "@/lib/store/country";
-import { COUNTRIES, LOYALTY } from "@/lib/constants";
+import { COUNTRIES, LOYALTY, regionsForCountry } from "@/lib/constants";
 import type { CountryCode } from "@/lib/constants";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -27,6 +27,8 @@ import { formatPrice } from "@/lib/utils/format";
 import { toMinorUnits } from "@/lib/utils/currency";
 import { toast } from "sonner";
 import { PaymentForm } from "./PaymentForm";
+import { useSite } from "@/lib/site/SiteProvider";
+import { useDictionary, useT } from "@/lib/i18n/I18nProvider";
 
 type ShippingForm = {
   first_name: string;
@@ -82,7 +84,12 @@ export function CheckoutClient({
   defaultLastName: string;
   loyaltyPoints: number;
 }) {
+  const site = useSite();
+  const dict = useDictionary();
+  const t = useT();
   const { items } = useCartStore();
+  const promoCode = useCartStore((s) => s.promoCode);
+  const setPromoCode = useCartStore((s) => s.setPromoCode);
   const setCountry = useCountryStore((s) => s.setCountry);
   const router = useRouter();
   const [mounted, setMounted] = useState(false);
@@ -107,8 +114,6 @@ export function CheckoutClient({
   const stripePromise = useMemo(() => getStripeClient(checkoutCurrency), [checkoutCurrency]);
 
   const [pointsToRedeem, setPointsToRedeem] = useState(0);
-  const [promoInput, setPromoInput] = useState("");
-  const [appliedCode, setAppliedCode] = useState<string | null>(null);
   const [promoError, setPromoError] = useState<string | null>(null);
   const [quote, setQuote] = useState<Quote | null>(null);
   const [quoteLoading, setQuoteLoading] = useState(false);
@@ -155,7 +160,7 @@ export function CheckoutClient({
           }),
         });
         const data = (await res.json()) as Quote & { error?: string };
-        if (!res.ok) throw new Error(data.error || "Could not update totals");
+        if (!res.ok) throw new Error(data.error || dict.checkout.couldNotUpdate);
         setQuote(data);
         if (data.lineItems?.length) {
           useCartStore.getState().syncPrices(
@@ -169,21 +174,22 @@ export function CheckoutClient({
         }
         setPromoError(null);
       } catch (err) {
-        const msg = err instanceof Error ? err.message : "Could not update totals";
+        const msg = err instanceof Error ? err.message : dict.checkout.couldNotUpdate;
         if (code) {
           setPromoError(msg);
+          setPromoCode(null);
           toast.error(msg);
         }
       } finally {
         setQuoteLoading(false);
       }
     },
-    [items.length, cartItems, checkoutCurrency, checkoutCountry, pointsToRedeem, debouncedState],
+    [items.length, cartItems, checkoutCurrency, checkoutCountry, pointsToRedeem, debouncedState, setPromoCode, dict],
   );
 
   // Baseline quote (tax/shipping) when cart or region changes — no promo applied.
   useEffect(() => {
-    if (!mounted || items.length === 0 || appliedCode) return;
+    if (!mounted || items.length === 0 || promoCode) return;
     void fetchQuote(null);
   }, [
     mounted,
@@ -193,78 +199,25 @@ export function CheckoutClient({
     checkoutCountry,
     pointsToRedeem,
     debouncedState,
-    appliedCode,
+    promoCode,
     fetchQuote,
   ]);
 
   // Re-quote when points or tax region change while a promo is active.
   useEffect(() => {
-    if (!mounted || items.length === 0 || !appliedCode) return;
-    void fetchQuote(appliedCode);
-  }, [mounted, items.length, pointsToRedeem, debouncedState, appliedCode, checkoutCountry, fetchQuote]);
+    if (!mounted || items.length === 0 || !promoCode) return;
+    void fetchQuote(promoCode);
+  }, [mounted, items.length, pointsToRedeem, debouncedState, promoCode, checkoutCountry, fetchQuote]);
 
-  async function applyPromo() {
-    const code = promoInput.trim();
-    if (!code) {
-      toast.error("Enter a promo code");
-      return;
-    }
+  function removePromo() {
+    setPromoCode(null);
     setPromoError(null);
-    setQuoteLoading(true);
-    try {
-      const res = await fetch("/api/checkout/quote", {
-        method: "POST",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify({
-          items: cartItems,
-          currency: checkoutCurrency,
-          country: checkoutCountry,
-          pointsToRedeem,
-          discountCode: code,
-          region: shipping.state.trim() || debouncedState.trim() || undefined,
-        }),
-      });
-      const data = (await res.json()) as Quote & { error?: string };
-      if (!res.ok) throw new Error(data.error || "Invalid promo code");
-      setQuote(data);
-      if (data.lineItems?.length) {
-        useCartStore.getState().syncPrices(
-          data.lineItems.map((li) => ({
-            productId: li.productId,
-            variantId: li.variantId,
-            priceUsd: li.priceUsd,
-            priceCad: li.priceCad,
-          })),
-        );
-      }
-      setAppliedCode(data.discountCode ?? code.toUpperCase());
-      setPromoInput("");
-      const saved =
-        data.discountTotal > 0
-          ? formatPrice(data.discountTotal, checkoutCurrency)
-          : data.freeShipping
-            ? "free shipping"
-            : "applied";
-      toast.success(`Promo ${data.discountCode ?? code} — ${saved}`);
-    } catch (err) {
-      const msg = err instanceof Error ? err.message : "Invalid promo code";
-      setPromoError(msg);
-      toast.error(msg);
-    } finally {
-      setQuoteLoading(false);
-    }
-  }
-
-  async function removePromo() {
-    setAppliedCode(null);
-    setPromoInput("");
-    setPromoError(null);
-    await fetchQuote(null);
-    toast.message("Promo removed");
+    void fetchQuote(null);
+    toast.message(dict.checkout.promoRemoved);
   }
 
   const clientSubtotal = mounted ? cartSubtotal(items, checkoutCurrency) : 0;
-  const clientShipping = clientSubtotal >= 75 ? 0 : 9.99;
+  const clientShipping = clientSubtotal >= site.freeShippingOver ? 0 : 9.99;
   const quotedUnitByKey = useMemo(() => {
     const m = new Map<string, number>();
     for (const li of quote?.lineItems ?? []) {
@@ -301,7 +254,7 @@ export function CheckoutClient({
 
   const createPaymentIntent = useCallback(async (): Promise<CreateIntentResult> => {
     if (!fieldsValid()) {
-      throw new Error("Please complete the shipping form.");
+      throw new Error(dict.checkout.completeShipping);
     }
     const full_name = `${shipping.first_name.trim()} ${shipping.last_name.trim()}`.trim();
     const res = await fetch("/api/stripe/payment-intent", {
@@ -312,7 +265,7 @@ export function CheckoutClient({
         currency: checkoutCurrency,
         country: checkoutCountry,
         pointsToRedeem,
-        discountCode: appliedCode ?? undefined,
+        discountCode: promoCode ?? undefined,
         shippingAddress: {
           full_name,
           line1: shipping.line1,
@@ -328,7 +281,7 @@ export function CheckoutClient({
     if (!res.ok || !data?.clientSecret || !data.orderId) {
       throw new Error(data?.error || `Failed to start payment (${res.status})`);
     }
-    if (data.discountCode) setAppliedCode(data.discountCode);
+    if (data.discountCode) setPromoCode(data.discountCode);
     setQuote(data);
     return { clientSecret: data.clientSecret, orderId: data.orderId };
   }, [
@@ -336,8 +289,10 @@ export function CheckoutClient({
     checkoutCurrency,
     checkoutCountry,
     pointsToRedeem,
-    appliedCode,
+    promoCode,
+    setPromoCode,
     shipping,
+    dict,
   ]);
 
   const paymentAmountMinor = toMinorUnits(total);
@@ -351,9 +306,9 @@ export function CheckoutClient({
       <Card>
         <CardContent className="grid place-items-center gap-3 py-20 text-center">
           <ShoppingBag className="h-10 w-10 text-muted-foreground/50" />
-          <h2 className="text-lg font-semibold">Your cart is empty</h2>
+          <h2 className="text-lg font-semibold">{dict.checkout.empty}</h2>
           <Link href="/products" className={buttonVariants({})}>
-            Browse products
+            {dict.checkout.browseProducts}
           </Link>
         </CardContent>
       </Card>
@@ -365,10 +320,10 @@ export function CheckoutClient({
       <div className="space-y-6 lg:col-span-2">
         <Card>
           <CardContent className="space-y-4">
-            <h2 className="text-lg font-semibold">Shipping address</h2>
+            <h2 className="text-lg font-semibold">{dict.checkout.shippingAddress}</h2>
             <div className="grid gap-3 sm:grid-cols-2">
               <div className="space-y-1.5">
-                <Label htmlFor="first_name">First name</Label>
+                <Label htmlFor="first_name">{dict.checkout.firstName}</Label>
                 <Input
                   id="first_name"
                   autoComplete="given-name"
@@ -377,7 +332,7 @@ export function CheckoutClient({
                 />
               </div>
               <div className="space-y-1.5">
-                <Label htmlFor="last_name">Last name</Label>
+                <Label htmlFor="last_name">{dict.checkout.lastName}</Label>
                 <Input
                   id="last_name"
                   autoComplete="family-name"
@@ -386,7 +341,7 @@ export function CheckoutClient({
                 />
               </div>
               <div className="space-y-1.5 sm:col-span-2">
-                <Label htmlFor="line1">Address</Label>
+                <Label htmlFor="line1">{dict.checkout.address}</Label>
                 <Input
                   id="line1"
                   value={shipping.line1}
@@ -394,7 +349,7 @@ export function CheckoutClient({
                 />
               </div>
               <div className="space-y-1.5 sm:col-span-2">
-                <Label htmlFor="line2">Apt / Suite (optional)</Label>
+                <Label htmlFor="line2">{dict.checkout.aptOptional}</Label>
                 <Input
                   id="line2"
                   value={shipping.line2}
@@ -402,7 +357,7 @@ export function CheckoutClient({
                 />
               </div>
               <div className="space-y-1.5">
-                <Label htmlFor="city">City</Label>
+                <Label htmlFor="city">{dict.checkout.city}</Label>
                 <Input
                   id="city"
                   value={shipping.city}
@@ -410,15 +365,28 @@ export function CheckoutClient({
                 />
               </div>
               <div className="space-y-1.5">
-                <Label htmlFor="state">State / Province</Label>
-                <Input
-                  id="state"
-                  value={shipping.state}
-                  onChange={(e) => setShipping({ ...shipping, state: e.target.value })}
-                />
+                <Label htmlFor="state">{dict.checkout.stateProvince}</Label>
+                <Select
+                  value={shipping.state || undefined}
+                  onValueChange={(v) => {
+                    if (!v) return;
+                    setShipping((s) => ({ ...s, state: v }));
+                  }}
+                >
+                  <SelectTrigger id="state">
+                    <SelectValue placeholder={dict.checkout.stateProvince} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {regionsForCountry(shipping.country).map((r) => (
+                      <SelectItem key={r.code} value={r.code}>
+                        {r.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
               <div className="space-y-1.5">
-                <Label htmlFor="postal_code">Postal code</Label>
+                <Label htmlFor="postal_code">{dict.checkout.postalCode}</Label>
                 <Input
                   id="postal_code"
                   value={shipping.postal_code}
@@ -426,13 +394,13 @@ export function CheckoutClient({
                 />
               </div>
               <div className="space-y-1.5">
-                <Label htmlFor="shipping_country">Country</Label>
+                <Label htmlFor="shipping_country">{dict.checkout.country}</Label>
                 <Select
                   value={shipping.country}
                   onValueChange={(v) => {
                     if (!v) return;
                     const code = v as CountryCode;
-                    setShipping((s) => ({ ...s, country: code }));
+                    setShipping((s) => ({ ...s, country: code, state: "" }));
                     setCountry(code);
                   }}
                 >
@@ -456,82 +424,63 @@ export function CheckoutClient({
           <CardContent className="space-y-3">
             <div className="flex items-center gap-2">
               <Tag className="h-4 w-4 text-primary" />
-              <h2 className="text-lg font-semibold">Promo code</h2>
+              <h2 className="text-lg font-semibold">{dict.checkout.promo}</h2>
             </div>
-              {appliedCode ? (
-                <div className="flex items-start justify-between gap-3 rounded-lg border border-primary/25 bg-primary/5 p-3">
-                  <div className="space-y-1">
-                    <Badge variant="secondary" className="font-mono">
-                      {appliedCode}
-                    </Badge>
-                    {discountTotal > 0 && (
-                      <p className="text-sm font-medium text-primary">
-                        You save {formatPrice(discountTotal, checkoutCurrency)}
-                      </p>
-                    )}
-                    {summary?.freeShipping && shippingFee === 0 && (
-                      <p className="text-xs text-muted-foreground">Free shipping included</p>
-                    )}
-                  </div>
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => void removePromo()}
-                    disabled={quoteLoading}
-                  >
-                    <X className="h-4 w-4" /> Remove
-                  </Button>
-                </div>
-              ) : (
-                <>
-                  <div className="flex gap-2">
-                    <Input
-                      value={promoInput}
-                      onChange={(e) => {
-                        setPromoInput(e.target.value.toUpperCase());
-                        if (promoError) setPromoError(null);
-                      }}
-                      placeholder="SUMMER20"
-                      className="font-mono uppercase"
-                      aria-invalid={!!promoError}
-                      onKeyDown={(e) =>
-                        e.key === "Enter" && (e.preventDefault(), void applyPromo())
-                      }
-                    />
-                    <Button
-                      type="button"
-                      variant="secondary"
-                      className="shrink-0"
-                      onClick={() => void applyPromo()}
-                      disabled={quoteLoading || !promoInput.trim()}
-                    >
-                      {quoteLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : "Apply"}
-                    </Button>
-                  </div>
+            {promoCode ? (
+              <div className="flex items-start justify-between gap-3 rounded-lg border border-primary/25 bg-primary/5 p-3">
+                <div className="space-y-1">
+                  <Badge variant="secondary" className="font-mono">
+                    {promoCode}
+                  </Badge>
+                  {discountTotal > 0 && (
+                    <p className="text-sm font-medium text-primary">
+                      {t("checkout.youSave", {
+                        amount: formatPrice(discountTotal, checkoutCurrency),
+                      })}
+                    </p>
+                  )}
+                  {summary?.freeShipping && shippingFee === 0 && (
+                    <p className="text-xs text-muted-foreground">
+                      {dict.checkout.freeShippingIncluded}
+                    </p>
+                  )}
                   {promoError && (
                     <p className="text-sm text-destructive" role="alert">
                       {promoError}
                     </p>
                   )}
-                </>
-              )}
-              <p className="text-xs text-muted-foreground">
-                One code per order. Enter your state/province above for accurate tax before you
-                pay.
+                </div>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  onClick={removePromo}
+                  disabled={quoteLoading}
+                >
+                  <X className="h-4 w-4" /> {dict.checkout.remove}
+                </Button>
+              </div>
+            ) : (
+              <p className="text-sm text-muted-foreground">
+                {dict.checkout.noPromo}{" "}
+                <Link href="/cart" className="text-primary hover:underline">
+                  {dict.checkout.addPromoOnCart}
+                </Link>
+                .
               </p>
-            </CardContent>
-          </Card>
+            )}
+          </CardContent>
+        </Card>
 
         {loyaltyPoints > 0 && (
           <Card>
             <CardContent className="space-y-3">
               <div className="flex items-center gap-2">
                 <Sparkles className="h-4 w-4 text-primary" />
-                <h2 className="text-lg font-semibold">Redeem loyalty points</h2>
+                <h2 className="text-lg font-semibold">{dict.checkout.redeemPoints}</h2>
               </div>
               <p className="text-sm text-muted-foreground">
-                You have {loyaltyPoints.toLocaleString()} pts. 100 pts = $1 off.
+                {t("checkout.pointsAvailable", { n: loyaltyPoints.toLocaleString() })}
               </p>
               <input
                 type="range"
@@ -544,7 +493,9 @@ export function CheckoutClient({
               />
               <div className="flex items-center justify-between text-sm">
                 <span>
-                  Redeem <strong>{pointsToRedeem.toLocaleString()}</strong> pts
+                  {dict.checkout.redeemN.split("{n}")[0]}
+                  <strong>{pointsToRedeem.toLocaleString()}</strong>
+                  {dict.checkout.redeemN.split("{n}")[1] ?? ""}
                 </span>
                 <span className="font-semibold tabular-nums">
                   −{formatPrice(pointsToRedeem / LOYALTY.POINTS_PER_DOLLAR_REDEEM, checkoutCurrency)}
@@ -556,21 +507,21 @@ export function CheckoutClient({
 
         <Card>
           <CardContent className="space-y-4">
-            <h2 className="text-lg font-semibold">Payment</h2>
+            <h2 className="text-lg font-semibold">{dict.checkout.payment}</h2>
             {!stripePromise ? (
               <p className="rounded-md border border-destructive/30 bg-destructive/5 p-3 text-sm text-destructive">
                 {checkoutCurrency === "CAD"
-                  ? "Canadian payments aren't configured yet. Refresh in a minute — if this persists, contact support."
-                  : "Payments aren't configured for this currency yet. Contact support."}
+                  ? dict.checkout.cadNotConfigured
+                  : dict.checkout.currencyNotConfigured}
               </p>
             ) : quoteLoading && !quote ? (
               <div className="flex items-center justify-center gap-2 py-8 text-sm text-muted-foreground">
                 <Loader2 className="h-4 w-4 animate-spin" />
-                Calculating total…
+                {dict.checkout.calculating}
               </div>
             ) : paymentAmountMinor < 50 ? (
               <p className="text-sm text-muted-foreground">
-                Order total is below the minimum charge.
+                {dict.checkout.belowMinimum}
               </p>
             ) : (
               <Elements
@@ -599,7 +550,7 @@ export function CheckoutClient({
 
       <Card className="h-fit lg:sticky lg:top-24">
         <CardContent className="space-y-3">
-          <h2 className="text-lg font-semibold">Order summary</h2>
+          <h2 className="text-lg font-semibold">{dict.checkout.orderSummary}</h2>
           <ul className="space-y-1.5 text-sm">
             {items.map((i) => {
               const unit =
@@ -621,39 +572,45 @@ export function CheckoutClient({
           </ul>
           <Separator />
           <div className="space-y-1 text-sm">
-            <Row label="Subtotal" value={formatPrice(subtotal, checkoutCurrency)} />
+            <Row label={dict.checkout.subtotal} value={formatPrice(subtotal, checkoutCurrency)} />
             {discountTotal > 0 && (
               <Row
-                label={appliedCode ? `Discount (${appliedCode})` : "Discount"}
+                label={
+                  promoCode
+                    ? t("checkout.discountWithCode", { code: promoCode })
+                    : dict.checkout.discount
+                }
                 value={`−${formatPrice(discountTotal, checkoutCurrency)}`}
               />
             )}
             <Row
               label={
-                summary?.freeShipping && shippingFee === 0 ? "Shipping (promo)" : "Shipping"
+                summary?.freeShipping && shippingFee === 0
+                  ? dict.checkout.shippingPromo
+                  : dict.checkout.shipping
               }
-              value={shippingFee === 0 ? "FREE" : formatPrice(shippingFee, checkoutCurrency)}
+              value={shippingFee === 0 ? dict.checkout.free : formatPrice(shippingFee, checkoutCurrency)}
             />
             {tax > 0 && (
               <Row
                 label={
                   summary?.taxRate
-                    ? `Tax (${(summary.taxRate * 100).toFixed(2)}%)`
-                    : "Tax"
+                    ? t("checkout.taxWithRate", { rate: (summary.taxRate * 100).toFixed(2) })
+                    : dict.checkout.tax
                 }
                 value={formatPrice(tax, checkoutCurrency)}
               />
             )}
             {redeemPts > 0 && (
               <Row
-                label={`Points (${redeemPts.toLocaleString()})`}
+                label={t("checkout.points", { n: redeemPts.toLocaleString() })}
                 value={`−${formatPrice(redeemValue, checkoutCurrency)}`}
               />
             )}
           </div>
           <Separator />
           <div className="flex justify-between text-base font-semibold">
-            <span>Total</span>
+            <span>{dict.checkout.total}</span>
             <span className="tabular-nums">
               {quoteLoading ? (
                 <Loader2 className="inline h-4 w-4 animate-spin" />
@@ -664,11 +621,11 @@ export function CheckoutClient({
           </div>
           {!quote && !quoteLoading && (
             <p className="text-xs text-muted-foreground">
-              Enter state/province for tax estimate.
+              {dict.checkout.enterRegionForTax}
             </p>
           )}
           <p className="pt-2 text-xs text-muted-foreground">
-            You&apos;ll earn ~{Math.floor(subtotal - discountTotal)} pts on this order.
+            {t("checkout.earnPointsNote", { n: Math.floor(subtotal - discountTotal) })}
           </p>
         </CardContent>
       </Card>

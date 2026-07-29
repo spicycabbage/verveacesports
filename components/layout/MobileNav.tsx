@@ -12,11 +12,21 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet";
 import { Separator } from "@/components/ui/separator";
-import { CATEGORIES, categoryLabel } from "@/lib/constants";
+import type { Category } from "@/lib/constants";
+import { useSite } from "@/lib/site/SiteProvider";
+import { useDictionary } from "@/lib/i18n/I18nProvider";
+import { categoryLabelFromDict } from "@/lib/i18n/helpers";
 import { SearchBar } from "./SearchBar";
 import { LanguageSelector } from "./LanguageSelector";
 
-export function MobileNav() {
+export function MobileNav({
+  categories: categoriesProp,
+}: {
+  categories?: readonly Category[];
+} = {}) {
+  const site = useSite();
+  const dict = useDictionary();
+  const categories = categoriesProp ?? site.categories;
   const [open, setOpen] = useState(false);
 
   function close() {
@@ -31,7 +41,7 @@ export function MobileNav() {
             variant="ghost"
             size="icon"
             className="size-10 shrink-0 lg:hidden"
-            aria-label="Open menu"
+            aria-label={dict.nav.openMenu}
           />
         }
       >
@@ -39,7 +49,7 @@ export function MobileNav() {
       </SheetTrigger>
       <SheetContent side="left" className="w-[min(100vw-2rem,20rem)] gap-0 p-0">
         <SheetHeader className="border-b px-4 py-4 text-left">
-          <SheetTitle>Menu</SheetTitle>
+          <SheetTitle>{dict.nav.menu}</SheetTitle>
         </SheetHeader>
         <div className="flex flex-1 flex-col overflow-y-auto px-4 py-4">
           <SearchBar className="mb-4" />
@@ -50,16 +60,16 @@ export function MobileNav() {
               className="flex items-center gap-2 rounded-md px-3 py-2.5 text-sm font-medium hover:bg-accent"
             >
               <ShoppingBag className="h-4 w-4 text-muted-foreground" />
-              All products
+              {dict.nav.allProducts}
             </Link>
-            {CATEGORIES.map((c) => (
+            {categories.map((c) => (
               <Link
                 key={c}
                 href={`/products?category=${c}`}
                 onClick={close}
                 className="rounded-md px-3 py-2.5 text-sm font-medium hover:bg-accent"
               >
-                {categoryLabel(c)}
+                {categoryLabelFromDict(dict, c)}
               </Link>
             ))}
             <Link
@@ -67,20 +77,20 @@ export function MobileNav() {
               onClick={close}
               className="rounded-md px-3 py-2.5 text-sm font-medium hover:bg-accent"
             >
-              FAQ
+              {dict.nav.faq}
             </Link>
           </nav>
           <Separator className="my-4" />
           <div className="mb-4 px-1">
-            <p className="mb-2 text-xs font-medium text-muted-foreground">Language</p>
+            <p className="mb-2 text-xs font-medium text-muted-foreground">{dict.nav.language}</p>
             <LanguageSelector />
           </div>
           <div className="flex flex-col gap-1 text-sm">
             <Link href="/cart" onClick={close} className="rounded-md px-3 py-2 hover:bg-accent">
-              Cart
+              {dict.nav.cart}
             </Link>
             <Link href="/account" onClick={close} className="rounded-md px-3 py-2 hover:bg-accent">
-              Account
+              {dict.nav.account}
             </Link>
             <Link
               href="/account/orders"
@@ -88,7 +98,7 @@ export function MobileNav() {
               className="flex items-center gap-2 rounded-md px-3 py-2 hover:bg-accent"
             >
               <Package className="h-4 w-4 text-muted-foreground" />
-              Orders
+              {dict.nav.orders}
             </Link>
           </div>
         </div>

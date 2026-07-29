@@ -11,6 +11,7 @@ import { chatUi } from "@/lib/i18n/chat-ui";
 import { useChatStore } from "@/lib/store/chat";
 import { useCartStore } from "@/lib/store/cart";
 import { useLocaleStore } from "@/lib/store/locale";
+import { useSite } from "@/lib/site/SiteProvider";
 import { cn } from "@/lib/utils";
 
 function messageText(parts: { type: string; text?: string }[]): string {
@@ -24,7 +25,8 @@ export function ChatWidget() {
   const { isOpen, close, toggle } = useChatStore();
   const cartOpen = useCartStore((s) => s.isOpen);
   const locale = useLocaleStore((s) => s.locale);
-  const ui = chatUi(locale);
+  const site = useSite();
+  const ui = chatUi(locale, site.supportEmail, site.id);
   const [input, setInput] = useState("");
   const bottomRef = useRef<HTMLDivElement>(null);
 

@@ -43,7 +43,6 @@ supabase db push     # if you initialize migrations
 ### 1c. Auth providers
 **Authentication → Providers**:
 - Email — already on. Optional: enable "Confirm email" off in dev.
-- Magic Link — already supported via the same email provider.
 - Google:
   1. Google Cloud Console → APIs & Services → Credentials → "Create Credentials" → OAuth client ID → Web application.
   2. Authorized redirect URI: `https://<your-ref>.supabase.co/auth/v1/callback`
@@ -109,24 +108,31 @@ STRIPE_WEBHOOK_SECRET_CAD=whsec_...
 # Optional: force market locally (CA or US)
 # GEO_COUNTRY_OVERRIDE=CA
 
-# Brevo newsletter (Contacts → Lists → copy list ID; SMTP & API → API keys)
+# Brevo (Contacts → Lists → list IDs; SMTP & API → API keys)
+# Sender addresses must be verified in Brevo for each storefront:
+#   verveace → info@verveacesports.com
+#   bleeq-ca → info@bleequp.ca
+# Transactional: account welcome, newsletter welcome, order confirmation (HTML in lib/brevo/emails.ts)
 BREVO_API_KEY=xkeysib-...
 BREVO_LIST_ID=2
+# BREVO_LIST_ID_BLEEQ_CA=3
 
 NEXT_PUBLIC_SITE_URL=http://localhost:3000
+# NEXT_PUBLIC_BLEEQ_SITE_URL=https://ca.bleequp.com
 ```
 
 ## 4. Feature reference
 
 | Feature | Where |
 | --- | --- |
-| Auth (email, magic link, Google) | `lib/actions/auth.ts`, `/login`, `/signup`, `/callback` |
+| Auth (email + password, Google) | `lib/actions/auth.ts`, `/login`, `/signup`, `/callback` |
 | Geo market (CA → CAD, else USD) | `lib/geo/market.ts`, `proxy.ts`, `components/layout/MarketBadge.tsx` |
 | Catalog admin (USD + CAD prices) | `app/admin/catalog`, `app/admin/catalog/ProductEditor.tsx` |
 | Catalog + filters/search | `app/products/page.tsx`, `components/product/*` |
 | PDP + gallery | `app/products/[slug]/page.tsx`, `components/product/Gallery.tsx` |
 | Cart (Zustand + persist) | `lib/store/cart.ts`, `components/layout/CartDrawer.tsx`, `app/cart` |
 | Checkout (Stripe Payment Element) | `app/checkout/`, `app/api/stripe/payment-intent`, `app/api/stripe/webhook` |
+| Brevo emails (welcome + order confirm) | `lib/brevo/send.ts`, `lib/brevo/emails.ts` |
 | Loyalty points (earn + redeem) | DB triggers in `0001_init.sql`, `app/account/loyalty`, redeem slider in checkout |
 | Referrals (`?ref=CODE`) | `middleware.ts` (cookie), `handle_new_user()` trigger, `award_loyalty_on_paid_order()` qualifies + double-rewards on first paid order, `app/account/referrals` |
 | User dashboard | `app/account/*` |

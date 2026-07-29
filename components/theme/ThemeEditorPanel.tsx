@@ -70,7 +70,7 @@ function ThemePreview({ colors }: { colors: ThemeColors }) {
         style={{ backgroundColor: colors.background, borderColor: colors.border }}
       >
         <Image
-          src="/verveace_logo.png"
+          src="/verveace_logo.webp"
           alt="VerveaceSports"
           width={130}
           height={30}

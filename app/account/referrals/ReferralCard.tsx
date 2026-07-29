@@ -5,8 +5,10 @@ import { Input } from "@/components/ui/input";
 import { Check, Copy, Share2 } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
+import { useDictionary } from "@/lib/i18n/I18nProvider";
 
 export function ReferralCard({ code }: { code: string }) {
+  const dict = useDictionary();
   const [copied, setCopied] = useState(false);
   const link =
     typeof window !== "undefined"
@@ -17,7 +19,7 @@ export function ReferralCard({ code }: { code: string }) {
     try {
       await navigator.clipboard.writeText(link);
       setCopied(true);
-      toast.success("Referral link copied");
+      toast.success(dict.account.linkCopied);
       setTimeout(() => setCopied(false), 1800);
     } catch {
       toast.error("Couldn't copy link");
@@ -51,10 +53,10 @@ export function ReferralCard({ code }: { code: string }) {
         <div className="flex gap-2">
           <Button onClick={copy} variant="outline" className="flex-1 sm:flex-none">
             {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
-            {copied ? "Copied" : "Copy"}
+            {copied ? dict.common.copied : dict.common.copy}
           </Button>
           <Button onClick={share} className="flex-1 sm:flex-none">
-            <Share2 className="h-4 w-4" /> Share
+            <Share2 className="h-4 w-4" /> {dict.common.share}
           </Button>
         </div>
       </div>

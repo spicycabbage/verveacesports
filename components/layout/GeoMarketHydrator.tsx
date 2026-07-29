@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useLayoutEffect } from "react";
 import { useCountryStore } from "@/lib/store/country";
 import type { CountryCode } from "@/lib/constants";
 
@@ -8,7 +8,7 @@ import type { CountryCode } from "@/lib/constants";
 export function GeoMarketHydrator({ market }: { market: CountryCode }) {
   const setCountry = useCountryStore((s) => s.setCountry);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     setCountry(market);
   }, [market, setCountry]);
 

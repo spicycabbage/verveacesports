@@ -127,5 +127,7 @@
   html {
     @apply font-sans;
     color-scheme: dark;
+    /* Avoid horizontal jump when dialogs/sheets lock body scroll. */
+    scrollbar-gutter: stable;
   }
 }

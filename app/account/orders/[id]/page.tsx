@@ -1,7 +1,11 @@
 import Image from "next/image";
 import Link from "next/link";
+import { cookies } from "next/headers";
 import { notFound } from "next/navigation";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { sizedImageUrl } from "@/lib/images/cdn";
+import { LOCALE_COOKIE, parseLocaleCookie } from "@/lib/i18n/locale";
+import { getDictionary } from "@/lib/i18n/dictionary";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
@@ -25,6 +29,15 @@ type Params = Promise<{ id: string }>;
 export default async function OrderDetailPage({ params }: { params: Params }) {
   const { id } = await params;
   const supabase = await createSupabaseServerClient();
+  const cookieStore = await cookies();
+  const dict = getDictionary(parseLocaleCookie(cookieStore.get(LOCALE_COOKIE)?.value));
+  const statusLabel: Record<OrderStatus, string> = {
+    pending: dict.account.status_pending,
+    paid: dict.account.status_paid,
+    shipped: dict.account.status_shipped,
+    delivered: dict.account.status_delivered,
+    cancelled: dict.account.status_cancelled,
+  };
   const { data: order } = await supabase
     .from("orders")
     .select("*")
@@ -45,7 +58,7 @@ export default async function OrderDetailPage({ params }: { params: Params }) {
         href="/account/orders"
         className={buttonVariants({ variant: "ghost", size: "sm" })}
       >
-        <ArrowLeft className="h-4 w-4" /> All orders
+        <ArrowLeft className="h-4 w-4" /> {dict.account.orders}
       </Link>
       <Card>
         <CardContent className="space-y-4">
@@ -56,8 +69,8 @@ export default async function OrderDetailPage({ params }: { params: Params }) {
               </h1>
               <p className="text-sm text-muted-foreground">{formatDate(order.created_at)}</p>
             </div>
-            <Badge variant={STATUS_VARIANTS[order.status as OrderStatus]} className="capitalize">
-              {order.status}
+            <Badge variant={STATUS_VARIANTS[order.status as OrderStatus]}>
+              {statusLabel[order.status as OrderStatus]}
             </Badge>
           </div>
           <Separator />
@@ -67,7 +80,7 @@ export default async function OrderDetailPage({ params }: { params: Params }) {
                 <div className="relative h-16 w-16 flex-shrink-0 overflow-hidden rounded-md bg-white">
                   {it.product_image && (
                     <Image
-                      src={it.product_image}
+                      src={sizedImageUrl(it.product_image, 128)}
                       alt={it.product_name}
                       fill
                       sizes="64px"
@@ -89,12 +102,12 @@ export default async function OrderDetailPage({ params }: { params: Params }) {
           </div>
           <Separator />
           <div className="space-y-1 text-sm">
-            <Row label="Subtotal" value={formatPrice(Number(order.subtotal), currency)} />
+            <Row label={dict.checkout.subtotal} value={formatPrice(Number(order.subtotal), currency)} />
             <Row
-              label="Shipping"
+              label={dict.checkout.shipping}
               value={
                 Number(order.shipping) === 0
-                  ? "FREE"
+                  ? dict.checkout.free
                   : formatPrice(Number(order.shipping), currency)
               }
             />
@@ -106,7 +119,7 @@ export default async function OrderDetailPage({ params }: { params: Params }) {
             )}
             <Separator />
             <Row
-              label={<strong>Total</strong>}
+              label={<strong>{dict.checkout.total}</strong>}
               value={<strong>{formatPrice(Number(order.total), currency)}</strong>}
             />
           </div>
@@ -114,7 +127,7 @@ export default async function OrderDetailPage({ params }: { params: Params }) {
             <>
               <Separator />
               <div className="text-sm">
-                <h3 className="mb-1 font-semibold">Shipping address</h3>
+                <h3 className="mb-1 font-semibold">{dict.checkout.shippingAddress}</h3>
                 <ShippingAddress address={order.shipping_address} />
               </div>
             </>

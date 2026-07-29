@@ -3,6 +3,7 @@
 import { Button } from "@/components/ui/button";
 import { Plus, ShoppingBag } from "lucide-react";
 import { useCartStore } from "@/lib/store/cart";
+import { useDictionary, useT } from "@/lib/i18n/I18nProvider";
 import type { Product } from "@/lib/supabase/types";
 import { toast } from "sonner";
 
@@ -26,6 +27,8 @@ export function AddToCartButton({
   compact = false,
 }: Props) {
   const { add, open } = useCartStore();
+  const dict = useDictionary();
+  const t = useT();
   const disabled = !variantId || product.stock === 0;
 
   function handleAdd() {
@@ -44,8 +47,8 @@ export function AddToCartButton({
       },
       qty,
     );
-    toast.success(`${product.name} added to cart`, {
-      action: { label: "View cart", onClick: () => open() },
+    toast.success(t("product.addedToast", { name: product.name }), {
+      action: { label: dict.product.viewCart, onClick: () => open() },
     });
   }
 
@@ -56,7 +59,7 @@ export function AddToCartButton({
         variant="default"
         disabled={disabled}
         onClick={handleAdd}
-        aria-label="Add to cart"
+        aria-label={dict.product.addToCart}
         className="size-10"
       >
         <Plus className="h-4 w-4" />
@@ -67,7 +70,7 @@ export function AddToCartButton({
   return (
     <Button size="lg" className="w-full" onClick={handleAdd} disabled={disabled}>
       <ShoppingBag className="h-4 w-4" />
-      {disabled ? "Out of stock" : "Add to cart"}
+      {disabled ? dict.product.outOfStock : dict.product.addToCart}
     </Button>
   );
 }

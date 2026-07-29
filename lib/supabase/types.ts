@@ -53,6 +53,7 @@ export type Profile = {
   referred_by: string | null;
   loyalty_points: number;
   is_admin: boolean;
+  site_id: "verveace" | "bleeq-ca";
   created_at: string;
 };
 
@@ -75,6 +76,22 @@ export type Product = {
   options: ProductOption[];
   has_variants: boolean;
   created_at: string;
+};
+
+export type ProductReview = {
+  id: string;
+  product_id: string;
+  user_id: string | null;
+  order_id: string | null;
+  rating: number;
+  title: string | null;
+  body: string;
+  author_display_name: string;
+  is_verified_purchase: boolean;
+  is_published: boolean;
+  source: "storefront" | "legacy" | "import";
+  created_at: string;
+  updated_at: string;
 };
 
 export type ProductVariant = {
@@ -167,6 +184,7 @@ export type OrderItem = {
 export type Order = {
   id: string;
   user_id: string;
+  site_id: "verveace" | "bleeq-ca";
   status: OrderStatus;
   financial_status: FinancialStatus;
   fulfillment_status: OrderFulfillmentStatus;
@@ -326,4 +344,30 @@ export type StripePayout = {
   description: string | null;
   created_at: string;
   updated_at: string;
+};
+
+export type ChatQuestion = {
+  id: string;
+  site_id: "verveace" | "bleeq-ca";
+  question: string;
+  locale: string | null;
+  country: "US" | "CA" | null;
+  currency: "USD" | "CAD" | null;
+  user_id: string | null;
+  message_count: number | null;
+  created_at: string;
+};
+
+export type WarrantyRegistration = {
+  id: string;
+  site_id: "verveace" | "bleeq-ca" | string;
+  full_name: string;
+  email: string;
+  order_number: string;
+  product_slug: string;
+  product_label: string;
+  serial_number: string | null;
+  purchase_date: string | null;
+  notes: string | null;
+  created_at: string;
 };

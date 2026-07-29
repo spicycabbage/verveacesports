@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Image from "next/image";
 import { Play } from "lucide-react";
+import { sizedImageUrl } from "@/lib/images/cdn";
 import { cn } from "@/lib/utils";
 
 type YouTubeVideoCardProps = {
@@ -21,6 +22,7 @@ export function YouTubeVideoCard({
   className,
 }: YouTubeVideoCardProps) {
   const [active, setActive] = useState(false);
+  const posterSrc = sizedImageUrl(poster, 720);
 
   return (
     <article
@@ -46,7 +48,7 @@ export function YouTubeVideoCard({
             aria-label={`Play ${title} on YouTube`}
           >
             <Image
-              src={poster}
+              src={posterSrc}
               alt=""
               fill
               sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"

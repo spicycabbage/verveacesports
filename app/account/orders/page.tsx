@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { cookies } from "next/headers";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -8,8 +9,14 @@ import type { Currency } from "@/lib/constants";
 import type { Order, OrderStatus } from "@/lib/supabase/types";
 import { buttonVariants } from "@/components/ui/button";
 import { Package } from "lucide-react";
+import { LOCALE_COOKIE, parseLocaleCookie } from "@/lib/i18n/locale";
+import { getDictionary } from "@/lib/i18n/dictionary";
 
-export const metadata = { title: "My orders" };
+export async function generateMetadata() {
+  const cookieStore = await cookies();
+  const dict = getDictionary(parseLocaleCookie(cookieStore.get(LOCALE_COOKIE)?.value));
+  return { title: dict.account.ordersTitle };
+}
 
 const STATUS_VARIANTS: Record<OrderStatus, "default" | "secondary" | "outline" | "destructive"> = {
   pending: "secondary",
@@ -21,6 +28,15 @@ const STATUS_VARIANTS: Record<OrderStatus, "default" | "secondary" | "outline" |
 
 export default async function OrdersPage() {
   const supabase = await createSupabaseServerClient();
+  const cookieStore = await cookies();
+  const dict = getDictionary(parseLocaleCookie(cookieStore.get(LOCALE_COOKIE)?.value));
+  const statusLabel: Record<OrderStatus, string> = {
+    pending: dict.account.status_pending,
+    paid: dict.account.status_paid,
+    shipped: dict.account.status_shipped,
+    delivered: dict.account.status_delivered,
+    cancelled: dict.account.status_cancelled,
+  };
   const { data } = await supabase
     .from("orders")
     .select("*")
@@ -32,9 +48,9 @@ export default async function OrdersPage() {
       <Card>
         <CardContent className="grid place-items-center gap-3 py-20 text-center">
           <Package className="h-10 w-10 text-muted-foreground/50" />
-          <h2 className="text-lg font-semibold">No orders yet</h2>
+          <h2 className="text-lg font-semibold">{dict.account.noOrders}</h2>
           <Link href="/products" className={buttonVariants({})}>
-            Start shopping
+            {dict.account.startShopping}
           </Link>
         </CardContent>
       </Card>
@@ -52,8 +68,8 @@ export default async function OrdersPage() {
                   <p className="font-mono text-xs">#{o.id.slice(0, 8).toUpperCase()}</p>
                   <p className="text-sm text-muted-foreground">{formatDateOnly(o.created_at)}</p>
                 </div>
-                <Badge variant={STATUS_VARIANTS[o.status]} className="capitalize shrink-0">
-                  {o.status}
+                <Badge variant={STATUS_VARIANTS[o.status]} className="shrink-0">
+                  {statusLabel[o.status]}
                 </Badge>
               </div>
               <div className="flex items-center justify-between gap-2">
@@ -64,7 +80,7 @@ export default async function OrdersPage() {
                   href={`/account/orders/${o.id}`}
                   className="text-sm font-medium text-primary hover:underline"
                 >
-                  View →
+                  {dict.account.view} →
                 </Link>
               </div>
             </div>
@@ -74,10 +90,10 @@ export default async function OrdersPage() {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Order</TableHead>
-                <TableHead>Date</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead className="text-right">Total</TableHead>
+                <TableHead>{dict.account.order}</TableHead>
+                <TableHead>{dict.account.date}</TableHead>
+                <TableHead>{dict.account.status}</TableHead>
+                <TableHead className="text-right">{dict.account.total}</TableHead>
                 <TableHead className="w-[1%]" />
               </TableRow>
             </TableHeader>
@@ -91,8 +107,8 @@ export default async function OrdersPage() {
                     {formatDateOnly(o.created_at)}
                   </TableCell>
                   <TableCell>
-                    <Badge variant={STATUS_VARIANTS[o.status]} className="capitalize">
-                      {o.status}
+                    <Badge variant={STATUS_VARIANTS[o.status]}>
+                      {statusLabel[o.status]}
                     </Badge>
                   </TableCell>
                   <TableCell className="text-right tabular-nums">
@@ -103,7 +119,7 @@ export default async function OrdersPage() {
                       href={`/account/orders/${o.id}`}
                       className="text-sm font-medium text-primary hover:underline"
                     >
-                      View →
+                      {dict.account.view} →
                     </Link>
                   </TableCell>
                 </TableRow>

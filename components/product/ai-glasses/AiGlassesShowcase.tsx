@@ -13,6 +13,8 @@ import { NativeVideoPlayer } from "./NativeVideoPlayer";
 import { YouTubeVideoCard } from "./YouTubeVideoCard";
 import { Badge } from "@/components/ui/badge";
 import { buttonVariants } from "@/components/ui/button";
+import { useSite } from "@/lib/site/SiteProvider";
+import { useDictionary } from "@/lib/i18n/I18nProvider";
 import { cn } from "@/lib/utils";
 
 function SectionHeading({
@@ -83,12 +85,14 @@ export function AiGlassesHero({ className }: { className?: string }) {
 }
 
 export function AiGlassesVideoGallery() {
+  const site = useSite();
+  const dict = useDictionary();
   return (
     <div className="mt-16 space-y-16 sm:mt-20 sm:space-y-20">
       <section aria-labelledby="features-heading">
         <SectionHeading
-          eyebrow="Product features"
-          title="See what Ranger can do"
+          eyebrow={dict.bleeq.home.featuresKicker}
+          title={dict.bleeq.home.featuresTitle}
           description="Every clip below comes from the official BleeqUp site — stabilization, AI editing, FOV, and more."
         />
         <div className="mt-10 space-y-12">
@@ -127,7 +131,7 @@ export function AiGlassesVideoGallery() {
       <section aria-labelledby="testimonials-heading">
         <SectionHeading
           eyebrow="Real athletes"
-          title="Built for how you move"
+          title={dict.bleeq.home.testimonialsTitle}
           description="Creators and athletes wearing Ranger in the field — first-person POV from the official BleeqUp community."
         />
         <div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
@@ -137,6 +141,7 @@ export function AiGlassesVideoGallery() {
                 src={video.mp4}
                 poster={video.poster}
                 title={video.title}
+                posterWidth={640}
               />
               <div>
                 <h3 className="font-semibold">@{video.title}</h3>
@@ -189,8 +194,8 @@ export function AiGlassesVideoGallery() {
                 FAQ
               </Link>{" "}
               or email{" "}
-              <a href="mailto:support@verveacesports.com" className="text-primary hover:underline">
-                support@verveacesports.com
+              <a href={`mailto:${site.supportEmail}`} className="text-primary hover:underline">
+                {site.supportEmail}
               </a>
               .
             </p>
