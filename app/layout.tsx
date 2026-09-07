@@ -14,6 +14,7 @@ import { ThemeProvider } from "@/components/theme/ThemeProvider";
 import { SiteProvider } from "@/lib/site/SiteProvider";
 import { getSite } from "@/lib/site/get-site";
 import { siteBaseUrl, siteOgImage } from "@/lib/site/seo";
+import { generateHreflangLinks } from "@/lib/site/hreflang";
 import { JsonLd } from "@/components/seo/JsonLd";
 import { THEME_STORAGE_KEY } from "@/lib/theme/tokens";
 import {
@@ -39,6 +40,15 @@ export async function generateMetadata(): Promise<Metadata> {
   const site = await getSite();
   const base = siteBaseUrl(site);
   const title = `${site.name} — ${site.tagline}`;
+  const hreflangLinks = generateHreflangLinks(site);
+
+  const alternates: Metadata["alternates"] = {};
+  if (hreflangLinks.length > 0) {
+    alternates.languages = Object.fromEntries(
+      hreflangLinks.map((link) => [link.hreflang, link.href]),
+    );
+  }
+
   return {
     metadataBase: new URL(base),
     title: {
@@ -47,6 +57,7 @@ export async function generateMetadata(): Promise<Metadata> {
     },
     description: site.description,
     applicationName: site.name,
+    alternates,
     openGraph: {
       type: "website",
       siteName: site.name,
