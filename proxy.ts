@@ -7,6 +7,16 @@ import { SITE_COOKIE } from "@/lib/site/config";
 import { getSiteFromRequest } from "@/lib/site/get-site";
 
 export async function proxy(request: NextRequest) {
+  const host = request.headers.get("host");
+
+  // Permanent redirect www.verveacesports.com → https://verveacesports.com
+  if (host === "www.verveacesports.com") {
+    const url = request.nextUrl.clone();
+    url.host = "verveacesports.com";
+    url.protocol = "https:";
+    return NextResponse.redirect(url, { status: 308 });
+  }
+
   // Do not refresh the session on sign-out — that can re-write auth cookies before the route clears them.
   if (request.nextUrl.pathname === "/api/auth/sign-out") {
     return NextResponse.next();
