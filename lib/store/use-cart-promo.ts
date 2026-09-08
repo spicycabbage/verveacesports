@@ -32,7 +32,9 @@ export function useCartPromo(enabled: boolean) {
   const [promoInput, setPromoInput] = useState("");
   const [promoError, setPromoError] = useState<string | null>(null);
   const [promoLoading, setPromoLoading] = useState(false);
-  const [quote, setQuote] = useState<CartQuotePreview | null>(null);
+  const [lastQuote, setQuote] = useState<CartQuotePreview | null>(null);
+  // A quote only means something for a non-empty, enabled cart.
+  const quote = enabled && items.length > 0 ? lastQuote : null;
 
   const cartItems = useMemo(
     () =>
@@ -108,10 +110,8 @@ export function useCartPromo(enabled: boolean) {
   );
 
   useEffect(() => {
-    if (!enabled || items.length === 0) {
-      setQuote(null);
-      return;
-    }
+    // Empty/disabled carts expose `quote: null` via the derived `quote` above.
+    if (!enabled || items.length === 0) return;
     void (async () => {
       const result = await refreshQuote(promoCode);
       if (

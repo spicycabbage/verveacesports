@@ -1,0 +1,22 @@
+---
+description: Live orders is missing site_id — never require that column
+alwaysApply: true
+---
+
+# `orders.site_id` is not on production
+
+Migration `0033_orders_site_id.sql` is **not applied** on `wtjalpckbzvgmzmphssj`. Selecting or inserting `orders.site_id` without a fallback breaks POS: Stripe captures, `markOrderPaid` throws, the register never completes.
+
+## Do
+
+- Load orders through `fetchOrderRow` / `ORDER_ROW_COLUMNS` in `lib/supabase/order-row.ts`
+- If you must mention `site_id` on `orders`, retry after `isMissingColumn(err, "site_id")` (see `lib/pos/charge.ts`)
+- Infer storefront from `admin_note` (`resolveOrderSiteId`) when the column is absent
+
+## Do not
+
+- Add `site_id` to any `from("orders").select(...)` or `.insert(...)` as a required field
+- Assume PostgREST has `orders.site_id` because `lib/supabase/types.ts` says it does
+- "Fix" Bleeq/Verveace attribution by putting `site_id` back on the paid/email/webhook path
+
+`sales_channel` exists. `user_id` is nullable (walk-in POS). Apply 0033 in SQL editor if you actually need the column — do not paper over it in selects.

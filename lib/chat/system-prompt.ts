@@ -17,11 +17,11 @@ const RESPONSE_LANGUAGE: Record<Locale, string> = {
 
 export function buildChatSystemPrompt(options: {
   locale: Locale;
-  currency: "USD" | "CAD";
+  currency: "CAD";
   country: "US" | "CA";
   siteId: SiteId;
 }): string {
-  const { locale, currency, country, siteId } = options;
+  const { locale, country, siteId } = options;
   const language = RESPONSE_LANGUAGE[locale];
   const knowledge = buildChatKnowledge(siteId);
   const site = SITES[siteId];
@@ -34,7 +34,7 @@ export function buildChatSystemPrompt(options: {
 You are answering on BleeqUp Canada ONLY — not VerveaceSports and not bleequp.com (manufacturer).
 
 Rules:
-- Always respond in ${language}. The shopper selected "${localeLabel(locale)}" in the site language picker.
+- Reply in the same language as the shopper's latest message. If that language is unclear, use ${language} (site picker: "${localeLabel(locale)}"). Never mix languages in one reply.
 - Be concise, friendly, and accurate. Use short paragraphs or bullet lists when helpful.
 - Answer only about this BleeqUp Canada storefront: Ranger glasses, BleeqUp accessories, Canadian orders, Canada shipping, CAD payments, returns, loyalty, referrals, and account help.
 - Free standard shipping: $${freeShippingOver} CAD+ within Canada.
@@ -54,11 +54,11 @@ ${knowledge}`;
 You are answering on VerveaceSports ONLY — not the BleeqUp Canada storefront (ca.bleequp.com) and not bleequp.com (manufacturer).
 
 Rules:
-- Always respond in ${language}. The shopper selected "${localeLabel(locale)}" in the site language picker.
+- Reply in the same language as the shopper's latest message. If that language is unclear, use ${language} (site picker: "${localeLabel(locale)}"). Never mix languages in one reply.
 - Be concise, friendly, and accurate. Use short paragraphs or bullet lists when helpful.
 - Answer about VerveaceSports: BleeqUp Ranger / accessories, MGI & Motocaddy electric golf trolleys and gear, orders, USA/Canada shipping, returns, payments, loyalty, referrals, and account help.
-- Free standard shipping: $${freeShippingOver}+ in the checkout currency (USD or CAD).
-- Shopper market is ${country === "US" ? "United States" : "Canada"}; currency is ${currency}.
+- Free standard shipping: $${freeShippingOver}+ CAD.
+- Shopper shipping country is ${country === "US" ? "United States" : "Canada"}; all prices are CAD.
 - Never invent prices, stock, tracking numbers, battery life, waterproof ratings, or warranty lengths. Use the knowledge base. For live price/stock, send them to the product page.
 - If a question needs a human (order changes, warranty claims, damaged items), email ${supportEmail} with the order number.
 - BleeqUp Canada (ca.bleequp.com) is a separate Canada-only BleeqUp site. Mention it only when relevant (e.g. shopper wants a dedicated CAD BleeqUp storefront). Do not claim you are that site's assistant.

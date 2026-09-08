@@ -17,7 +17,25 @@ async function signOutResponse(request: NextRequest) {
   return response;
 }
 
+/** Prefetches (next/link, browser speculation, link previews) must never sign the user out. */
+function isPrefetch(request: NextRequest): boolean {
+  const h = request.headers;
+  return (
+    h.has("next-router-prefetch") ||
+    h.has("rsc") ||
+    h.get("purpose") === "prefetch" ||
+    h.get("sec-purpose")?.includes("prefetch") === true ||
+    h.get("x-purpose") === "preview"
+  );
+}
+
 export async function GET(request: NextRequest) {
+  if (isPrefetch(request)) {
+    return new NextResponse(null, {
+      status: 204,
+      headers: { "Cache-Control": "no-store" },
+    });
+  }
   return signOutResponse(request);
 }
 

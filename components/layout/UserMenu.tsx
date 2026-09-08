@@ -51,7 +51,7 @@ export function UserMenu({ user, loyaltyPoints, isAdmin = false }: Props) {
       .join("") || "U";
 
   return (
-    <div className="flex min-w-11 items-center justify-end gap-2">
+    <div className="flex items-center justify-end gap-2">
       <div className="hidden items-center gap-1 rounded-full bg-accent px-2.5 py-1 text-xs font-medium text-accent-foreground sm:flex">
         <Sparkles className="h-3.5 w-3.5" />
         {t("nav.pts", { n: formatPoints(loyaltyPoints) })}
@@ -61,12 +61,12 @@ export function UserMenu({ user, loyaltyPoints, isAdmin = false }: Props) {
           className={buttonVariants({
             variant: "ghost",
             size: "icon",
-            className: "rounded-full",
+            className: "size-11 rounded-full sm:size-10",
           })}
           aria-label={dict.nav.accountMenu}
         >
-          <Avatar className="h-10 w-10">
-            <AvatarFallback className="bg-primary text-primary-foreground text-xs font-semibold">
+          <Avatar className="size-10 sm:size-10">
+            <AvatarFallback className="bg-primary text-sm font-semibold text-primary-foreground sm:text-xs">
               {initials}
             </AvatarFallback>
           </Avatar>
@@ -79,20 +79,23 @@ export function UserMenu({ user, loyaltyPoints, isAdmin = false }: Props) {
               </span>
               <span className="text-xs text-muted-foreground">{user.email}</span>
             </DropdownMenuLabel>
-            <DropdownMenuLinkItem href="/account">
-              <UserIcon className="h-4 w-4" /> {dict.nav.profile}
-            </DropdownMenuLinkItem>
-            <DropdownMenuLinkItem href="/account/orders">{dict.nav.orders}</DropdownMenuLinkItem>
-            <DropdownMenuLinkItem href="/account/loyalty">
-              {dict.nav.loyaltyPoints}
-            </DropdownMenuLinkItem>
-            <DropdownMenuLinkItem href="/account/referrals">
-              {dict.nav.referrals}
-            </DropdownMenuLinkItem>
-            {isAdmin && (
+            {isAdmin ? (
               <DropdownMenuLinkItem href="/admin">
                 <LayoutDashboard className="h-4 w-4" /> {dict.nav.admin}
               </DropdownMenuLinkItem>
+            ) : (
+              <>
+                <DropdownMenuLinkItem href="/account">
+                  <UserIcon className="h-4 w-4" /> {dict.nav.profile}
+                </DropdownMenuLinkItem>
+                <DropdownMenuLinkItem href="/account/orders">{dict.nav.orders}</DropdownMenuLinkItem>
+                <DropdownMenuLinkItem href="/account/loyalty">
+                  {dict.nav.loyaltyPoints}
+                </DropdownMenuLinkItem>
+                <DropdownMenuLinkItem href="/account/referrals">
+                  {dict.nav.referrals}
+                </DropdownMenuLinkItem>
+              </>
             )}
           </DropdownMenuGroup>
           <DropdownMenuSeparator />

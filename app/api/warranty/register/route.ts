@@ -16,7 +16,7 @@ function str(body: unknown, key: string, max: number): string | null {
 }
 
 export async function POST(request: NextRequest) {
-  const limited = rateLimit(`warranty:${clientIp(request)}`, 5, 60_000);
+  const limited = await rateLimit(`warranty:${clientIp(request)}`, 5, 60_000);
   if (!limited.ok) {
     return NextResponse.json(
       { error: "Too many attempts, try again shortly" },

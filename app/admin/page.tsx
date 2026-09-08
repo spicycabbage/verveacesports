@@ -1,64 +1,69 @@
-import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { formatPrice, formatDate } from "@/lib/utils/format";
 import { countryName } from "@/lib/constants";
-import type { Order, OrderStatus } from "@/lib/supabase/types";
-import type { Currency } from "@/lib/constants";
+import { adminOrderStatusLabel } from "@/lib/orders/status-label";
+import type { OrderStatus } from "@/lib/supabase/types";
 import Link from "next/link";
+import { requireAdminPage } from "@/lib/auth/admin";
 
 export const metadata = { title: "Admin overview" };
 
-const STATUS_VARIANTS: Record<OrderStatus, "default" | "secondary" | "outline" | "destructive"> = {
+const STATUS_VARIANTS: Record<
+  OrderStatus,
+  "default" | "secondary" | "outline" | "destructive" | "warning"
+> = {
   pending: "secondary",
-  paid: "default",
+  paid: "warning",
   shipped: "outline",
   delivered: "outline",
   cancelled: "destructive",
 };
 
+function asNumber(value: unknown): number {
+  const n = typeof value === "number" ? value : Number(value);
+  return Number.isFinite(n) ? n : 0;
+}
+
 export default async function AdminOverviewPage() {
-  const supabase = await createSupabaseServerClient();
+  await requireAdminPage();
+  const admin = createSupabaseAdminClient();
 
-  const { data: paidOrders } = await supabase
-    .from("orders")
-    .select("currency, total")
-    .eq("status", "paid");
-  const orders = (paidOrders ?? []) as Pick<Order, "currency" | "total">[];
-
-  const byCurrency: Record<Currency, number> = { USD: 0, CAD: 0 };
-  for (const o of orders) {
-    byCurrency[o.currency as Currency] += Number(o.total);
-  }
-
-  const { data: recent } = await supabase
-    .from("orders")
-    .select("*")
-    .order("created_at", { ascending: false })
-    .limit(10);
-
-  const { count: paidCount } = await supabase
-    .from("orders")
-    .select("*", { count: "exact", head: true })
-    .eq("status", "paid");
-
-  const { count: customerCount } = await supabase
-    .from("profiles")
-    .select("*", { count: "exact", head: true });
+  const [
+    { data: revenueRow },
+    { data: recent },
+    { count: paidCount },
+    { count: customerCount },
+  ] = await Promise.all([
+    admin
+      .from("orders")
+      .select("sum:total.sum()")
+      .eq("status", "paid")
+      .eq("currency", "CAD")
+      .maybeSingle<{ sum: number | string | null }>(),
+    admin
+      .from("orders")
+      .select("id, created_at, country, status, total, currency, sales_channel")
+      .order("created_at", { ascending: false })
+      .limit(10),
+    admin.from("orders").select("id", { count: "exact", head: true }).eq("status", "paid"),
+    admin.from("profiles").select("id", { count: "exact", head: true }),
+  ]);
+  const cadRevenue = asNumber(revenueRow?.sum);
 
   return (
     <div className="space-y-6">
       <div>
         <h1 className="text-2xl font-bold tracking-tight">Sales overview</h1>
         <p className="text-sm text-muted-foreground">
-          Across both currencies, paid orders only.
+          Paid orders only. All totals in CAD.
         </p>
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        <KpiCard label="USD revenue" value={formatPrice(byCurrency.USD, "USD")} />
-        <KpiCard label="CAD revenue" value={formatPrice(byCurrency.CAD, "CAD")} />
+        <KpiCard label="Revenue" value={formatPrice(cadRevenue)} />
         <KpiCard
           label="Paid orders"
           value={String(paidCount ?? 0)}
@@ -88,10 +93,10 @@ export default async function AdminOverviewPage() {
                     variant={STATUS_VARIANTS[o.status as OrderStatus]}
                     className="mb-1 capitalize"
                   >
-                    {o.status}
+                    {adminOrderStatusLabel(o.status, o.sales_channel)}
                   </Badge>
                   <p className="text-sm font-medium tabular-nums">
-                    {formatPrice(Number(o.total), o.currency as Currency)}
+                    {formatPrice(Number(o.total))}
                   </p>
                 </div>
               </Link>
@@ -123,11 +128,11 @@ export default async function AdminOverviewPage() {
                       variant={STATUS_VARIANTS[o.status as OrderStatus]}
                       className="capitalize"
                     >
-                      {o.status}
+                      {adminOrderStatusLabel(o.status, o.sales_channel)}
                     </Badge>
                   </TableCell>
                   <TableCell className="text-right tabular-nums">
-                    {formatPrice(Number(o.total), o.currency as Currency)}
+                    {formatPrice(Number(o.total))}
                   </TableCell>
                 </TableRow>
               ))}

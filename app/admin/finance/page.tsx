@@ -17,12 +17,14 @@ import type { CurrencyFinance } from "@/lib/actions/finance";
 import type { Currency } from "@/lib/constants";
 import { FinanceCharts } from "./FinanceCharts";
 import { FinanceDateRange } from "./FinanceDateRange";
+import { requireAdminPage } from "@/lib/auth/admin";
 
 export const metadata = { title: "Admin · Finance" };
 
 type SearchParams = Promise<{ from?: string; to?: string }>;
 
 export default async function FinancePage({ searchParams }: { searchParams: SearchParams }) {
+  await requireAdminPage();
   const guard = await requireAdmin();
   if (!guard.ok) redirect("/login?next=/admin/finance");
 
@@ -46,8 +48,8 @@ export default async function FinancePage({ searchParams }: { searchParams: Sear
         <div>
           <h1 className="text-2xl font-bold tracking-tight">Finance</h1>
           <p className="text-sm text-muted-foreground">
-            Paid orders from {formatDateOnly(range.from)} to {formatDateOnly(range.to)}. Totals are
-            shown in each native currency (no FX conversion).
+            Paid orders from {formatDateOnly(range.from)} to {formatDateOnly(range.to)}. Totals in
+            CAD.
           </p>
         </div>
         <div className="flex flex-wrap gap-2">
@@ -159,7 +161,7 @@ function CurrencySummary({ data }: { data: CurrencyFinance }) {
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="text-base">{c} summary</CardTitle>
+        <CardTitle className="text-base">Summary</CardTitle>
         <CardDescription>{data.orderCount} paid orders</CardDescription>
       </CardHeader>
       <CardContent className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">

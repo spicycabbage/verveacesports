@@ -2,6 +2,7 @@
 
 import { z } from "zod";
 import { revalidatePath } from "next/cache";
+import { updateCatalogCache } from "@/lib/catalog/invalidate";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { requireAdmin } from "@/lib/auth/admin";
 
@@ -42,6 +43,7 @@ export async function moveInventory(input: z.infer<typeof moveSchema>): Promise<
     };
   }
 
+  updateCatalogCache();
   revalidatePath("/admin/products");
   revalidatePath("/admin/inventory");
   return { ok: true };
@@ -72,6 +74,7 @@ export async function setInventoryOnHand(input: z.infer<typeof setSchema>): Prom
   });
   if (error) return { error: error.message };
 
+  updateCatalogCache();
   revalidatePath("/admin/products");
   revalidatePath("/admin/inventory");
   return { ok: true };
@@ -109,7 +112,7 @@ export async function createVariant(input: z.infer<typeof variantSchema>): Promi
       option1: d.option1 || null,
       option2: d.option2 || null,
       option3: d.option3 || null,
-      price_usd: d.priceUsd,
+      price_usd: d.priceCad,
       price_cad: d.priceCad,
       cost_usd: d.costUsd ?? null,
       cost_cad: d.costCad ?? null,
@@ -134,6 +137,7 @@ export async function createVariant(input: z.infer<typeof variantSchema>): Promi
     });
   }
 
+  updateCatalogCache();
   revalidatePath("/admin/products");
   return { ok: true };
 }
@@ -156,7 +160,7 @@ export async function updateVariantPrice(input: z.infer<typeof priceSchema>): Pr
 
   const admin = createSupabaseAdminClient();
   const update: Record<string, unknown> = {
-    price_usd: parsed.data.priceUsd,
+    price_usd: parsed.data.priceCad,
     price_cad: parsed.data.priceCad,
   };
   if (parsed.data.costUsd !== undefined) update.cost_usd = parsed.data.costUsd;
@@ -169,6 +173,7 @@ export async function updateVariantPrice(input: z.infer<typeof priceSchema>): Pr
     .eq("id", parsed.data.variantId);
   if (error) return { error: error.message };
 
+  updateCatalogCache();
   revalidatePath("/admin/products");
   revalidatePath("/products");
   return { ok: true };

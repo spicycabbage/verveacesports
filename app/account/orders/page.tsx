@@ -5,7 +5,6 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { formatPrice, formatDateOnly } from "@/lib/utils/format";
-import type { Currency } from "@/lib/constants";
 import type { Order, OrderStatus } from "@/lib/supabase/types";
 import { buttonVariants } from "@/components/ui/button";
 import { Package } from "lucide-react";
@@ -34,7 +33,7 @@ export default async function OrdersPage() {
     pending: dict.account.status_pending,
     paid: dict.account.status_paid,
     shipped: dict.account.status_shipped,
-    delivered: dict.account.status_delivered,
+    delivered: dict.account.status_shipped,
     cancelled: dict.account.status_cancelled,
   };
   const { data } = await supabase
@@ -74,7 +73,7 @@ export default async function OrdersPage() {
               </div>
               <div className="flex items-center justify-between gap-2">
                 <span className="text-base font-semibold tabular-nums">
-                  {formatPrice(Number(o.total), o.currency as Currency)}
+                  {formatPrice(Number(o.total))}
                 </span>
                 <Link
                   href={`/account/orders/${o.id}`}
@@ -112,7 +111,7 @@ export default async function OrdersPage() {
                     </Badge>
                   </TableCell>
                   <TableCell className="text-right tabular-nums">
-                    {formatPrice(Number(o.total), o.currency as Currency)}
+                    {formatPrice(Number(o.total))}
                   </TableCell>
                   <TableCell>
                     <Link

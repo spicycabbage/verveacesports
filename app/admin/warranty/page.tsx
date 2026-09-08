@@ -2,7 +2,6 @@ import { Suspense } from "react";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { SITES, type SiteId } from "@/lib/site/config";
 import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import {
   Table,
   TableBody,
@@ -15,6 +14,7 @@ import { formatDateOnly } from "@/lib/utils/format";
 import type { WarrantyRegistration } from "@/lib/supabase/types";
 import { WarrantyToolbar } from "./WarrantyToolbar";
 import { WarrantyPagination, WARRANTY_PAGE_SIZE } from "./WarrantyPagination";
+import { requireAdminPage } from "@/lib/auth/admin";
 
 export const metadata = { title: "Admin · Warranty" };
 
@@ -34,6 +34,7 @@ export default async function AdminWarrantyPage({
 }: {
   searchParams: SearchParams;
 }) {
+  await requireAdminPage();
   const sp = await searchParams;
   const site = isSiteId(sp.site) ? sp.site : undefined;
   const q = sp.q?.trim() || undefined;
@@ -120,11 +121,7 @@ export default async function AdminWarrantyPage({
                         {formatDateOnly(row.created_at)}
                       </TableCell>
                       <TableCell className="align-top">
-                        <Badge
-                          variant={row.site_id === "bleeq-ca" ? "secondary" : "default"}
-                        >
-                          {siteLabel(row.site_id)}
-                        </Badge>
+                        {siteLabel(row.site_id)}
                       </TableCell>
                       <TableCell className="align-top">
                         <p className="text-sm font-medium">{row.full_name}</p>

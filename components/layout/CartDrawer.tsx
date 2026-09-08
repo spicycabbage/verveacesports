@@ -17,7 +17,7 @@ import { formatPrice } from "@/lib/utils/format";
 import { Minus, Plus, Trash2, ShoppingBag } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useHydrated } from "@/lib/hooks/use-hydrated";
 import { useDictionary } from "@/lib/i18n/I18nProvider";
 import { sizedImageUrl } from "@/lib/images/cdn";
 
@@ -25,8 +25,7 @@ export function CartDrawer() {
   const dict = useDictionary();
   const { items, isOpen, close, setQty, remove } = useCartStore();
   const { currency } = useCountryStore();
-  const [mounted, setMounted] = useState(false);
-  useEffect(() => setMounted(true), []);
+  const mounted = useHydrated();
 
   const promo = useCartPromo(mounted && isOpen && items.length > 0);
   const subtotal = mounted
@@ -60,7 +59,7 @@ export function CartDrawer() {
           ) : (
             <ul className="space-y-4">
               {items.map((i) => {
-                const unit = currency === "CAD" ? i.priceCad : i.priceUsd;
+                const unit = i.priceCad;
                 return (
                   <li key={cartLineKey(i)} className="flex flex-col gap-2 sm:flex-row sm:gap-3">
                     <div className="flex min-w-0 gap-3">

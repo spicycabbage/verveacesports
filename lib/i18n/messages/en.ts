@@ -72,6 +72,14 @@ export const en: Dictionary = {
     "golf-gear": "Golf Gear",
   },
 
+  cartFeatures: {
+    followMe: "Follow Me",
+    remote: "Remote",
+    noRemote: "No Remote",
+    gps: "GPS",
+    pickCategory: "Select a category to see carts",
+  },
+
   products: {
     allProducts: "All products",
     shopAllTitle: "Shop all products",
@@ -86,7 +94,7 @@ export const en: Dictionary = {
     searching: "Searching:",
     clearSearch: "Clear search",
     all: "All",
-    shopRanger: "Shop Ranger",
+    shopRanger: "Shop Ranger & Rover",
     rangerMeta:
       "{n} models available · Free returns within 30 days · Earn 1 loyalty point per dollar",
   },
@@ -282,7 +290,7 @@ export const en: Dictionary = {
     introVerveace:
       "Quick answers about shipping, returns, BleeqUp, MGI & Motocaddy products, loyalty points, and checkout. Can't find what you need? Email {email}.",
     introBleeq:
-      "Quick answers about Canadian shipping, CAD pricing, returns, BleeqUp Ranger glasses, loyalty, and checkout. Can't find what you need? Email {email}.",
+      "FAQ for BleeqUp Canada — shipping, CAD pricing, returns, BleeqUp Ranger AI sports glasses, loyalty, and checkout. Can't find what you need? Email {email}.",
     emailSupport: "Email {email} for more help.",
     sections: {
       ordersShipping: {
@@ -294,7 +302,7 @@ export const en: Dictionary = {
           },
           {
             q: "Is shipping free?",
-            a: "Orders of ${freeShippingOver} USD or more (or ${freeShippingOver} CAD for Canadian checkout) qualify for free standard shipping within the USA and Canada. Smaller orders display the shipping fee before you pay.",
+            a: "Orders of ${freeShippingOver} CAD or more qualify for free standard shipping within the USA and Canada. Smaller orders display the shipping fee before you pay.",
           },
           {
             q: "When will my order arrive?",
@@ -331,8 +339,8 @@ export const en: Dictionary = {
             a: "Yes. VerveaceSports is an authorized retailer for BleeqUp AI camera glasses and MGI & Motocaddy electric golf trolleys, caddies, and accessories.",
           },
           {
-            q: "Why do prices show in USD or CAD?",
-            a: "Prices display in USD for United States shoppers and CAD for Canadian shoppers based on your selected market. The currency shown on each product page and at checkout is the amount you'll be charged.",
+            q: "Why are prices in CAD?",
+            a: "Every price and checkout total is in Canadian dollars (CAD). You'll be charged in CAD regardless of shipping country.",
           },
           {
             q: "What if an item is out of stock?",
@@ -559,7 +567,7 @@ export const en: Dictionary = {
         {
           title: "Products & pricing",
           body: [
-            "Prices are shown in USD or CAD based on your selected country. Taxes and shipping are calculated at checkout.",
+            "Prices are shown in CAD. Taxes and shipping are calculated at checkout.",
             "We strive to display accurate inventory, but stock is not guaranteed until your payment is authorized. We may cancel orders affected by pricing errors or stock shortages and will refund any charge.",
             "Product images and descriptions are for illustration; minor variations may occur.",
           ],
@@ -610,7 +618,7 @@ export const en: Dictionary = {
         },
       ],
       productsPricingVerveace:
-        "Prices are shown in USD or CAD based on your selected country. Taxes and shipping are calculated at checkout.",
+        "Prices are shown in CAD. Taxes and shipping are calculated at checkout.",
       productsPricingBleeq: "Prices are shown in CAD. Taxes and shipping are calculated at checkout.",
       shippingBodyVerveace:
         "We ship to addresses in the United States and Canada. Delivery times are estimates, not guarantees.",
@@ -655,7 +663,14 @@ export const en: Dictionary = {
     descVerveace:
       "Get BleeqUp drops, exclusive deals, and new product alerts from VerveaceSports.",
     descBleeq:
-      "Join our Newsletter for a chance to win a FREE pair of Bleequp Rangers AI Glasses",
+      "Join our Newsletter for a chance to win a FREE pair of BleeqUp Ranger AI glasses",
+    eventDesc:
+      "Join us at booth 58 for a chance to win a FREE pair of BleeqUp Ranger AI glasses. Subscribe to enter and get a reminder before the show.",
+    eventKicker: "See us live",
+    eventName: "VeloSpoke Bike Expo",
+    eventBooth: "Booth 58",
+    eventMeta: "Fri Sept 11, 2026 · 11am–8pm · Vancouver Convention Centre East, Hall B · Free entry",
+    eventLink: "Event details",
     email: "Email address",
     emailPlaceholder: "you@example.com",
     subscribe: "Subscribe",
@@ -697,24 +712,25 @@ export const en: Dictionary = {
 
   bleeq: {
     trust: {
-      promo: "Use Code NBDA2026 for 10% off",
+      promo: "Use Code fondo2026 for 20% off. Expires Sept 25, 2026",
       promoDesktop:
-        "Use Code NBDA2026 for 10% off. Free shipping for orders over ${amount}.",
+        "Use Code fondo2026 for 20% off. Expires Sept 25, 2026",
     },
     header: {
-      shopRanger: "Shop Ranger",
+      shopRanger: "Shop",
       accessories: "Accessories",
       support: "Support",
       faq: "FAQ",
       allProducts: "All products",
       supportFaq: "Support / FAQ",
-      viewAllModels: "View all Ranger models →",
+      viewAllModels: "View all models →",
       allAccessories: "All accessories →",
       canada: "Canada",
     },
     footer: {
-      blurb: "Authorized BleeqUp retailer. CAD pricing, ships across Canada.",
-      shopRanger: "Shop Ranger",
+      blurb:
+        "Authorized BleeqUp Canada retailer. Buy Rover & Ranger AI sports glasses — CAD pricing, ships nationwide.",
+      shopRanger: "Shop glasses",
       allModels: "All models",
       accessories: "Accessories",
       support: "Support",
@@ -725,11 +741,12 @@ export const en: Dictionary = {
       heroKicker: "{shortName} · Canada · CAD",
       shopNow: "Shop now",
       compareModels: "Compare models",
-      chooseTitle: "Choose your Ranger",
-      chooseSubtitle: "Standard, Zeiss, or Ultimate Bundle — one click to the product.",
+      chooseTitle: "Shop BleeqUp Rover & Ranger",
+      chooseSubtitle:
+        "Rover ZEISS, Ranger Standard / ZEISS, and bundles — AI sports camera glasses for cycling, running, and outdoor sports.",
       viewAll: "View all →",
       featuresKicker: "Product features",
-      featuresTitle: "See what Ranger can do",
+      featuresTitle: "See what BleeqUp can do",
       watchMore: "Watch more on the shop page",
       testimonialsKicker: "Customers are saying",
       testimonialsTitle: "Built for how you move",
@@ -739,8 +756,8 @@ export const en: Dictionary = {
       shopAccessories: "Shop accessories →",
       ctaTitle: "Ready for your next ride?",
       ctaSubtitle:
-        "Authorized BleeqUp retailer for Canada. Free returns within 30 days. Earn loyalty points on every order.",
-      shopRanger: "Shop Ranger",
+        "Buy BleeqUp Rover & Ranger AI sports glasses in Canada. Authorized retailer, CAD pricing, free returns within 30 days.",
+      shopRanger: "Shop glasses",
     },
   },
 

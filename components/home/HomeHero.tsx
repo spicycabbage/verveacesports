@@ -7,14 +7,15 @@ import { cn } from "@/lib/utils";
 import { getDictionary, interpolate } from "@/lib/i18n/dictionary";
 import { LOCALE_COOKIE, parseLocaleCookie } from "@/lib/i18n/locale";
 import { getSite } from "@/lib/site/get-site";
+import heroBanner from "@/public/images/home-hero-banner.webp";
 
-const HERO_IMAGE = "/images/home-hero-banner.webp";
 /** Intrinsic banner size (1024×571). */
 const HERO_ASPECT = "aspect-[1024/571]";
 
-/** Must match `Header` bar height (`sm:h-[5.2rem]`). */
+/** Must match sticky `Header` (announcement 2.25rem + nav 5.2rem). Use dvh so
+ *  installed PWAs don't size the hero larger than the visible window. */
 const HERO_HEIGHT_DESKTOP =
-  "md:aspect-auto md:h-[calc(100svh-5.2rem)] md:min-h-[28rem]";
+  "md:aspect-auto md:h-[calc(100dvh-7.45rem)] md:min-h-[28rem]";
 
 export async function HomeHero() {
   const cookieStore = await cookies();
@@ -40,12 +41,16 @@ export async function HomeHero() {
 
       <div className={cn("relative w-full min-w-0", HERO_ASPECT, HERO_HEIGHT_DESKTOP)}>
         <Image
-          src={HERO_IMAGE}
+          src={heroBanner}
           alt={`${dict.home.altGlasses}; ${dict.home.altCart}`}
           fill
           priority
-          sizes="100vw"
+          fetchPriority="high"
+          decoding="sync"
           quality={82}
+          // Optimizer emits a per-width AVIF/WebP srcset (~14KB at 640w vs the
+          // 63KB source). No placeholder → no LQIP flash.
+          sizes="100vw"
           className="object-cover object-[center_42%]"
         />
         <div

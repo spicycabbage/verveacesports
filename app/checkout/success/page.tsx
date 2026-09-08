@@ -9,9 +9,9 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { reconcileOrderIfPaid } from "@/lib/stripe/mark-order-paid";
 import { formatPrice } from "@/lib/utils/format";
-import type { Currency } from "@/lib/constants";
 import { LOCALE_COOKIE, parseLocaleCookie } from "@/lib/i18n/locale";
 import { getDictionary } from "@/lib/i18n/dictionary";
+import { GST_NUMBER } from "@/lib/tax/label";
 
 type SearchParams = Promise<{ order?: string }>;
 
@@ -90,29 +90,30 @@ export default async function SuccessPage({
               />
               <Row
                 label={dict.checkout.subtotal}
-                value={formatPrice(Number(order.subtotal), order.currency as Currency)}
+                value={formatPrice(Number(order.subtotal))}
               />
               <Row
                 label={dict.checkout.shipping}
                 value={
                   Number(order.shipping) === 0
                     ? dict.checkout.free
-                    : formatPrice(Number(order.shipping), order.currency as Currency)
+                    : formatPrice(Number(order.shipping))
                 }
               />
               {Number(order.points_value) > 0 && (
                 <Row
                   label={dict.checkout.pointsRedeemed}
-                  value={`−${formatPrice(Number(order.points_value), order.currency as Currency)}`}
+                  value={`−${formatPrice(Number(order.points_value))}`}
                 />
               )}
               <Separator />
               <Row
                 label={<strong>{dict.checkout.totalPaid}</strong>}
                 value={
-                  <strong>{formatPrice(Number(order.total), order.currency as Currency)}</strong>
+                  <strong>{formatPrice(Number(order.total))}</strong>
                 }
               />
+              <p className="pt-1 text-xs text-muted-foreground">GST/HST {GST_NUMBER}</p>
             </div>
           )}
           <div className="flex items-center justify-center gap-2 rounded-md bg-accent p-3 text-sm text-accent-foreground">

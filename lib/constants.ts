@@ -1,10 +1,17 @@
 export const COUNTRIES = {
-  US: { code: "US", name: "United States", currency: "USD", flag: "🇺🇸" },
+  US: { code: "US", name: "United States", currency: "CAD", flag: "🇺🇸" },
   CA: { code: "CA", name: "Canada", currency: "CAD", flag: "🇨🇦" },
 } as const;
 
 export type CountryCode = keyof typeof COUNTRIES;
-export type Currency = "USD" | "CAD";
+/** Storefront, checkout, and admin money are CAD-only. */
+export type Currency = "CAD";
+/** Historical Stripe events only. Do not use for storefront or new charges. */
+export type StripeAccountCurrency = "CAD" | "USD";
+
+/** Hard caps on pricing/charge payloads (stock checks happen later; these bound the work before them). */
+export const MAX_CART_LINES = 50;
+export const MAX_LINE_QTY = 99;
 
 /** Canadian provinces / territories (ISO 3166-2 codes) for tax + shipping address. */
 export const CA_REGIONS = [

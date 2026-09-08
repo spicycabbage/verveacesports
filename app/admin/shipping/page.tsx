@@ -1,10 +1,12 @@
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { ShippingSettings } from "./ShippingSettings";
 import type { ShippingRateWithZone } from "@/lib/supabase/types";
+import { requireAdminPage } from "@/lib/auth/admin";
 
 export const metadata = { title: "Admin · Shipping" };
 
 export default async function AdminShippingPage() {
+  await requireAdminPage();
   const admin = createSupabaseAdminClient();
   const { data: shippingRates } = await admin
     .from("shipping_rates")

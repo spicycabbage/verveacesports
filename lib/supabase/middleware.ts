@@ -1,7 +1,30 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
+/** @supabase/ssr stores the session as `sb-<ref>-auth-token` (optionally chunked `.0`, `.1`, …). */
+function hasSupabaseAuthCookie(request: NextRequest): boolean {
+  return request.cookies
+    .getAll()
+    .some(({ name }) => name.startsWith("sb-") && name.includes("-auth-token"));
+}
+
+function shouldSkipAuthRefresh(request: NextRequest): boolean {
+  const path = request.nextUrl.pathname;
+  if (path === "/callback" || path === "/api/auth/sign-out") return true;
+  if (
+    request.method === "POST" &&
+    (request.headers.has("Next-Action") || request.headers.has("next-action"))
+  ) {
+    return true;
+  }
+  // Anonymous visitor: nothing to refresh, skip the round-trip to Supabase Auth
+  // on every storefront request.
+  return !hasSupabaseAuthCookie(request);
+}
+
 export async function updateSession(request: NextRequest) {
+  request.headers.set("x-pathname", request.nextUrl.pathname);
+
   let response = NextResponse.next({ request });
 
   const supabase = createServerClient(
@@ -23,8 +46,15 @@ export async function updateSession(request: NextRequest) {
     },
   );
 
-  // Touch the session so refresh tokens stay current.
-  await supabase.auth.getUser();
+  // Don't touch the session on Server Actions (refresh-token race) or /callback
+  // (PKCE verifier must survive until exchangeCodeForSession).
+  if (!shouldSkipAuthRefresh(request)) {
+    try {
+      await supabase.auth.getUser();
+    } catch {
+      // Corrupt cookies must not 500 the request. Leave them; /login try/catches getUser.
+    }
+  }
 
   return response;
 }

@@ -1,6 +1,6 @@
 import type Stripe from "stripe";
 import type { SupabaseClient } from "@supabase/supabase-js";
-import type { Currency } from "@/lib/constants";
+import type { StripeAccountCurrency } from "@/lib/constants";
 import { getStripe } from "@/lib/stripe/server";
 import { fromMinorUnits } from "@/lib/utils/currency";
 
@@ -11,7 +11,10 @@ function chargeId(charge: Stripe.Charge | string | null | undefined): string | n
   return typeof charge === "string" ? charge : charge.id;
 }
 
-function currencyFromStripe(code: string | null | undefined, fallback: Currency): Currency {
+function currencyFromStripe(
+  code: string | null | undefined,
+  fallback: StripeAccountCurrency,
+): StripeAccountCurrency {
   const upper = (code ?? "").toUpperCase();
   return upper === "CAD" || upper === "USD" ? upper : fallback;
 }
@@ -23,7 +26,7 @@ type BtRow = {
   stripe_payout_id: string | null;
   order_id: string | null;
   type: string;
-  currency: Currency;
+  currency: StripeAccountCurrency;
   gross: number;
   fee: number;
   net: number;
@@ -33,7 +36,7 @@ type BtRow = {
 function rowFromBalanceTransaction(
   bt: Stripe.BalanceTransaction,
   opts: {
-    fallbackCurrency: Currency;
+    fallbackStripeAccountCurrency: StripeAccountCurrency;
     chargeId: string | null;
     refundId: string | null;
     payoutId: string | null;
@@ -47,7 +50,7 @@ function rowFromBalanceTransaction(
     stripe_payout_id: opts.payoutId,
     order_id: opts.orderId,
     type: bt.type,
-    currency: currencyFromStripe(bt.currency, opts.fallbackCurrency),
+    currency: currencyFromStripe(bt.currency, opts.fallbackStripeAccountCurrency),
     gross: fromMinorUnits(bt.amount),
     fee: fromMinorUnits(bt.fee),
     net: fromMinorUnits(bt.net),
@@ -61,7 +64,7 @@ function rowFromBalanceTransaction(
 // deposits can be reconciled against orders. Safe to call repeatedly.
 export async function syncBalanceTransactionForCharge(
   admin: Admin,
-  currency: Currency,
+  currency: StripeAccountCurrency,
   charge: string | null,
   orderId: string | null,
 ): Promise<void> {
@@ -85,7 +88,7 @@ export async function syncBalanceTransactionForCharge(
   if (chargeBt && typeof chargeBt !== "string") {
     rows.push(
       rowFromBalanceTransaction(chargeBt, {
-        fallbackCurrency: fallback,
+        fallbackStripeAccountCurrency: fallback,
         chargeId: chargeObj.id,
         refundId: null,
         payoutId: null,
@@ -99,7 +102,7 @@ export async function syncBalanceTransactionForCharge(
     if (refundBt && typeof refundBt !== "string") {
       rows.push(
         rowFromBalanceTransaction(refundBt, {
-          fallbackCurrency: fallback,
+          fallbackStripeAccountCurrency: fallback,
           chargeId: chargeObj.id,
           refundId: refund.id,
           payoutId: null,
@@ -116,7 +119,7 @@ export async function syncBalanceTransactionForCharge(
 
 export async function syncBalanceTransactionForPaymentIntent(
   admin: Admin,
-  currency: Currency,
+  currency: StripeAccountCurrency,
   pi: Stripe.PaymentIntent,
   orderId: string | null,
 ): Promise<void> {
@@ -130,7 +133,7 @@ export async function syncBalanceTransactionForPaymentIntent(
     if (chargeBt && typeof chargeBt !== "string") {
       rows.push(
         rowFromBalanceTransaction(chargeBt, {
-          fallbackCurrency: fallback,
+          fallbackStripeAccountCurrency: fallback,
           chargeId: latest.id,
           refundId: null,
           payoutId: null,
@@ -144,7 +147,7 @@ export async function syncBalanceTransactionForPaymentIntent(
       if (refundBt && typeof refundBt !== "string") {
         rows.push(
           rowFromBalanceTransaction(refundBt, {
-            fallbackCurrency: fallback,
+            fallbackStripeAccountCurrency: fallback,
             chargeId: latest.id,
             refundId: refund.id,
             payoutId: null,
@@ -176,7 +179,7 @@ export async function backfillOrderFees(admin: Admin): Promise<{ synced: number;
   let failed = 0;
   for (const p of payments ?? []) {
     if (!p.stripe_charge_id || !p.order_id) continue;
-    const currency = (p.currency === "CAD" ? "CAD" : "USD") as Currency;
+    const currency = (p.currency === "CAD" ? "CAD" : "USD") as StripeAccountCurrency;
     try {
       await syncBalanceTransactionForCharge(admin, currency, p.stripe_charge_id, p.order_id);
       synced += 1;
@@ -190,14 +193,14 @@ export async function backfillOrderFees(admin: Admin): Promise<{ synced: number;
 
 export async function upsertPayout(
   admin: Admin,
-  currency: Currency,
+  currency: StripeAccountCurrency,
   payout: Stripe.Payout,
 ): Promise<void> {
-  const payoutCurrency = currencyFromStripe(payout.currency, currency);
+  const payoutStripeAccountCurrency = currencyFromStripe(payout.currency, currency);
   await admin.from("stripe_payouts").upsert(
     {
       id: payout.id,
-      currency: payoutCurrency,
+      currency: payoutStripeAccountCurrency,
       amount: fromMinorUnits(payout.amount),
       status: payout.status,
       arrival_date: payout.arrival_date
@@ -221,7 +224,7 @@ export async function upsertPayout(
       const isChargeLike = txn.type === "charge" || txn.type === "payment";
       const isRefundLike = txn.type === "refund" || txn.type === "payment_refund";
       const row = rowFromBalanceTransaction(txn, {
-        fallbackCurrency: payoutCurrency,
+        fallbackStripeAccountCurrency: payoutStripeAccountCurrency,
         chargeId: isChargeLike ? srcId : null,
         refundId: isRefundLike ? srcId : null,
         payoutId: payout.id,

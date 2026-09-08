@@ -72,6 +72,14 @@ export const nl: Dictionary = {
     "golf-gear": "Golfuitrusting",
   },
 
+  cartFeatures: {
+    followMe: "Follow Me",
+    remote: "Afstandsbediening",
+    noRemote: "Zonder afstandsbediening",
+    gps: "GPS",
+    pickCategory: "Hover over een categorie om trolleys te zien",
+  },
+
   products: {
     allProducts: "Alle producten",
     shopAllTitle: "Shop alle producten",
@@ -86,7 +94,7 @@ export const nl: Dictionary = {
     searching: "Zoeken:",
     clearSearch: "Zoekopdracht wissen",
     all: "Alles",
-    shopRanger: "Shop Ranger",
+    shopRanger: "Shop Ranger & Rover",
     rangerMeta:
       "{n} modellen beschikbaar · Gratis retour binnen 30 dagen · Verdien 1 loyaliteitspunt per dollar",
   },
@@ -296,7 +304,7 @@ export const nl: Dictionary = {
           },
           {
             q: "Is verzending gratis?",
-            a: "Bestellingen van ${freeShippingOver} USD of meer (of ${freeShippingOver} CAD bij Canadees afrekenen) komen in aanmerking voor gratis standaardverzending binnen de VS en Canada. Bij kleinere bestellingen zie je de verzendkosten voordat je betaalt.",
+            a: "Bestellingen van ${freeShippingOver} CAD of meer komen in aanmerking voor gratis standaardverzending binnen de VS en Canada. Bij kleinere bestellingen zie je de verzendkosten voordat je betaalt.",
           },
           {
             q: "Wanneer komt mijn bestelling aan?",
@@ -333,8 +341,8 @@ export const nl: Dictionary = {
             a: "Ja. VerveaceSports is een erkende verkoper van BleeqUp AI-camerabrillen en elektrische golftrolleys, caddies en accessoires van MGI & Motocaddy.",
           },
           {
-            q: "Waarom worden prijzen in USD of CAD getoond?",
-            a: "Prijzen worden getoond in USD voor kopers in de Verenigde Staten en in CAD voor Canadese kopers, op basis van je gekozen markt. De valuta die op elke productpagina en bij het afrekenen wordt getoond, is het bedrag dat in rekening wordt gebracht.",
+            q: "Waarom zijn prijzen in CAD?",
+            a: "Elke prijs en elk afrekentotaal is in Canadese dollars (CAD). Je wordt in CAD belast, ongeacht het verzendland.",
           },
           {
             q: "Wat als een artikel niet op voorraad is?",
@@ -561,7 +569,7 @@ export const nl: Dictionary = {
         {
           title: "Producten & prijzen",
           body: [
-            "Prijzen worden getoond in USD of CAD op basis van je gekozen land. Belastingen en verzending worden bij het afrekenen berekend.",
+            "Prijzen worden getoond in CAD. Belastingen en verzending worden bij het afrekenen berekend.",
             "We streven ernaar nauwkeurige voorraad te tonen, maar voorraad is niet gegarandeerd totdat je betaling is geautoriseerd. We kunnen bestellingen annuleren die worden getroffen door prijsfouten of voorraadtekorten en betalen eventuele kosten terug.",
             "Productafbeeldingen en -beschrijvingen zijn ter illustratie; kleine variaties kunnen voorkomen.",
           ],
@@ -612,7 +620,7 @@ export const nl: Dictionary = {
         },
       ],
       productsPricingVerveace:
-        "Prijzen worden getoond in USD of CAD op basis van je gekozen land. Belastingen en verzending worden bij het afrekenen berekend.",
+        "Prijzen worden getoond in CAD. Belastingen en verzending worden bij het afrekenen berekend.",
       productsPricingBleeq:
         "Prijzen worden getoond in CAD. Belastingen en verzending worden bij het afrekenen berekend.",
       shippingBodyVerveace:
@@ -659,7 +667,14 @@ export const nl: Dictionary = {
     descVerveace:
       "Ontvang BleeqUp-drops, exclusieve deals en nieuwe productmeldingen van VerveaceSports.",
     descBleeq:
-      "Schrijf je in voor onze nieuwsbrief voor kans op een GRATIS paar BleeqUp Rangers AI Glasses",
+      "Schrijf je in voor onze nieuwsbrief voor kans op een GRATIS BleeqUp Ranger AI-bril",
+    eventDesc:
+      "Kom langs bij stand 58 en maak kans op een GRATIS BleeqUp Ranger AI-bril. Schrijf je in om mee te doen en een herinnering te krijgen vóór de beurs.",
+    eventKicker: "Kom langs",
+    eventName: "VeloSpoke Bike Expo",
+    eventBooth: "Stand 58",
+    eventMeta: "Vr 11 sept 2026 · 11:00–20:00 · Vancouver Convention Centre East, Hall B · Gratis toegang",
+    eventLink: "Evenementdetails",
     email: "E-mailadres",
     emailPlaceholder: "jij@voorbeeld.com",
     subscribe: "Aanmelden",
@@ -701,18 +716,18 @@ export const nl: Dictionary = {
 
   bleeq: {
     trust: {
-      promo: "Gebruik code NBDA2026 voor 10% korting",
+      promo: "Gebruik code fondo2026 voor 20% korting. Verloopt 25 sept. 2026",
       promoDesktop:
-        "Gebruik code NBDA2026 voor 10% korting. Gratis verzending bij bestellingen boven ${amount}.",
+        "Gebruik code fondo2026 voor 20% korting. Verloopt 25 sept. 2026",
     },
     header: {
-      shopRanger: "Shop Ranger",
+      shopRanger: "Shop",
       accessories: "Accessoires",
       support: "Support",
       faq: "FAQ",
       allProducts: "Alle producten",
       supportFaq: "Support / FAQ",
-      viewAllModels: "Bekijk alle Ranger-modellen →",
+      viewAllModels: "Bekijk alle modellen →",
       allAccessories: "Alle accessoires →",
       canada: "Canada",
     },

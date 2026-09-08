@@ -64,7 +64,9 @@ export function NativeVideoPlayer({
         loop
         muted={muted}
         autoPlay={autoPlay}
-        preload="metadata"
+        // Galleries render many of these; without autoplay the poster is enough
+        // until the user hits play — don't fetch moov atoms for every MP4.
+        preload={autoPlay ? "metadata" : "none"}
         className="h-full w-full object-cover"
         aria-label={title}
         onPlay={() => setPlaying(true)}

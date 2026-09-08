@@ -11,7 +11,21 @@ import { sizedImageUrl } from "@/lib/images/cdn";
 import { useDictionary, useT } from "@/lib/i18n/I18nProvider";
 import { categoryLabelFromDict } from "@/lib/i18n/helpers";
 
-export function ProductCard({ product }: { product: ProductWithDefaultVariant }) {
+/** Minimal projection a card needs — keep the client payload small. */
+export type ProductCardData = Pick<
+  ProductWithDefaultVariant,
+  | "id"
+  | "slug"
+  | "name"
+  | "category"
+  | "stock"
+  | "images"
+  | "defaultVariantId"
+  | "defaultVariantLabel"
+  | "defaultPriceCad"
+>;
+
+export function ProductCard({ product }: { product: ProductCardData }) {
   const dict = useDictionary();
   const t = useT();
   const image = sizedImageUrl(product.images?.[0], 900);
@@ -54,15 +68,14 @@ export function ProductCard({ product }: { product: ProductWithDefaultVariant })
           </Link>
           <div className="mt-auto flex items-center justify-between gap-2 pt-2">
             <ProductPrice
-              priceUsd={product.defaultPriceUsd}
-              priceCad={product.defaultPriceCad}
+              price={product.defaultPriceCad}
               className="text-base font-bold tabular-nums"
             />
             <AddToCartButton
               product={product}
               variantId={product.defaultVariantId}
               variantLabel={product.defaultVariantLabel}
-              priceUsd={product.defaultPriceUsd}
+              priceUsd={product.defaultPriceCad}
               priceCad={product.defaultPriceCad}
               compact
             />

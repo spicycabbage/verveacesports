@@ -72,9 +72,8 @@ export function applyTheme(colors: ThemeColors, mode: ThemeMode) {
 function parseStoredTheme(raw: string): StoredTheme | null {
   try {
     const parsed = JSON.parse(raw) as Partial<StoredTheme>;
-    const mode: ThemeMode = parsed.mode === "light" ? "light" : "dark";
     return {
-      mode,
+      mode: "dark",
       light: { ...DEFAULT_THEMES.light, ...parsed.light },
       dark: { ...DEFAULT_THEMES.dark, ...parsed.dark },
     };
@@ -104,36 +103,9 @@ function repairSurfaces(theme: StoredTheme): StoredTheme {
   return { ...theme, light, dark };
 }
 
-export function readStoredTheme(): StoredTheme | null {
-  if (typeof window === "undefined") return null;
-  try {
-    const current = localStorage.getItem(themeStorageKey());
-    if (current) {
-      const parsed = parseStoredTheme(current);
-      if (!parsed) return null;
-      const repaired = repairSurfaces(parsed);
-      saveTheme(repaired);
-      return repaired;
-    }
-
-    // Recover mode + light prefs from older keys; dark always relaunches as oklch blue.
-    for (const key of LEGACY_THEME_STORAGE_KEYS) {
-      const legacy = localStorage.getItem(key);
-      if (!legacy) continue;
-      const parsed = parseStoredTheme(legacy);
-      if (!parsed) continue;
-      const repaired = repairSurfaces(parsed);
-      saveTheme(repaired);
-      return repaired;
-    }
-    return null;
-  } catch {
-    return null;
-  }
-}
-
 export function saveTheme(theme: StoredTheme) {
   localStorage.setItem(themeStorageKey(), JSON.stringify(theme));
+  notifyThemeChange();
 }
 
 export function clearStoredTheme() {
@@ -141,6 +113,55 @@ export function clearStoredTheme() {
   for (const key of LEGACY_THEME_STORAGE_KEYS) {
     localStorage.removeItem(key);
   }
+  notifyThemeChange();
+}
+
+// ---------------------------------------------------------------------------
+// useSyncExternalStore adapter: localStorage is the source of truth for the
+// theme, so ThemeProvider never has to copy it into React state in an effect.
+
+const THEME_EVENT = "verveace-theme-change";
+
+function notifyThemeChange() {
+  if (typeof window !== "undefined") window.dispatchEvent(new Event(THEME_EVENT));
+}
+
+export function subscribeStoredTheme(onChange: () => void): () => void {
+  window.addEventListener("storage", onChange);
+  window.addEventListener(THEME_EVENT, onChange);
+  return () => {
+    window.removeEventListener("storage", onChange);
+    window.removeEventListener(THEME_EVENT, onChange);
+  };
+}
+
+let snapshotRaw: string | null | undefined;
+let snapshot: StoredTheme | null = null;
+
+/** Stable per raw value (getSnapshot must return the same object while unchanged). */
+export function getStoredThemeSnapshot(): StoredTheme | null {
+  if (typeof window === "undefined") return null;
+  let raw: string | null = null;
+  try {
+    raw = localStorage.getItem(themeStorageKey());
+    if (!raw) {
+      for (const key of LEGACY_THEME_STORAGE_KEYS) {
+        raw = localStorage.getItem(key);
+        if (raw) break;
+      }
+    }
+  } catch {
+    raw = null;
+  }
+  if (raw === snapshotRaw) return snapshot;
+  snapshotRaw = raw;
+  const parsed = raw ? parseStoredTheme(raw) : null;
+  snapshot = parsed ? repairSurfaces(parsed) : null;
+  return snapshot;
+}
+
+export function getServerThemeSnapshot(): StoredTheme | null {
+  return null;
 }
 
 export function exportThemeCss(light: ThemeColors, dark: ThemeColors): string {

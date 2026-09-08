@@ -4,32 +4,20 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
-import { signInWithGoogle, signInWithPassword } from "@/lib/actions/auth";
+import { GoogleSignInButton } from "@/components/auth/GoogleSignInButton";
+import { signInWithPassword } from "@/lib/actions/auth";
 import { useDictionary } from "@/lib/i18n/I18nProvider";
 import { Loader2 } from "lucide-react";
 import { useTransition } from "react";
 import { toast } from "sonner";
 
-export function LoginForm() {
+export function LoginForm({ nextPath = "/account" }: { nextPath?: string }) {
   const [pending, start] = useTransition();
   const dict = useDictionary();
 
   return (
     <div className="space-y-4">
-      <Button
-        type="button"
-        variant="outline"
-        className="w-full"
-        disabled={pending}
-        onClick={() =>
-          start(async () => {
-            await signInWithGoogle();
-          })
-        }
-      >
-        <GoogleIcon />
-        {dict.auth.continueGoogle}
-      </Button>
+      <GoogleSignInButton nextPath={nextPath} label={dict.auth.continueGoogle} />
 
       <div className="relative">
         <Separator />
@@ -47,12 +35,13 @@ export function LoginForm() {
             const res = await signInWithPassword({
               email: String(fd.get("email")),
               password: String(fd.get("password")),
+              next: nextPath,
             });
             if (res?.error) toast.error(res.error);
             else {
               toast.success(dict.auth.signedIn);
               // Hard navigate avoids soft-nav + refresh thrashing the mobile layout.
-              window.location.assign("/account");
+              window.location.assign(res.redirectTo ?? nextPath);
             }
           });
         }}
@@ -76,28 +65,5 @@ export function LoginForm() {
         </Button>
       </form>
     </div>
-  );
-}
-
-function GoogleIcon() {
-  return (
-    <svg className="h-4 w-4" viewBox="0 0 48 48" aria-hidden>
-      <path
-        fill="#FFC107"
-        d="M43.6 20.5H42V20H24v8h11.3a12 12 0 1 1-3.4-13l5.7-5.7A20 20 0 1 0 44 24c0-1.2-.1-2.4-.4-3.5z"
-      />
-      <path
-        fill="#FF3D00"
-        d="M6.3 14.7l6.6 4.8A12 12 0 0 1 24 12c3 0 5.7 1.2 7.8 3l5.7-5.7A20 20 0 0 0 6.3 14.7z"
-      />
-      <path
-        fill="#4CAF50"
-        d="M24 44c5.2 0 10-2 13.6-5.2l-6.3-5.2A12 12 0 0 1 12.7 28l-6.6 5.1A20 20 0 0 0 24 44z"
-      />
-      <path
-        fill="#1976D2"
-        d="M43.6 20.5H42V20H24v8h11.3a12 12 0 0 1-4.1 5.6l6.3 5.2C42.4 35.2 44 30.1 44 24c0-1.2-.1-2.4-.4-3.5z"
-      />
-    </svg>
   );
 }

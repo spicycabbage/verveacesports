@@ -29,7 +29,7 @@ export const FAQ_SECTIONS: FaqSection[] = [
       {
         question: "Is shipping free?",
         answer:
-          "Orders of ${{freeShippingOver}} USD or more (or ${{freeShippingOver}} CAD for Canadian checkout) qualify for free standard shipping within the USA and Canada. Smaller orders display the shipping fee before you pay.",
+          "Orders of ${{freeShippingOver}} CAD or more qualify for free standard shipping within the USA and Canada. Smaller orders display the shipping fee before you pay.",
       },
       {
         question: "When will my order arrive?",
@@ -87,9 +87,9 @@ export const FAQ_SECTIONS: FaqSection[] = [
           "No. VerveaceSports.com is our multi-brand USA & Canada store (BleeqUp + MGI + Motocaddy). BleeqUp Canada at ca.bleequp.com is a separate Canada-only BleeqUp storefront with CAD pricing. Orders and accounts are separate between the two sites.",
       },
       {
-        question: "Why do prices show in USD or CAD?",
+        question: "Why are prices in CAD?",
         answer:
-          "Prices display in USD for United States shoppers and CAD for Canadian shoppers based on your selected market. The currency shown on each product page and at checkout is the amount you'll be charged.",
+          "Every price and checkout total is in Canadian dollars (CAD). You'll be charged in CAD regardless of shipping country.",
       },
       {
         question: "What if an item is out of stock?",

@@ -4,17 +4,19 @@ import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { ProductEditClient } from "../ProductEditClient";
 import { DeleteProductButton } from "../DeleteProductButton";
 import type { AdminVariantRow } from "../VariantManager";
-import { parseProductOptions } from "@/lib/catalog/variants";
+import { parseProductOptions } from "@/lib/catalog/product-options";
 import { productUsesVariants } from "@/lib/utils/variants";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
 import type { Category } from "@/lib/constants";
+import { requireAdminPage } from "@/lib/auth/admin";
 
 export const metadata = { title: "Admin · Edit product" };
 
 type Params = Promise<{ id: string }>;
 
 export default async function AdminProductEditPage({ params }: { params: Params }) {
+  await requireAdminPage();
   const { id } = await params;
   const admin = createSupabaseAdminClient();
   const { data: product } = await admin
@@ -112,7 +114,6 @@ export default async function AdminProductEditPage({ params }: { params: Params 
         singleVariant={singleVariant}
         variants={variants}
         productOptions={productOptions}
-        defaultPriceUsd={variants[0]?.priceUsd ?? 0}
         defaultPriceCad={variants[0]?.priceCad ?? 0}
       />
       <DeleteProductButton productId={product.id} productName={product.name} />

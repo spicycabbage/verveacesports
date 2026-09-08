@@ -13,14 +13,13 @@ import { formatPrice } from "@/lib/utils/format";
 import { useDictionary } from "@/lib/i18n/I18nProvider";
 import { sizedImageUrl } from "@/lib/images/cdn";
 import { Minus, Plus, ShoppingBag, Trash2 } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useHydrated } from "@/lib/hooks/use-hydrated";
 
 export function CartView() {
   const dict = useDictionary();
   const { items, setQty, remove } = useCartStore();
   const { currency } = useCountryStore();
-  const [mounted, setMounted] = useState(false);
-  useEffect(() => setMounted(true), []);
+  const mounted = useHydrated();
 
   const promo = useCartPromo(mounted && items.length > 0);
 
@@ -49,7 +48,7 @@ export function CartView() {
     <div className="grid gap-6 lg:grid-cols-3">
       <div className="space-y-3 lg:col-span-2">
         {items.map((i) => {
-          const unit = currency === "CAD" ? i.priceCad : i.priceUsd;
+          const unit = i.priceCad;
           return (
             <Card key={cartLineKey(i)}>
               <CardContent className="flex flex-col gap-3 p-4 sm:flex-row sm:gap-4">

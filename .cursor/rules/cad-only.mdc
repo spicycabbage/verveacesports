@@ -1,0 +1,26 @@
+---
+description: Storefront, checkout, POS, and admin money are CAD-only
+alwaysApply: true
+---
+
+# CAD only
+
+This store is **CAD-only**. Do not introduce USD unless the user explicitly asks.
+
+## Do
+
+- Price, charge, refund (new), format, report, and email in **CAD**
+- `formatPrice` always renders CAD (`en-CA`)
+- New Stripe PaymentIntents / Terminal charges use the CAD account only
+- When saving catalog/shipping prices, write the CAD amount into both `price_cad` and `price_usd` (legacy mirror columns)
+
+## Do not
+
+- Add USD prices, USD inputs, USD checkout, dual-currency UI, or "USD revenue" KPIs
+- Pick price by country (`price_usd` vs `price_cad`) — always use CAD
+- Document or seed a second selling currency
+- Rename or drop `price_usd` / `cost_usd` DB columns (legacy mirrors + historical rows)
+
+## Internal exception (not UI)
+
+`StripeAccountCurrency` may include `"USD"` only to verify **old** Stripe webhook signatures / refund historical USD PaymentIntents. Never surface that in storefront or admin copy.

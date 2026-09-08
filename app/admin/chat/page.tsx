@@ -2,7 +2,6 @@ import { Suspense } from "react";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { SITES, type SiteId } from "@/lib/site/config";
 import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import {
   Table,
   TableBody,
@@ -14,6 +13,7 @@ import {
 import { formatDate } from "@/lib/utils/format";
 import type { ChatQuestion } from "@/lib/supabase/types";
 import { ChatQuestionsToolbar } from "./ChatQuestionsToolbar";
+import { requireAdminPage } from "@/lib/auth/admin";
 import {
   ChatQuestionsPagination,
   CHAT_PAGE_SIZE,
@@ -36,6 +36,7 @@ export default async function AdminChatPage({
 }: {
   searchParams: SearchParams;
 }) {
+  await requireAdminPage();
   const sp = await searchParams;
   const site = isSiteId(sp.site) ? sp.site : undefined;
   const q = sp.q?.trim() || undefined;
@@ -111,11 +112,7 @@ export default async function AdminChatPage({
                         {formatDate(row.created_at)}
                       </TableCell>
                       <TableCell className="align-top">
-                        <Badge
-                          variant={row.site_id === "bleeq-ca" ? "secondary" : "default"}
-                        >
-                          {siteLabel(row.site_id)}
-                        </Badge>
+                        {siteLabel(row.site_id)}
                       </TableCell>
                       <TableCell className="align-top whitespace-normal">
                         <p className="max-w-xl text-sm leading-relaxed">{row.question}</p>
@@ -124,9 +121,7 @@ export default async function AdminChatPage({
                         {row.locale ?? "—"}
                       </TableCell>
                       <TableCell className="align-top text-muted-foreground">
-                        {row.country && row.currency
-                          ? `${row.country} · ${row.currency}`
-                          : (row.country ?? row.currency ?? "—")}
+                        {row.country ?? "—"}
                       </TableCell>
                     </TableRow>
                   ))}

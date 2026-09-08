@@ -1,11 +1,14 @@
 "use server";
 
+import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { cookies, headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { sendAccountWelcomeEmail } from "@/lib/brevo/emails";
+import { postLoginPath, sanitizeAuthNext } from "@/lib/auth/post-login-path";
+import { finalizeOAuthUser } from "@/lib/auth/finalize-oauth";
 import { REFERRAL_COOKIE } from "@/lib/constants";
 import { getSite } from "@/lib/site/get-site";
 
@@ -87,22 +90,47 @@ export async function signUpWithPassword(input: z.infer<typeof credentialsSchema
   return { ok: true };
 }
 
-export async function signInWithPassword(input: { email: string; password: string }) {
+export async function signInWithPassword(input: {
+  email: string;
+  password: string;
+  next?: string;
+}) {
   const parsed = z.object({ email: z.string().email(), password: z.string().min(1) }).safeParse(input);
   if (!parsed.success) return { error: "Invalid credentials" };
 
   const supabase = await createSupabaseServerClient();
-  const { error } = await supabase.auth.signInWithPassword(parsed.data);
+  const { data, error } = await supabase.auth.signInWithPassword(parsed.data);
   if (error) return { error: error.message };
+
+  let isAdmin = false;
+  if (data.user) {
+    const admin = createSupabaseAdminClient();
+    const { data: profile } = await admin
+      .from("profiles")
+      .select("is_admin")
+      .eq("id", data.user.id)
+      .maybeSingle<{ is_admin: boolean }>();
+    isAdmin = !!profile?.is_admin;
+  }
+
   revalidatePath("/", "layout");
-  return { ok: true };
+  return {
+    ok: true as const,
+    redirectTo: postLoginPath(sanitizeAuthNext(input.next), isAdmin),
+  };
 }
 
-export async function signInWithGoogle() {
+export async function signInWithGoogle(nextPath = "/account") {
   const supabase = await createSupabaseServerClient();
   const ref = await getRefCode();
   const base = await resolveSiteUrl();
-  const redirectTo = `${base}/callback${ref ? `?ref=${encodeURIComponent(ref)}` : ""}`;
+  const next =
+    nextPath.startsWith("/") && !nextPath.startsWith("//") ? nextPath : "/account";
+  const qs = new URLSearchParams();
+  if (ref) qs.set("ref", ref);
+  if (next !== "/account") qs.set("next", next);
+  const q = qs.toString();
+  const redirectTo = `${base}/callback${q ? `?${q}` : ""}`;
   const { data, error } = await supabase.auth.signInWithOAuth({
     provider: "google",
     options: { redirectTo, queryParams: ref ? { ref } : undefined },
@@ -110,6 +138,31 @@ export async function signInWithGoogle() {
   if (error) return { error: error.message };
   if (data?.url) redirect(data.url);
   return { ok: true };
+}
+
+/** Google Identity Services JWT — consent screen shows our hostname, not *.supabase.co. */
+export async function signInWithGoogleIdToken(idToken: string, nextPath = "/account") {
+  const token = idToken.trim();
+  if (token.length < 20 || token.length > 4096) {
+    return { error: "Invalid Google sign-in" };
+  }
+
+  const supabase = await createSupabaseServerClient();
+  const { data, error } = await supabase.auth.signInWithIdToken({
+    provider: "google",
+    token,
+  });
+  if (error) return { error: error.message };
+  if (!data.user) return { error: "Google sign-in failed" };
+
+  const site = await getSite();
+  const redirectTo = await finalizeOAuthUser({
+    user: data.user,
+    siteId: site.id,
+    next: nextPath,
+  });
+  revalidatePath("/", "layout");
+  return { ok: true as const, redirectTo };
 }
 
 /** Prefer signOutClient() from the browser; this is for <form action={signOut}> only. */

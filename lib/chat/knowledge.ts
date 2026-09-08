@@ -71,8 +71,8 @@ Identity:
 - Tagline: ${site.tagline}
 - Description: ${site.description}
 - Support email: ${site.supportEmail}
-- Free standard shipping: $${site.freeShippingOver}+ (USD or CAD matching checkout currency)
-- Markets: United States (USD) and Canada (CAD)
+- Free standard shipping: $${site.freeShippingOver}+ CAD
+- Currency: CAD only
 - Ships to: USA and Canada addresses
 
 Catalog (multi-brand):

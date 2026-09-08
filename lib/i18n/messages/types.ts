@@ -107,6 +107,14 @@ export type Dictionary = {
     "golf-gear": string;
   };
 
+  cartFeatures: {
+    followMe: string;
+    remote: string;
+    noRemote: string;
+    gps: string;
+    pickCategory: string;
+  };
+
   products: {
     allProducts: string;
     shopAllTitle: string;
@@ -361,6 +369,12 @@ export type Dictionary = {
     title: string;
     descVerveace: string;
     descBleeq: string;
+    eventDesc: string;
+    eventKicker: string;
+    eventName: string;
+    eventBooth: string;
+    eventMeta: string;
+    eventLink: string;
     email: string;
     emailPlaceholder: string;
     subscribe: string;

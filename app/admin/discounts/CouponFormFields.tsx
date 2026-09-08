@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useTransition } from "react";
+import { useState, useTransition } from "react";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import {
@@ -263,22 +263,41 @@ export function EditCouponDialog({
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }) {
+  if (!discount) return null;
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-2xl">
+        <DialogHeader>
+          <DialogTitle>Edit coupon</DialogTitle>
+          <DialogDescription>
+            {discount.used_count} redemption{discount.used_count === 1 ? "" : "s"} so far.
+          </DialogDescription>
+        </DialogHeader>
+        {/* Keyed on the discount: a fresh form state per coupon, and the dialog
+            unmounts its content on close, so reopening starts clean. */}
+        <EditCouponForm key={discount.id} discount={discount} onOpenChange={onOpenChange} />
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+function EditCouponForm({
+  discount,
+  onOpenChange,
+}: {
+  discount: Discount;
+  onOpenChange: (open: boolean) => void;
+}) {
   const router = useRouter();
   const [pending, start] = useTransition();
-  const [form, setForm] = useState(() =>
-    discount ? discountToFormState(discount) : discountToFormState(emptyDiscount()),
-  );
-
-  useEffect(() => {
-    if (discount && open) setForm(discountToFormState(discount));
-  }, [discount, open]);
+  const [form, setForm] = useState(() => discountToFormState(discount));
 
   function patch<K extends keyof typeof form>(key: K, value: (typeof form)[K]) {
     setForm((prev) => ({ ...prev, [key]: value }));
   }
 
   function save() {
-    if (!discount) return;
     if (!form.code.trim()) return toast.error("Enter a code");
     if (form.type !== "free_shipping" && !form.value) return toast.error("Enter a value");
     if (form.totalUsageMode === "limited" && !form.usageLimit) {
@@ -303,18 +322,9 @@ export function EditCouponDialog({
     });
   }
 
-  if (!discount) return null;
-
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-2xl">
-        <DialogHeader>
-          <DialogTitle>Edit coupon</DialogTitle>
-          <DialogDescription>
-            {discount.used_count} redemption{discount.used_count === 1 ? "" : "s"} so far.
-          </DialogDescription>
-        </DialogHeader>
-        <CouponFields
+    <>
+      <CouponFields
           code={form.code}
           onCodeChange={(v) => patch("code", v)}
           type={form.type}
@@ -336,34 +346,14 @@ export function EditCouponDialog({
           endsAt={form.endsAt}
           onEndsAtChange={(v) => patch("endsAt", v)}
         />
-        <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)} disabled={pending}>
-            Cancel
-          </Button>
-          <Button onClick={save} disabled={pending}>
-            Save changes
-          </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+      <DialogFooter>
+        <Button variant="outline" onClick={() => onOpenChange(false)} disabled={pending}>
+          Cancel
+        </Button>
+        <Button onClick={save} disabled={pending}>
+          Save changes
+        </Button>
+      </DialogFooter>
+    </>
   );
-}
-
-function emptyDiscount(): Discount {
-  return {
-    id: "",
-    code: "",
-    type: "percentage",
-    value: 0,
-    applies_to: "order",
-    min_subtotal: 0,
-    usage_limit: null,
-    used_count: 0,
-    per_customer_limit: null,
-    once_per_customer: false,
-    starts_at: null,
-    ends_at: null,
-    is_active: true,
-    created_at: "",
-  };
 }

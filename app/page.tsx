@@ -2,15 +2,14 @@ import Link from "next/link";
 import Image from "next/image";
 import { redirect } from "next/navigation";
 import { Card, CardContent } from "@/components/ui/card";
-import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { ProductGrid } from "@/components/product/ProductGrid";
 import { BleeqHome } from "@/components/bleeq/BleeqHome";
 import { HomeHero } from "@/components/home/HomeHero";
 import { CATEGORIES } from "@/lib/constants";
 import { CATEGORY_IMAGES } from "@/lib/catalog/category-images";
-import { attachDefaultVariantIds } from "@/lib/catalog/variants";
+import { getSessionProfile } from "@/lib/auth/session";
+import { listStorefrontProducts } from "@/lib/catalog/queries";
 import { getSite } from "@/lib/site/get-site";
-import { applySiteCatalogFilter } from "@/lib/site/catalog";
 import { cookies } from "next/headers";
 import { LOCALE_COOKIE, parseLocaleCookie } from "@/lib/i18n/locale";
 import { getDictionary } from "@/lib/i18n/dictionary";
@@ -34,50 +33,25 @@ export default async function HomePage({ searchParams }: { searchParams?: HomeSe
     redirect(`/callback?${q.toString()}`);
   }
 
+  if ((await getSessionProfile())?.is_admin) redirect("/admin");
+
   const site = await getSite();
   const cookieStore = await cookies();
   const dict = getDictionary(parseLocaleCookie(cookieStore.get(LOCALE_COOKIE)?.value));
-  const supabase = await createSupabaseServerClient();
 
+  // Catalog reads are cross-request cached ("use cache", tag: catalog).
   if (site.id === "bleeq-ca") {
-    const rangerQ = applySiteCatalogFilter(
-      supabase
-        .from("products")
-        .select("*")
-        .eq("is_active", true)
-        .eq("category", "ai-glasses")
-        .order("created_at", { ascending: false }),
-      site,
-    );
-    const accQ = applySiteCatalogFilter(
-      supabase
-        .from("products")
-        .select("*")
-        .eq("is_active", true)
-        .eq("category", "wearables")
-        .order("created_at", { ascending: false })
-        .limit(8),
-      site,
-    );
-    const [{ data: rangerRaw }, { data: accRaw }] = await Promise.all([rangerQ, accQ]);
-    const rangerProducts = await attachDefaultVariantIds(supabase, rangerRaw ?? []);
-    const accessories = await attachDefaultVariantIds(supabase, accRaw ?? []);
+    const [rangerProducts, accessories] = await Promise.all([
+      listStorefrontProducts({ siteId: site.id, category: "ai-glasses" }),
+      listStorefrontProducts({ siteId: site.id, category: "wearables", limit: 8 }),
+    ]);
 
     return (
       <BleeqHome site={site} rangerProducts={rangerProducts} accessories={accessories} />
     );
   }
 
-  const { data: featuredRaw } = await applySiteCatalogFilter(
-    supabase
-      .from("products")
-      .select("*")
-      .eq("is_active", true)
-      .order("created_at", { ascending: false })
-      .limit(8),
-    site,
-  );
-  const featured = await attachDefaultVariantIds(supabase, featuredRaw ?? []);
+  const featured = await listStorefrontProducts({ siteId: site.id, limit: 8 });
 
   return (
     <div>

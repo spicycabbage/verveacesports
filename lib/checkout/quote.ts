@@ -2,6 +2,8 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { LOYALTY, normalizeTaxRegion } from "@/lib/constants";
 import { normalizeVariantPrices } from "@/lib/catalog/pricing";
 import { siteAllowsCategory, type SiteConfig } from "@/lib/site/config";
+import { buildTaxLines, type TaxLine } from "@/lib/tax/label";
+import { parsePosManualDiscount } from "@/lib/pos/manual-discount";
 
 export type QuoteItem = {
   productId: string;
@@ -9,11 +11,18 @@ export type QuoteItem = {
   qty: number;
 };
 
+export type QuoteCustomItem = {
+  name: string;
+  description?: string;
+  unitPrice: number;
+  qty: number;
+};
+
 export type QuoteInput = {
   items: QuoteItem[];
-  currency: "USD" | "CAD";
+  currency: "CAD";
   country: "US" | "CA";
-  userId: string;
+  userId?: string;
   /** Active storefront — enforces lockMarket + category catalog. */
   site: SiteConfig;
   pointsToRedeem?: number;
@@ -25,12 +34,20 @@ export type QuoteInput = {
    * When false (quote preview), a supplied region must still be valid if present.
    */
   requireValidRegion?: boolean;
+  /** In-store pickup: skip shipping. */
+  shippingMode?: "ship" | "pickup";
+  /** POS one-offs — priced by the cashier, not in the catalog. */
+  customItems?: QuoteCustomItem[];
+  /** Required to accept `customItems`. Only admin POS routes set this. */
+  allowCustomItems?: boolean;
+  /** Required for cashier `$` / `%` off. Only admin POS routes set this. */
+  allowManualDiscount?: boolean;
 };
 
 export type QuoteLineItem = {
-  productId: string;
-  variantId: string;
-  locationId: string;
+  productId: string | null;
+  variantId: string | null;
+  locationId: string | null;
   qty: number;
   unitPrice: number;
   priceUsd: number;
@@ -47,9 +64,11 @@ export type QuoteResult = {
   subtotal: number;
   discountTotal: number;
   discountCode: string | null;
+  discountManual: boolean;
   freeShipping: boolean;
   tax: number;
   taxRate: number;
+  taxLines: TaxLine[];
   shipping: number;
   redeemPoints: number;
   redeemValue: number;
@@ -82,15 +101,23 @@ export async function computeCheckoutQuote(
     discountCode,
     region,
     requireValidRegion = false,
+    shippingMode = "ship",
+    customItems = [],
+    allowCustomItems = false,
+    allowManualDiscount = false,
   } = input;
+
+  if (customItems.length > 0 && !allowCustomItems) {
+    throw new QuoteError("Custom items are POS-only", 400);
+  }
+
+  if (currency !== "CAD") {
+    throw new QuoteError("This storefront is CAD only", 400);
+  }
 
   if (site.lockMarket) {
     if (country !== site.lockMarket) {
       throw new QuoteError("Market not available on this storefront", 400);
-    }
-    const expectedCurrency = site.lockMarket === "CA" ? "CAD" : "USD";
-    if (currency !== expectedCurrency) {
-      throw new QuoteError("Currency does not match storefront market", 400);
     }
   }
 
@@ -110,15 +137,21 @@ export async function computeCheckoutQuote(
     .single();
   if (!location) throw new QuoteError("No fulfillment location configured", 500);
 
+  if (items.length === 0 && customItems.length === 0) {
+    throw new QuoteError("Add an item first", 400);
+  }
+
   const productIds = items.map((i) => i.productId);
-  const { data: variants, error: varErr } = await admin
-    .from("product_variants")
-    .select(
-      "id, product_id, sku, title, price_usd, price_cad, cost_usd, cost_cad, is_active, position, products!inner(id, name, slug, images, is_active, category)",
-    )
-    .in("product_id", productIds)
-    .eq("is_active", true)
-    .order("position", { ascending: true });
+  const { data: variants, error: varErr } = productIds.length
+    ? await admin
+        .from("product_variants")
+        .select(
+          "id, product_id, sku, title, price_usd, price_cad, cost_usd, cost_cad, is_active, position, products!inner(id, name, slug, images, is_active, category)",
+        )
+        .in("product_id", productIds)
+        .eq("is_active", true)
+        .order("position", { ascending: true })
+    : { data: [] as never[], error: null };
   if (varErr || !variants) throw new QuoteError("Failed to load products", 500);
 
   type VariantRow = {
@@ -165,7 +198,7 @@ export async function computeCheckoutQuote(
       throw new QuoteError("Product not available on this storefront", 400);
     }
     const prices = normalizeVariantPrices(v);
-    const unit = Number(currency === "CAD" ? prices.priceCad : prices.priceUsd);
+    const unit = Number(prices.priceCad);
     subtotal += unit * it.qty;
     lineItems.push({
       productId: v.product_id,
@@ -173,7 +206,7 @@ export async function computeCheckoutQuote(
       locationId: location.id,
       qty: it.qty,
       unitPrice: unit,
-      priceUsd: prices.priceUsd,
+      priceUsd: prices.priceCad,
       priceCad: prices.priceCad,
       unitCostUsd: v.cost_usd == null ? null : Number(v.cost_usd),
       unitCostCad: v.cost_cad == null ? null : Number(v.cost_cad),
@@ -182,45 +215,86 @@ export async function computeCheckoutQuote(
       image: v.products.images?.[0] ?? null,
     });
   }
+
+  for (const custom of customItems) {
+    const name = custom.name.trim();
+    const description = custom.description?.trim() || "";
+    const unit = round2(Number(custom.unitPrice));
+    if (!name) throw new QuoteError("Custom item needs a name", 400);
+    if (!Number.isFinite(unit) || unit < 0.01) {
+      throw new QuoteError("Custom item price must be at least $0.01", 400);
+    }
+    if (custom.qty < 1) throw new QuoteError("Custom item quantity must be at least 1", 400);
+    const label = description ? `${name} — ${description}` : name;
+    subtotal += unit * custom.qty;
+    lineItems.push({
+      productId: null,
+      variantId: null,
+      locationId: null,
+      qty: custom.qty,
+      unitPrice: unit,
+      priceUsd: unit,
+      priceCad: unit,
+      unitCostUsd: null,
+      unitCostCad: null,
+      name: label,
+      sku: "POS-CUSTOM",
+      image: null,
+    });
+  }
+
   subtotal = round2(subtotal);
 
   let discountTotal = 0;
   let freeShipping = false;
   let validatedDiscountCode: string | null = null;
+  let discountManual = false;
   if (discountCode) {
-    const { data: dres } = await admin.rpc("validate_discount", {
-      p_code: discountCode,
-      p_user: userId,
-      p_subtotal: subtotal,
-      p_currency: currency,
-    });
-    const row = Array.isArray(dres) ? dres[0] : dres;
-    if (!row?.valid) {
-      throw new QuoteError(
-        row?.reason ? `Discount: ${row.reason}` : "Invalid discount code",
-        400,
-      );
-    }
-    validatedDiscountCode = discountCode.trim();
-    if (row.kind === "free_shipping") {
-      freeShipping = true;
+    const manual =
+      allowManualDiscount ? parsePosManualDiscount(discountCode, subtotal) : null;
+    if (manual) {
+      discountManual = true;
+      discountTotal = manual.amount;
+      validatedDiscountCode = manual.label;
     } else {
-      discountTotal = round2(Number(row.amount) || 0);
+      const { data: dres } = await admin.rpc("validate_discount", {
+        p_code: discountCode,
+        p_user: userId ?? null,
+        p_subtotal: subtotal,
+        p_currency: currency,
+      });
+      const row = Array.isArray(dres) ? dres[0] : dres;
+      if (!row?.valid) {
+        throw new QuoteError(
+          row?.reason ? `Discount: ${row.reason}` : "Invalid discount code",
+          400,
+        );
+      }
+      validatedDiscountCode = discountCode.trim();
+      if (row.kind === "free_shipping") {
+        freeShipping = true;
+      } else {
+        discountTotal = round2(Number(row.amount) || 0);
+      }
     }
   }
 
   const discountedSubtotal = Math.max(0, round2(subtotal - discountTotal));
 
-  const { data: profile } = await admin
-    .from("profiles")
-    .select("loyalty_points")
-    .eq("id", userId)
-    .single();
-  const balance = profile?.loyalty_points ?? 0;
-  const safePoints = Math.max(0, Math.min(pointsToRedeem, balance));
-  const maxPointsForSubtotal = Math.floor(discountedSubtotal * LOYALTY.POINTS_PER_DOLLAR_REDEEM);
-  const redeemPoints = Math.min(safePoints, maxPointsForSubtotal);
-  const redeemValue = round2(redeemPoints / LOYALTY.POINTS_PER_DOLLAR_REDEEM);
+  let redeemPoints = 0;
+  let redeemValue = 0;
+  if (userId && pointsToRedeem > 0) {
+    const { data: profile } = await admin
+      .from("profiles")
+      .select("loyalty_points")
+      .eq("id", userId)
+      .single();
+    const balance = profile?.loyalty_points ?? 0;
+    const safePoints = Math.max(0, Math.min(pointsToRedeem, balance));
+    const maxPointsForSubtotal = Math.floor(discountedSubtotal * LOYALTY.POINTS_PER_DOLLAR_REDEEM);
+    redeemPoints = Math.min(safePoints, maxPointsForSubtotal);
+    redeemValue = round2(redeemPoints / LOYALTY.POINTS_PER_DOLLAR_REDEEM);
+  }
 
   const { data: taxRate } = await admin.rpc("tax_rate_for", {
     p_country: country,
@@ -245,8 +319,8 @@ export async function computeCheckoutQuote(
     r.shipping_zones.countries.includes(country),
   );
   let shipping = 0;
-  if (!freeShipping && zoneRate) {
-    const base = Number(currency === "CAD" ? zoneRate.price_cad : zoneRate.price_usd);
+  if (shippingMode !== "pickup" && !freeShipping && zoneRate) {
+    const base = Number(zoneRate.price_cad);
     const freeOver = zoneRate.free_over == null ? null : Number(zoneRate.free_over);
     shipping = freeOver != null && discountedSubtotal >= freeOver ? 0 : base;
   }
@@ -258,9 +332,17 @@ export async function computeCheckoutQuote(
     subtotal,
     discountTotal,
     discountCode: validatedDiscountCode,
+    discountManual,
     freeShipping,
     tax,
     taxRate: rate,
+    taxLines: buildTaxLines({
+      country,
+      region: taxRegion,
+      rate,
+      tax,
+      taxableBase,
+    }),
     shipping,
     redeemPoints,
     redeemValue,

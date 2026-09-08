@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { getSessionProfile, getSessionUser } from "@/lib/auth/session";
 import { SignupForm } from "./SignupForm";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { cookies } from "next/headers";
@@ -19,9 +19,11 @@ export async function generateMetadata() {
 }
 
 export default async function SignupPage() {
-  const supabase = await createSupabaseServerClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (user) redirect("/account");
+  const user = await getSessionUser();
+  if (user) {
+    const profile = await getSessionProfile();
+    redirect(profile?.is_admin ? "/admin" : "/account");
+  }
 
   const c = await cookies();
   const refCode = c.get(REFERRAL_COOKIE)?.value ?? null;

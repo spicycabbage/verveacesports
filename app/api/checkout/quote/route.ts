@@ -4,8 +4,8 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { computeCheckoutQuote, QuoteError } from "@/lib/checkout/quote";
 import { getSiteFromRequest } from "@/lib/site/get-site";
-
-export const runtime = "nodejs";
+import { MAX_CART_LINES, MAX_LINE_QTY } from "@/lib/constants";
+import { clientIp, rateLimit } from "@/lib/utils/rate-limit";
 
 const schema = z.object({
   items: z
@@ -13,11 +13,12 @@ const schema = z.object({
       z.object({
         productId: z.string().uuid(),
         variantId: z.string().uuid().optional(),
-        qty: z.number().int().positive(),
+        qty: z.number().int().positive().max(MAX_LINE_QTY),
       }),
     )
-    .min(1),
-  currency: z.enum(["USD", "CAD"]),
+    .min(1)
+    .max(MAX_CART_LINES),
+  currency: z.literal("CAD"),
   country: z.enum(["US", "CA"]),
   pointsToRedeem: z.number().int().min(0).default(0),
   discountCode: z.string().trim().min(1).max(64).optional(),
@@ -25,15 +26,18 @@ const schema = z.object({
 });
 
 export async function POST(req: NextRequest) {
+  const limited = await rateLimit(`checkout-quote:${clientIp(req)}`, 60, 60_000);
+  if (!limited.ok) {
+    return NextResponse.json(
+      { error: "Too many requests, slow down" },
+      { status: 429, headers: { "Retry-After": String(limited.retryAfterSeconds) } },
+    );
+  }
+
   const json = await req.json().catch(() => null);
   const parsed = schema.safeParse(json);
   if (!parsed.success) {
     return NextResponse.json({ error: "Invalid request" }, { status: 400 });
-  }
-
-  const expectedCurrency = parsed.data.country === "CA" ? "CAD" : "USD";
-  if (parsed.data.currency !== expectedCurrency) {
-    return NextResponse.json({ error: "Currency does not match market" }, { status: 400 });
   }
 
   const supabase = await createSupabaseServerClient();

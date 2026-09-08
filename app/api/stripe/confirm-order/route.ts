@@ -3,8 +3,7 @@ import { z } from "zod";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { reconcileOrderIfPaid } from "@/lib/stripe/mark-order-paid";
-
-export const runtime = "nodejs";
+import { clientIp, rateLimit } from "@/lib/utils/rate-limit";
 
 const schema = z.object({
   orderId: z.string().uuid(),
@@ -15,6 +14,15 @@ const schema = z.object({
  * flips to paid without waiting on the webhook.
  */
 export async function POST(req: NextRequest) {
+  // Each call hits Stripe (PI retrieve) — keep polling clients honest.
+  const limited = await rateLimit(`confirm-order:${clientIp(req)}`, 30, 60_000);
+  if (!limited.ok) {
+    return NextResponse.json(
+      { error: "Too many requests, slow down" },
+      { status: 429, headers: { "Retry-After": String(limited.retryAfterSeconds) } },
+    );
+  }
+
   const json = await req.json().catch(() => null);
   const parsed = schema.safeParse(json);
   if (!parsed.success) {

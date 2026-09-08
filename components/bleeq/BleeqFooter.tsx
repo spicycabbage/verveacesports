@@ -14,10 +14,7 @@ export async function BleeqFooter() {
     <footer className="mt-16 border-t border-border bg-card/40">
       <div className="mx-auto grid max-w-7xl gap-10 px-4 py-12 sm:grid-cols-2 lg:grid-cols-4">
         <div>
-          <p className="text-lg font-semibold tracking-tight">{site.shortName}</p>
-          <p className="mt-1 text-xs font-medium uppercase tracking-wider text-muted-foreground">
-            {dict.bleeq.header.canada}
-          </p>
+          <p className="text-lg font-semibold tracking-tight">{site.name}</p>
           <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
             {dict.bleeq.footer.blurb}
           </p>

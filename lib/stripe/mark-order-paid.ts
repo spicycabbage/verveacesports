@@ -1,11 +1,12 @@
 import type Stripe from "stripe";
 import type { SupabaseClient } from "@supabase/supabase-js";
-import { sendOrderConfirmationEmail } from "@/lib/brevo/emails";
-import type { Currency } from "@/lib/constants";
-import type { SiteId } from "@/lib/site/config";
+import type { StripeAccountCurrency } from "@/lib/constants";
+import { fulfillPosPickup } from "@/lib/pos/fulfill-pickup";
+import { sendExistingOrderEmail } from "@/lib/orders/send-order-email";
 import { getStripe } from "@/lib/stripe/server";
 import { syncBalanceTransactionForPaymentIntent } from "@/lib/stripe/reconcile";
-import type { OrderItem, ShippingAddress } from "@/lib/supabase/types";
+import { revalidateCatalogCache } from "@/lib/catalog/invalidate";
+import { fetchOrderRow } from "@/lib/supabase/order-row";
 
 type Admin = SupabaseClient;
 
@@ -18,7 +19,7 @@ type Admin = SupabaseClient;
  */
 export async function markOrderPaidFromPaymentIntent(
   admin: Admin,
-  currency: Currency,
+  currency: StripeAccountCurrency,
   pi: Stripe.PaymentIntent,
   opts: { syncFees?: boolean } = {},
 ): Promise<void> {
@@ -26,13 +27,8 @@ export async function markOrderPaidFromPaymentIntent(
   if (!orderId) return;
   if (pi.status !== "succeeded") return;
 
-  const { data: order } = await admin
-    .from("orders")
-    .select(
-      "id, status, discount_code, discount_total, user_id, total, currency, email, site_id, subtotal, tax, shipping, points_value, shipping_address",
-    )
-    .eq("id", orderId)
-    .single();
+  const { data: order, error: orderErr } = await fetchOrderRow(admin, orderId);
+  if (orderErr) throw new Error(orderErr.message);
   if (!order) return;
 
   const expectedMinor = Math.round(Number(order.total) * 100);
@@ -44,19 +40,28 @@ export async function markOrderPaidFromPaymentIntent(
     throw new Error("Payment amount does not match order total");
   }
 
-  const orderCurrency = (order.currency === "CAD" ? "CAD" : "USD") as Currency;
-  const feeCurrency =
+  const orderCurrency: StripeAccountCurrency = order.currency === "CAD" ? "CAD" : "USD";
+  const feeCurrency: StripeAccountCurrency =
     (pi.currency?.toUpperCase() === "CAD" || pi.currency?.toUpperCase() === "USD"
-      ? (pi.currency.toUpperCase() as Currency)
+      ? (pi.currency.toUpperCase() as StripeAccountCurrency)
       : null) ?? orderCurrency ?? currency;
 
-  if (order.status !== "paid") {
-    await admin
+  if (order.financial_status !== "paid") {
+    const nextStatus = order.status === "pending" ? "paid" : order.status;
+    const { error: paidErr } = await admin
       .from("orders")
-      .update({ status: "paid", financial_status: "paid", paid_at: new Date().toISOString() })
+      .update({
+        status: nextStatus,
+        financial_status: "paid",
+        paid_at: new Date().toISOString(),
+      })
       .eq("id", orderId);
+    if (paidErr) throw new Error(paidErr.message);
 
-    await admin.rpc("commit_order_inventory", { p_order: orderId });
+    const { error: commitErr } = await admin.rpc("commit_order_inventory", { p_order: orderId });
+    if (commitErr) throw new Error(commitErr.message);
+    // products.stock mirror moved — refresh cached listings/PDPs.
+    revalidateCatalogCache();
 
     if (order.discount_code) {
       const { data: disc } = await admin
@@ -80,9 +85,18 @@ export async function markOrderPaidFromPaymentIntent(
       }
     }
 
-    void sendOrderPaidEmail(admin, order).catch((err) => {
+    try {
+      const result = await sendExistingOrderEmail(admin, orderId);
+      if (!result.ok) {
+        console.error("order confirmation email not sent:", result.error);
+      }
+    } catch (err) {
       console.error("order confirmation email failed:", err);
-    });
+    }
+
+    if (pi.metadata.sales_channel === "pos") {
+      await fulfillPosPickup(admin, orderId);
+    }
   }
 
   const charge =
@@ -95,52 +109,6 @@ export async function markOrderPaidFromPaymentIntent(
 
   if (opts.syncFees === false) return;
   await syncBalanceTransactionForPaymentIntent(admin, feeCurrency, pi, orderId);
-}
-
-async function sendOrderPaidEmail(
-  admin: Admin,
-  order: {
-    id: string;
-    email: string | null;
-    site_id: string;
-    currency: string;
-    subtotal: number;
-    tax: number;
-    shipping: number;
-    discount_code: string | null;
-    discount_total: number;
-    points_value: number;
-    total: number;
-    shipping_address: ShippingAddress | null;
-  },
-): Promise<void> {
-  const siteId: SiteId = order.site_id === "bleeq-ca" ? "bleeq-ca" : "verveace";
-  const { data: items } = await admin
-    .from("order_items")
-    .select("product_name, qty, unit_price, currency")
-    .eq("order_id", order.id);
-
-  const result = await sendOrderConfirmationEmail({
-    siteId,
-    order: {
-      id: order.id,
-      email: order.email,
-      currency: order.currency === "CAD" ? "CAD" : "USD",
-      subtotal: Number(order.subtotal),
-      tax: Number(order.tax),
-      shipping: Number(order.shipping),
-      discount_code: order.discount_code,
-      discount_total: Number(order.discount_total ?? 0),
-      points_value: Number(order.points_value ?? 0),
-      total: Number(order.total),
-      shipping_address: order.shipping_address,
-    },
-    items: (items ?? []) as Pick<OrderItem, "product_name" | "qty" | "unit_price" | "currency">[],
-  });
-
-  if (!result.ok) {
-    console.error("order confirmation email not sent:", result.error);
-  }
 }
 
 /** If the order is still pending, check Stripe and mark paid when the PI succeeded. */
@@ -158,7 +126,7 @@ export async function reconcileOrderIfPaid(
   if (!order) return false;
   if (!order.stripe_pi_id) return false;
 
-  const currency = (order.currency === "CAD" ? "CAD" : "USD") as Currency;
+  const currency: StripeAccountCurrency = order.currency === "CAD" ? "CAD" : "USD";
   const alreadyPaid = order.status === "paid" || order.financial_status === "paid";
 
   // Still sync fees for already-paid orders when requested (confirm-order / repair).

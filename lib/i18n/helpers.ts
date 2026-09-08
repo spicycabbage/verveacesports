@@ -1,7 +1,7 @@
 import type { Category } from "@/lib/constants";
 import type { SiteId } from "@/lib/site/config";
 import type { Dictionary } from "@/lib/i18n/messages/types";
-import { interpolate } from "@/lib/i18n/dictionary";
+import { interpolate } from "@/lib/i18n/translate";
 
 /** Localized category label from the active dictionary. */
 export function categoryLabelFromDict(dict: Dictionary, category: string): string {

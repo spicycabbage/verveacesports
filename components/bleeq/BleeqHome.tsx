@@ -1,10 +1,10 @@
 import Link from "next/link";
-import Image from "next/image";
+import Image, { getImageProps } from "next/image";
 import { cookies } from "next/headers";
 import { ArrowRight } from "lucide-react";
 import { buttonVariants } from "@/components/ui/button";
 import { LOCALE_COOKIE, parseLocaleCookie } from "@/lib/i18n/locale";
-import { getDictionary } from "@/lib/i18n/dictionary";
+import { getDictionary, interpolate } from "@/lib/i18n/dictionary";
 import { ProductGrid } from "@/components/product/ProductGrid";
 import { NativeVideoPlayer } from "@/components/product/ai-glasses/NativeVideoPlayer";
 import {
@@ -17,6 +17,40 @@ import type { SiteConfig } from "@/lib/site/config";
 import type { ProductWithDefaultVariant } from "@/lib/catalog/variants";
 import { sizedImageUrl } from "@/lib/images/cdn";
 import { cn } from "@/lib/utils";
+import bleeqHeroMobile from "@/public/bleeq-hero-mobile.webp";
+import { DeferredHeroVideo } from "@/components/bleeq/DeferredHeroVideo";
+
+const HERO_BREAKPOINT = "(min-width: 640px)"; // Tailwind `sm`
+
+function BleeqHeroPicture() {
+  const common = {
+    alt: "BleeqUp Ranger AI Sports Glasses",
+    fill: true,
+    sizes: "100vw",
+    quality: 75,
+    priority: true,
+    fetchPriority: "high" as const,
+    decoding: "sync" as const,
+  };
+  const {
+    props: { srcSet: mobileSrcSet },
+  } = getImageProps({ ...common, src: bleeqHeroMobile });
+  const {
+    props: { srcSet: desktopSrcSet, ...desktopRest },
+  } = getImageProps({ ...common, src: sizedImageUrl(BLEEQUUP_HERO.poster, 1600) });
+
+  return (
+    <picture>
+      <source media={HERO_BREAKPOINT} srcSet={desktopSrcSet} sizes="100vw" />
+      <source srcSet={mobileSrcSet} sizes="100vw" />
+      <img
+        {...desktopRest}
+        alt={common.alt}
+        className="object-cover object-[center_20%] opacity-80 sm:object-center"
+      />
+    </picture>
+  );
+}
 
 const AS_SEEN_IN = [
   {
@@ -55,32 +89,28 @@ export async function BleeqHome({
       {/* Full-bleed hero */}
       <section className="relative min-h-[70vh] overflow-hidden border-b bg-black text-white sm:min-h-[78vh]">
         <div className="absolute inset-0">
-          <Image
-            src="/bleeq-hero-mobile.png"
-            alt="BleeqUp Ranger AI Sports Glasses"
-            fill
-            priority
-            sizes="100vw"
-            className="object-cover object-[center_20%] opacity-80 sm:hidden"
-          />
-          <video
-            className="hidden h-full w-full object-cover opacity-70 sm:block"
+          {/* Art-directed hero: one <picture> so a phone never downloads the
+              1600px desktop poster (and vice versa). Two `priority` <Image>s
+              hidden via CSS still both preload. */}
+          <BleeqHeroPicture />
+          <DeferredHeroVideo
             src={BLEEQUUP_HERO.mp4}
-            poster={sizedImageUrl(BLEEQUUP_HERO.poster, 1600)}
-            autoPlay
-            muted
-            loop
-            playsInline
-            aria-label={BLEEQUUP_HERO.title}
+            title={BLEEQUUP_HERO.title}
+            className="absolute inset-0 hidden h-full w-full object-cover opacity-70 sm:block"
           />
           <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-black/20" />
         </div>
         <div className="relative mx-auto flex min-h-[70vh] max-w-7xl flex-col justify-end px-4 pb-12 pt-24 sm:min-h-[78vh] sm:pb-16">
-          <h1 className="max-w-3xl text-4xl font-bold tracking-tight sm:text-5xl md:text-6xl">
-            AI Sports Glasses
+          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-primary">
+            {interpolate(home.heroKicker, { shortName: site.shortName })}
+          </p>
+          <h1 className="mt-3 max-w-3xl text-4xl font-bold tracking-tight sm:text-5xl md:text-6xl">
+            {site.name}
           </h1>
           <p className="mt-3 max-w-xl text-base text-white/80 sm:text-lg">
-            {BLEEQUUP_HERO.subtitle}
+            Shop BleeqUp AI sports camera glasses in Canada. Hands-free POV
+            camera, open-ear audio, and UV protection — CAD pricing, ships
+            nationwide.
           </p>
           <div className="mt-6 flex flex-wrap gap-3">
             <Link
@@ -130,7 +160,7 @@ export async function BleeqHome({
               {home.viewAll}
             </Link>
           </div>
-          <div className="grid gap-4 sm:grid-cols-3">
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {site.rangerProducts.map((p) => {
               const live = rangerProducts.find((r) => r.slug === p.slug);
               const img = live?.images?.[0] || p.image;
@@ -153,7 +183,7 @@ export async function BleeqHome({
                   </div>
                   <div className="p-4">
                     <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                      Ranger
+                      {p.label.split("—")[0]?.trim() || "BleeqUp"}
                     </p>
                     <h3 className="mt-1 text-lg font-semibold tracking-tight">{p.shortLabel}</h3>
                     <span className="mt-3 inline-flex items-center text-sm font-medium text-primary">

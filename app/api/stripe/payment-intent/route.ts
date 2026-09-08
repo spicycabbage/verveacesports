@@ -4,12 +4,11 @@ import { getStripe } from "@/lib/stripe/server";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { computeCheckoutQuote, QuoteError } from "@/lib/checkout/quote";
-import { normalizeTaxRegion } from "@/lib/constants";
+import { MAX_CART_LINES, MAX_LINE_QTY, normalizeTaxRegion } from "@/lib/constants";
+import { revalidateCatalogCache } from "@/lib/catalog/invalidate";
 import { getSiteFromRequest } from "@/lib/site/get-site";
 import { toMinorUnits } from "@/lib/utils/currency";
 import { clientIp, rateLimit } from "@/lib/utils/rate-limit";
-
-export const runtime = "nodejs";
 
 const requestSchema = z.object({
   items: z
@@ -17,11 +16,12 @@ const requestSchema = z.object({
       z.object({
         productId: z.string().uuid(),
         variantId: z.string().uuid().optional(),
-        qty: z.number().int().positive(),
+        qty: z.number().int().positive().max(MAX_LINE_QTY),
       }),
     )
-    .min(1),
-  currency: z.enum(["USD", "CAD"]),
+    .min(1)
+    .max(MAX_CART_LINES),
+  currency: z.literal("CAD"),
   country: z.enum(["US", "CA"]),
   pointsToRedeem: z.number().int().min(0).default(0),
   discountCode: z.string().trim().min(1).max(64).optional(),
@@ -37,7 +37,7 @@ const requestSchema = z.object({
 });
 
 export async function POST(req: NextRequest) {
-  const ipLimited = rateLimit(`payment-intent:ip:${clientIp(req)}`, 10, 60_000);
+  const ipLimited = await rateLimit(`payment-intent:ip:${clientIp(req)}`, 10, 60_000);
   if (!ipLimited.ok) {
     return NextResponse.json(
       { error: "Too many checkout attempts, try again shortly" },
@@ -52,9 +52,8 @@ export async function POST(req: NextRequest) {
   }
   const { items, currency, country, pointsToRedeem, discountCode, shippingAddress } = parsed.data;
 
-  const expectedCurrency = country === "CA" ? "CAD" : "USD";
-  if (currency !== expectedCurrency) {
-    return NextResponse.json({ error: "Currency does not match market" }, { status: 400 });
+  if (currency !== "CAD") {
+    return NextResponse.json({ error: "This storefront is CAD only" }, { status: 400 });
   }
   if (shippingAddress.country !== country) {
     return NextResponse.json({ error: "Shipping country does not match market" }, { status: 400 });
@@ -73,7 +72,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Authentication required" }, { status: 401 });
   }
 
-  const userLimited = rateLimit(`payment-intent:user:${user.id}`, 6, 60_000);
+  const userLimited = await rateLimit(`payment-intent:user:${user.id}`, 6, 60_000);
   if (!userLimited.ok) {
     return NextResponse.json(
       { error: "Too many checkout attempts, try again shortly" },
@@ -172,6 +171,7 @@ export async function POST(req: NextRequest) {
       : "Could not reserve inventory";
     return NextResponse.json({ error: msg }, { status: 409 });
   }
+  revalidateCatalogCache();
 
   // Reserve the discount usage atomically so a single-use code can't be spent
   // by concurrent checkouts. Released if payment never succeeds.
@@ -184,6 +184,7 @@ export async function POST(req: NextRequest) {
     });
     if (discountErr || !reserved) {
       await admin.rpc("release_order_inventory", { p_order: order.id });
+      revalidateCatalogCache();
       await admin.from("order_items").delete().eq("order_id", order.id);
       await admin.from("orders").delete().eq("id", order.id);
       return NextResponse.json(
@@ -202,6 +203,7 @@ export async function POST(req: NextRequest) {
     if (redeemErr || !redeemed) {
       await admin.rpc("release_discount", { p_order: order.id });
       await admin.rpc("release_order_inventory", { p_order: order.id });
+      revalidateCatalogCache();
       await admin.from("order_items").delete().eq("order_id", order.id);
       await admin.from("orders").delete().eq("id", order.id);
       return NextResponse.json(
@@ -235,6 +237,7 @@ export async function POST(req: NextRequest) {
   } catch (err) {
     await admin.rpc("release_discount", { p_order: order.id });
     await admin.rpc("release_order_inventory", { p_order: order.id });
+    revalidateCatalogCache();
     if (quote.redeemPoints > 0) {
       await admin.rpc("adjust_loyalty_points", {
         p_user: user.id,
@@ -250,7 +253,11 @@ export async function POST(req: NextRequest) {
     await admin.from("orders").delete().eq("id", order.id);
     const msg = err instanceof Error ? err.message : "Payment provider error";
     console.error("payment-intent: stripe create failed", msg);
-    return NextResponse.json({ error: `Payment setup failed: ${msg}` }, { status: 502 });
+    // Don't echo Stripe internals (account/config details) to the browser.
+    return NextResponse.json(
+      { error: "Payment setup failed — please try again in a moment" },
+      { status: 502 },
+    );
   }
 
   await admin.from("orders").update({ stripe_pi_id: intent.id }).eq("id", order.id);

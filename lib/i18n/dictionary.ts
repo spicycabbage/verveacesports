@@ -12,6 +12,9 @@ import { ja } from "@/lib/i18n/messages/ja";
 import { zhCN } from "@/lib/i18n/messages/zh-CN";
 
 export type { Dictionary } from "@/lib/i18n/messages/types";
+// Server-only module (imports every locale). Client code must import from
+// `@/lib/i18n/translate` instead.
+export { createT, interpolate, type TranslateFn } from "@/lib/i18n/translate";
 
 const DICTIONARIES: Record<Locale, Dictionary> = {
   en,
@@ -27,45 +30,4 @@ const DICTIONARIES: Record<Locale, Dictionary> = {
 
 export function getDictionary(locale: Locale): Dictionary {
   return DICTIONARIES[locale] ?? DICTIONARIES[DEFAULT_LOCALE];
-}
-
-/** Replace `{var}` tokens in a template with provided values. */
-export function interpolate(
-  template: string,
-  vars?: Record<string, string | number>,
-): string {
-  if (!vars) return template;
-  return template.replace(/\{(\w+)\}/g, (match, key: string) => {
-    const value = vars[key];
-    return value === undefined || value === null ? match : String(value);
-  });
-}
-
-/** Deep-get a value from an object by dotted path (e.g. "nav.signIn"). */
-function deepGet(obj: unknown, path: string): unknown {
-  return path.split(".").reduce<unknown>((acc, key) => {
-    if (acc && typeof acc === "object" && key in (acc as Record<string, unknown>)) {
-      return (acc as Record<string, unknown>)[key];
-    }
-    return undefined;
-  }, obj);
-}
-
-export type TranslateFn = (path: string, vars?: Record<string, string | number>) => string;
-
-/**
- * Build a translator bound to `dict`. Resolves a dotted `path` to a string,
- * interpolates `{var}` tokens, and defensively falls back to English (then the
- * raw path) when a key is missing in the active locale.
- */
-export function createT(dict: Dictionary): TranslateFn {
-  return (path, vars) => {
-    const raw = deepGet(dict, path);
-    if (typeof raw === "string") return interpolate(raw, vars);
-
-    const fallback = deepGet(en, path);
-    if (typeof fallback === "string") return interpolate(fallback, vars);
-
-    return path;
-  };
 }

@@ -1,6 +1,6 @@
 "use client";
 
-import { forwardRef, useImperativeHandle, useRef, useState } from "react";
+import { forwardRef, useImperativeHandle, useRef, useState, type ReactNode } from "react";
 import Image from "next/image";
 import { toast } from "sonner";
 import { Card, CardContent } from "@/components/ui/card";
@@ -18,7 +18,7 @@ import {
 } from "@/components/ui/select";
 import { CATEGORIES, CATEGORY_LABELS, type Category } from "@/lib/constants";
 import { sizedImageUrl } from "@/lib/images/cdn";
-import { updateProductCatalog, uploadProductImage } from "@/lib/actions/catalog";
+import { uploadProductImage } from "@/lib/actions/upload-image";
 import { ExternalLink, GripVertical, Trash2, Upload } from "lucide-react";
 import Link from "next/link";
 
@@ -32,12 +32,22 @@ type ProductDraft = {
   isActive: boolean;
 };
 
-export type ProductEditorHandle = {
-  save: () => Promise<{ ok: true } | { error: string }>;
+export type ProductEditorDraft = {
+  name: string;
+  description: string;
+  category: Category;
+  isActive: boolean;
+  images: string[];
 };
 
-export const ProductEditor = forwardRef<ProductEditorHandle, { product: ProductDraft }>(
-  function ProductEditor({ product }, ref) {
+export type ProductEditorHandle = {
+  getDraft: () => ProductEditorDraft;
+};
+
+export const ProductEditor = forwardRef<
+  ProductEditorHandle,
+  { product: ProductDraft; children?: ReactNode }
+>(function ProductEditor({ product, children }, ref) {
   const fileRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
   const [name, setName] = useState(product.name);
@@ -50,18 +60,17 @@ export const ProductEditor = forwardRef<ProductEditorHandle, { product: ProductD
   useImperativeHandle(
     ref,
     () => ({
-      async save() {
-        return updateProductCatalog({
-          productId: product.id,
+      getDraft() {
+        return {
           name: name.trim(),
           description,
           category,
           isActive,
           images,
-        });
+        };
       },
     }),
-    [product.id, name, description, category, isActive, images],
+    [name, description, category, isActive, images],
   );
 
   async function onUpload(file: File) {
@@ -104,7 +113,7 @@ export const ProductEditor = forwardRef<ProductEditorHandle, { product: ProductD
   }
 
   return (
-    <div className="grid gap-6 lg:grid-cols-[1fr_320px]">
+    <div className="grid items-start gap-6 lg:grid-cols-[1fr_320px]">
       <Card>
         <CardContent className="space-y-4 py-4">
           <div className="space-y-1.5">
@@ -116,7 +125,7 @@ export const ProductEditor = forwardRef<ProductEditorHandle, { product: ProductD
             <Label htmlFor="description">Description</Label>
             <Textarea
               id="description"
-              rows={8}
+              rows={6}
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               className="resize-y"
@@ -151,6 +160,8 @@ export const ProductEditor = forwardRef<ProductEditorHandle, { product: ProductD
             </div>
           </div>
 
+          {children}
+
           <div className="border-t pt-4">
             <Button variant="outline" render={<Link href={`/products/${product.slug}`} target="_blank" />}>
               <ExternalLink className="h-4 w-4" />
@@ -165,8 +176,7 @@ export const ProductEditor = forwardRef<ProductEditorHandle, { product: ProductD
           <CardContent className="space-y-3 py-4">
             <h2 className="text-sm font-semibold">Images</h2>
             <p className="text-xs text-muted-foreground">
-              First image is the main photo. Upload to Supabase Storage (JPEG, PNG, WebP, or GIF,
-              max 5&nbsp;MB — no fixed pixel size) or paste an external URL.
+              First image is the main photo. (JPEG, PNG, WebP, or GIF, max 5&nbsp;MB)
             </p>
 
             <input

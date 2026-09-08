@@ -72,6 +72,14 @@ export const fr: Dictionary = {
     "golf-gear": "Équipement de golf",
   },
 
+  cartFeatures: {
+    followMe: "Follow Me",
+    remote: "Télécommande",
+    noRemote: "Sans télécommande",
+    gps: "GPS",
+    pickCategory: "Survolez une catégorie pour voir les chariots",
+  },
+
   products: {
     allProducts: "Tous les produits",
     shopAllTitle: "Voir tous les produits",
@@ -86,7 +94,7 @@ export const fr: Dictionary = {
     searching: "Recherche :",
     clearSearch: "Effacer la recherche",
     all: "Tout",
-    shopRanger: "Acheter Ranger",
+    shopRanger: "Acheter Ranger et Rover",
     rangerMeta:
       "{n} modèles disponibles · Retours gratuits sous 30 jours · Gagnez 1 point de fidélité par dollar",
   },
@@ -295,7 +303,7 @@ export const fr: Dictionary = {
           },
           {
             q: "La livraison est-elle gratuite ?",
-            a: "Les commandes de {freeShippingOver} $ USD ou plus (ou {freeShippingOver} $ CAD au paiement canadien) bénéficient de la livraison standard gratuite aux États-Unis et au Canada. Les commandes plus petites affichent les frais de livraison avant le paiement.",
+            a: "Les commandes de {freeShippingOver} $ CAD ou plus bénéficient de la livraison standard gratuite aux États-Unis et au Canada. Les commandes plus petites affichent les frais de livraison avant le paiement.",
           },
           {
             q: "Quand ma commande arrivera-t-elle ?",
@@ -332,8 +340,8 @@ export const fr: Dictionary = {
             a: "Oui. VerveaceSports est un revendeur agréé des lunettes-caméra IA BleeqUp et des chariots de golf électriques, caddies et accessoires MGI & Motocaddy.",
           },
           {
-            q: "Pourquoi les prix s'affichent-ils en USD ou en CAD ?",
-            a: "Les prix s'affichent en USD pour les acheteurs des États-Unis et en CAD pour les acheteurs canadiens selon le marché sélectionné. La devise affichée sur chaque page produit et au paiement correspond au montant qui vous sera facturé.",
+            q: "Pourquoi les prix sont-ils en CAD ?",
+            a: "Chaque prix et chaque total au paiement est en dollars canadiens (CAD). Vous serez facturé en CAD, quel que soit le pays de livraison.",
           },
           {
             q: "Que faire si un article est en rupture de stock ?",
@@ -560,7 +568,7 @@ export const fr: Dictionary = {
         {
           title: "Produits & prix",
           body: [
-            "Les prix sont affichés en USD ou en CAD selon le pays sélectionné. Les taxes et la livraison sont calculées au paiement.",
+            "Les prix sont affichés en CAD. Les taxes et la livraison sont calculées au paiement.",
             "Nous nous efforçons d'afficher un stock exact, mais la disponibilité n'est pas garantie tant que votre paiement n'est pas autorisé. Nous pouvons annuler les commandes affectées par des erreurs de prix ou des ruptures de stock et rembourserons tout montant prélevé.",
             "Les images et descriptions des produits sont fournies à titre indicatif ; de légères variations peuvent survenir.",
           ],
@@ -611,7 +619,7 @@ export const fr: Dictionary = {
         },
       ],
       productsPricingVerveace:
-        "Les prix sont affichés en USD ou en CAD selon le pays sélectionné. Les taxes et la livraison sont calculées au paiement.",
+        "Les prix sont affichés en CAD. Les taxes et la livraison sont calculées au paiement.",
       productsPricingBleeq:
         "Les prix sont affichés en CAD. Les taxes et la livraison sont calculées au paiement.",
       shippingBodyVerveace:
@@ -658,7 +666,14 @@ export const fr: Dictionary = {
     descVerveace:
       "Recevez les sorties BleeqUp, des offres exclusives et les alertes nouveaux produits de VerveaceSports.",
     descBleeq:
-      "Inscrivez-vous à notre infolettre pour courir la chance de gagner une paire GRATUITE de BleeqUp Rangers AI Glasses",
+      "Inscrivez-vous à notre infolettre pour courir la chance de gagner une paire GRATUITE de lunettes BleeqUp Ranger IA",
+    eventDesc:
+      "Rejoignez-nous au kiosque 58 pour courir la chance de gagner une paire GRATUITE de lunettes BleeqUp Ranger IA. Inscrivez-vous pour participer et recevoir un rappel avant le salon.",
+    eventKicker: "Venez nous voir",
+    eventName: "VeloSpoke Bike Expo",
+    eventBooth: "Kiosque 58",
+    eventMeta: "Ven. 11 sept. 2026 · 11 h – 20 h · Vancouver Convention Centre East, Hall B · Entrée gratuite",
+    eventLink: "Détails de l’événement",
     email: "Adresse e-mail",
     emailPlaceholder: "vous@exemple.com",
     subscribe: "S'abonner",
@@ -700,18 +715,18 @@ export const fr: Dictionary = {
 
   bleeq: {
     trust: {
-      promo: "Utilisez le code NBDA2026 pour 10 % de réduction",
+      promo: "Utilisez le code fondo2026 pour 20 % de réduction. Expire le 25 sept. 2026",
       promoDesktop:
-        "Utilisez le code NBDA2026 pour 10 % de réduction. Livraison gratuite pour les commandes de plus de {amount} $.",
+        "Utilisez le code fondo2026 pour 20 % de réduction. Expire le 25 sept. 2026",
     },
     header: {
-      shopRanger: "Acheter Ranger",
+      shopRanger: "Acheter",
       accessories: "Accessoires",
       support: "Support",
       faq: "FAQ",
       allProducts: "Tous les produits",
       supportFaq: "Support / FAQ",
-      viewAllModels: "Voir tous les modèles Ranger →",
+      viewAllModels: "Voir tous les modèles →",
       allAccessories: "Tous les accessoires →",
       canada: "Canada",
     },

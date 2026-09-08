@@ -31,7 +31,7 @@ export async function updateShippingRate(
     .from("shipping_rates")
     .update({
       name: d.name,
-      price_usd: d.priceUsd,
+      price_usd: d.priceCad,
       price_cad: d.priceCad,
       free_over: d.freeOver,
       is_active: d.isActive,

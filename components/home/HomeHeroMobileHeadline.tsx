@@ -16,7 +16,7 @@ type Props = {
 export function HomeHeroMobileHeadline({ lineA, lineB }: Props) {
   const [index, setIndex] = useState(0);
   const [visible, setVisible] = useState(true);
-  const containerRef = useRef<HTMLHeadingElement>(null);
+  const containerRef = useRef<HTMLParagraphElement>(null);
   const measureRef = useRef<HTMLSpanElement>(null);
   const [fontPx, setFontPx] = useState(MAX_PX);
   const [scale, setScale] = useState(1);
@@ -70,7 +70,7 @@ export function HomeHeroMobileHeadline({ lineA, lineB }: Props) {
   }, []);
 
   return (
-    <h1
+    <p
       ref={containerRef}
       className={cn(
         "relative w-full min-w-0 max-w-full overflow-x-hidden text-center font-bold tracking-tight",
@@ -91,6 +91,6 @@ export function HomeHeroMobileHeadline({ lineA, lineB }: Props) {
       >
         {text}
       </span>
-    </h1>
+    </p>
   );
 }

@@ -72,13 +72,7 @@ export function DeleteProductButton({
       ) : (
         <Card className="border-destructive/30">
           <CardContent className="flex flex-wrap items-center justify-between gap-3 py-4">
-            <div>
-              <h2 className="text-sm font-semibold text-destructive">Delete product</h2>
-              <p className="text-xs text-muted-foreground">
-                Permanently remove this item from the catalog. Products with past orders can only be
-                hidden, not deleted.
-              </p>
-            </div>
+            <h2 className="text-sm font-semibold text-destructive">Delete product</h2>
             {trigger}
           </CardContent>
         </Card>

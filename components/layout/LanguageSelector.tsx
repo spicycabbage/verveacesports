@@ -10,7 +10,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { LOCALE_LIST, type Locale } from "@/lib/i18n/locale";
+import { isLocale, LOCALE_LIST, type Locale } from "@/lib/i18n/locale";
 import { useLocaleStore } from "@/lib/store/locale";
 import { useDictionary } from "@/lib/i18n/I18nProvider";
 
@@ -21,20 +21,25 @@ type Props = {
 export function LanguageSelector({ className }: Props) {
   const router = useRouter();
   const locale = useLocaleStore((s) => s.locale);
+  const setLocale = useLocaleStore((s) => s.setLocale);
   const [pending, setPending] = useState(false);
   const dict = useDictionary();
 
   async function onValueChange(next: string | null) {
-    if (!next || next === locale || pending) return;
+    if (!next || !isLocale(next) || next === locale || pending) return;
 
     setPending(true);
+    setLocale(next);
     try {
       const res = await fetch("/api/locale", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ locale: next }),
       });
-      if (!res.ok) return;
+      if (!res.ok) {
+        setLocale(locale);
+        return;
+      }
       router.refresh();
     } finally {
       setPending(false);

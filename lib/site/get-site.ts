@@ -1,8 +1,9 @@
+import { cache } from "react";
 import { headers } from "next/headers";
 import { SITES, resolveSiteId, type SiteConfig, type SiteId } from "./config";
 
 /** Resolve the active storefront for the current request. */
-export async function getSite(): Promise<SiteConfig> {
+export const getSite = cache(async (): Promise<SiteConfig> => {
   const h = await headers();
   const host =
     h.get("x-forwarded-host")?.split(",")[0]?.trim() ||
@@ -13,7 +14,7 @@ export async function getSite(): Promise<SiteConfig> {
     envSiteId: process.env.SITE_ID,
   });
   return SITES[id];
-}
+});
 
 export function getSiteById(id: SiteId): SiteConfig {
   return SITES[id];

@@ -20,6 +20,7 @@ export default async function robots(): Promise<MetadataRoute.Robots> {
         "/signup",
         "/callback",
         "/theme",
+        "/offline",
       ],
     },
     sitemap: `${base}/sitemap.xml`,

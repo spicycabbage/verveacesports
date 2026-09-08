@@ -1,9 +1,9 @@
 import type { Currency } from "@/lib/constants";
 
-export function formatPrice(amount: number, currency: Currency = "USD"): string {
-  return new Intl.NumberFormat(currency === "CAD" ? "en-CA" : "en-US", {
+export function formatPrice(amount: number, _currency: Currency | string = "CAD"): string {
+  return new Intl.NumberFormat("en-CA", {
     style: "currency",
-    currency,
+    currency: "CAD",
     minimumFractionDigits: 2,
   }).format(amount);
 }

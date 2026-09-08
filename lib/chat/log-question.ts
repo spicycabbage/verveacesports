@@ -27,7 +27,7 @@ export async function logChatQuestion(input: {
   question: string;
   locale: string;
   country: "US" | "CA";
-  currency: "USD" | "CAD";
+  currency: "CAD";
   userId?: string | null;
   messageCount: number;
 }): Promise<void> {

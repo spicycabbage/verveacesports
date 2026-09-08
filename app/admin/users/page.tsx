@@ -1,6 +1,6 @@
 import { Suspense, type ReactNode } from "react";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
-import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { getSessionUser } from "@/lib/auth/session";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -17,6 +17,7 @@ import type { SiteId } from "@/lib/site/config";
 import type { Profile } from "@/lib/supabase/types";
 import { UsersToolbar } from "./UsersToolbar";
 import { DeleteUserButton } from "./DeleteUserButton";
+import { requireAdminPage } from "@/lib/auth/admin";
 
 export const metadata = { title: "Admin · Users" };
 
@@ -65,14 +66,11 @@ export default async function AdminUsersPage({
 }: {
   searchParams: SearchParams;
 }) {
+  await requireAdminPage();
   const sp = await searchParams;
   const filter = sp.filter === "buyers" || sp.filter === "leads" ? sp.filter : null;
 
-  const supabase = await createSupabaseServerClient();
-  const {
-    data: { user: actor },
-  } = await supabase.auth.getUser();
-
+  const actor = await getSessionUser();
   const admin = createSupabaseAdminClient();
 
   // Prefer orders.site_id when migration 0033 is applied; fall back otherwise.
@@ -85,11 +83,25 @@ export default async function AdminUsersPage({
       }[]
     | null = null;
 
-  const ordersWithSite = await admin
-    .from("orders")
-    .select("user_id, site_id, created_at, financial_status")
-    .not("user_id", "is", null)
-    .order("created_at", { ascending: true });
+  const [ordersWithSite, withSite, leadsResult] = await Promise.all([
+    admin
+      .from("orders")
+      .select("user_id, site_id, created_at, financial_status")
+      .not("user_id", "is", null)
+      .order("created_at", { ascending: true }),
+    admin
+      .from("profiles")
+      .select(
+        "id, email, first_name, last_name, full_name, country, loyalty_points, is_admin, site_id, created_at",
+      )
+      .order("created_at", { ascending: false })
+      .limit(500),
+    admin
+      .from("newsletter_subscribers")
+      .select("id, email, source, site_id, subscribed_at")
+      .order("subscribed_at", { ascending: false })
+      .limit(500),
+  ]);
 
   if (ordersWithSite.error?.message?.includes("site_id")) {
     const ordersWithoutSite = await admin
@@ -134,14 +146,6 @@ export default async function AdminUsersPage({
     | null = null;
   let loadError: string | undefined;
 
-  const withSite = await admin
-    .from("profiles")
-    .select(
-      "id, email, first_name, last_name, full_name, country, loyalty_points, is_admin, site_id, created_at",
-    )
-    .order("created_at", { ascending: false })
-    .limit(500);
-
   if (withSite.error?.message?.includes("site_id")) {
     const withoutSite = await admin
       .from("profiles")
@@ -161,11 +165,7 @@ export default async function AdminUsersPage({
     (profiles ?? []).map((p) => p.email.trim().toLowerCase()).filter(Boolean),
   );
 
-  const { data: leads, error: leadsError } = await admin
-    .from("newsletter_subscribers")
-    .select("id, email, source, site_id, subscribed_at")
-    .order("subscribed_at", { ascending: false })
-    .limit(500);
+  const { data: leads, error: leadsError } = leadsResult;
   if (leadsError && !loadError) loadError = leadsError.message;
 
   const accountRows: ListRow[] = (profiles ?? []).map((row) => ({
@@ -257,9 +257,7 @@ export default async function AdminUsersPage({
                       </TableCell>
                       <TableCell className="text-muted-foreground">{row.email}</TableCell>
                       <TableCell>
-                        <Badge variant={row.site_id === "bleeq-ca" ? "secondary" : "default"}>
-                          {originLabel(row.site_id)}
-                        </Badge>
+                        {originLabel(row.site_id)}
                       </TableCell>
                       <TableCell>
                         {row.country ? countryName(row.country) : "—"}

@@ -20,7 +20,7 @@ export type CurrencyFinance = {
   grossProfit: number; // netSales - cogs - fees
 };
 
-const CURRENCIES: Currency[] = ["USD", "CAD"];
+const CURRENCIES: Currency[] = ["CAD"];
 const round2 = (n: number) => Math.round(n * 100) / 100;
 
 // Default range: last 30 days through now.
@@ -73,21 +73,20 @@ export async function getFinanceSummary(range: DateRange): Promise<CurrencyFinan
   const orderIds = orders.map((o) => o.id);
 
   // COGS from order line costs.
-  const cogsByCurrency: Record<Currency, number> = { USD: 0, CAD: 0 };
+  const cogsByCurrency: Record<Currency, number> = { CAD: 0 };
   if (orderIds.length > 0) {
     const { data: itemsData } = await admin
       .from("order_items")
-      .select("order_id, qty, cost_usd, cost_cad, currency")
+      .select("order_id, qty, cost_cad, currency")
       .in("order_id", orderIds);
     for (const it of itemsData ?? []) {
-      const cur = it.currency as Currency;
-      const cost = cur === "CAD" ? it.cost_cad : it.cost_usd;
-      if (cost != null) cogsByCurrency[cur] += Number(cost) * it.qty;
+      if (it.currency !== "CAD") continue;
+      if (it.cost_cad != null) cogsByCurrency.CAD += Number(it.cost_cad) * it.qty;
     }
   }
 
   // Stripe fees: prefer BTs linked to orders in range; fall back to BT created_at.
-  const feesByCurrency: Record<Currency, number> = { USD: 0, CAD: 0 };
+  const feesByCurrency: Record<Currency, number> = { CAD: 0 };
   const countedBt = new Set<string>();
   if (orderIds.length > 0) {
     const { data: linkedFees } = await admin
@@ -96,7 +95,9 @@ export async function getFinanceSummary(range: DateRange): Promise<CurrencyFinan
       .in("order_id", orderIds);
     for (const bt of linkedFees ?? []) {
       countedBt.add(bt.id);
-      feesByCurrency[bt.currency as Currency] += Math.abs(Number(bt.fee) || 0);
+      if (bt.currency === "CAD") {
+        feesByCurrency.CAD += Math.abs(Number(bt.fee) || 0);
+      }
     }
   }
   const { data: btData } = await admin
@@ -109,7 +110,9 @@ export async function getFinanceSummary(range: DateRange): Promise<CurrencyFinan
     if (countedBt.has(bt.id)) continue;
     // Skip orphans already covered by an order outside this range.
     if (bt.order_id && !orderIds.includes(bt.order_id)) continue;
-    feesByCurrency[bt.currency as Currency] += Math.abs(Number(bt.fee) || 0);
+    if (bt.currency === "CAD") {
+      feesByCurrency.CAD += Math.abs(Number(bt.fee) || 0);
+    }
   }
 
   return CURRENCIES.map((currency) => {
@@ -162,7 +165,8 @@ export async function getTaxReport(range: DateRange): Promise<TaxRow[]> {
 
   const map = new Map<string, TaxRow>();
   for (const o of data ?? []) {
-    const currency = o.currency as Currency;
+    if (o.currency !== "CAD") continue;
+    const currency = "CAD" as const;
     const rate = Number(o.tax_rate) || 0;
     const key = `${currency}:${rate}`;
     const taxable = Math.max(
@@ -230,14 +234,16 @@ export async function getPayouts(range: DateRange): Promise<PayoutRow[]> {
     .gte("created_at", range.from)
     .lte("created_at", range.to)
     .order("created_at", { ascending: false });
-  return (data ?? []).map((p) => ({
-    id: p.id,
-    currency: p.currency as Currency,
-    amount: Number(p.amount),
-    status: p.status,
-    arrivalDate: p.arrival_date,
-    description: p.description,
-  }));
+  return (data ?? [])
+    .filter((p) => p.currency === "CAD")
+    .map((p) => ({
+      id: p.id,
+      currency: "CAD" as const,
+      amount: Number(p.amount),
+      status: p.status,
+      arrivalDate: p.arrival_date,
+      description: p.description,
+    }));
 }
 
 export type DailyFinancePoint = {
@@ -286,13 +292,13 @@ export async function getDailyFinanceSeries(
     .order("paid_at", { ascending: true });
 
   const buckets: Record<Currency, Map<string, DailyFinancePoint>> = {
-    USD: new Map(),
     CAD: new Map(),
   };
 
   for (const o of (data ?? []) as OrderTimeRow[]) {
     if (!o.paid_at) continue;
-    const currency = o.currency as Currency;
+    if (o.currency !== "CAD") continue;
+    const currency = "CAD" as const;
     const key = dateKey(o.paid_at);
     const gross = Number(o.subtotal);
     const discounts = Number(o.discount_total) + Number(o.points_value);
@@ -331,7 +337,6 @@ export async function getDailyFinanceSeries(
   });
 
   return {
-    USD: allDates.map((d) => buckets.USD.get(d) ?? empty(d)),
     CAD: allDates.map((d) => buckets.CAD.get(d) ?? empty(d)),
   };
 }

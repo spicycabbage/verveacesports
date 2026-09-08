@@ -13,18 +13,27 @@ import {
   extractLatestUserQuestion,
   logChatQuestion,
 } from "@/lib/chat/log-question";
-import { COUNTRIES } from "@/lib/constants";
 import { MARKET_COOKIE, parseMarketCookie } from "@/lib/geo/market";
 import { LOCALE_COOKIE, parseLocaleCookie } from "@/lib/i18n/locale";
 import { getSiteFromRequest } from "@/lib/site/get-site";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { clientIp, rateLimit } from "@/lib/utils/rate-limit";
 
-export const runtime = "nodejs";
 export const maxDuration = 30;
 
 const MAX_BODY_BYTES = 64 * 1024;
 const MAX_MESSAGES = 40;
+/** Per-message cap — the 64KB body cap alone still allows one giant prompt. */
+const MAX_MESSAGE_CHARS = 4_000;
+/** Support answers are short; bounds spend per request on an unauthenticated endpoint. */
+const MAX_OUTPUT_TOKENS = 1_024;
+
+function messageChars(message: UIMessage): number {
+  return message.parts.reduce(
+    (n, part) => n + (part.type === "text" ? part.text.length : 0),
+    0,
+  );
+}
 
 export async function POST(req: NextRequest) {
   if (!process.env.XAI_API_KEY) {
@@ -34,7 +43,7 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  const limited = rateLimit(`chat:${clientIp(req)}`, 20, 60_000);
+  const limited = await rateLimit(`chat:${clientIp(req)}`, 20, 60_000);
   if (!limited.ok) {
     return NextResponse.json(
       { error: "Too many requests, slow down" },
@@ -57,13 +66,23 @@ export async function POST(req: NextRequest) {
   if (!Array.isArray(messages) || messages.length === 0 || messages.length > MAX_MESSAGES) {
     return NextResponse.json({ error: "Invalid request" }, { status: 400 });
   }
+  if (messages.some((m) => !Array.isArray(m?.parts) || messageChars(m) > MAX_MESSAGE_CHARS)) {
+    return NextResponse.json({ error: "Message too long" }, { status: 413 });
+  }
 
   const cookieStore = await cookies();
-  const locale = parseLocaleCookie(cookieStore.get(LOCALE_COOKIE)?.value);
+  const bodyLocale =
+    typeof json === "object" &&
+    json !== null &&
+    "locale" in json &&
+    typeof (json as { locale: unknown }).locale === "string"
+      ? (json as { locale: string }).locale
+      : null;
+  const locale = parseLocaleCookie(bodyLocale ?? cookieStore.get(LOCALE_COOKIE)?.value);
   const site = getSiteFromRequest(req);
   const country =
     site.lockMarket ?? parseMarketCookie(cookieStore.get(MARKET_COOKIE)?.value);
-  const currency = COUNTRIES[country].currency;
+  const currency = "CAD" as const;
 
   const question = extractLatestUserQuestion(messages);
   if (question) {
@@ -97,6 +116,7 @@ export async function POST(req: NextRequest) {
       siteId: site.id,
     }),
     messages: await convertToModelMessages(messages),
+    maxOutputTokens: MAX_OUTPUT_TOKENS,
   });
 
   return createUIMessageStreamResponse({

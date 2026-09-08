@@ -1,3 +1,5 @@
+import { categoryLabel } from "@/lib/constants";
+import { sizedImageUrl } from "@/lib/images/cdn";
 import type { SiteConfig } from "./config";
 
 /** Canonical production origin for a storefront (first configured host). */
@@ -13,10 +15,44 @@ export function siteAbsoluteUrl(site: SiteConfig, path: string): string {
 
 /** Default social-share image per storefront. */
 export function siteOgImage(site: SiteConfig): string {
-  if (site.id === "bleeq-ca") {
-    return site.rangerProducts[0]?.image ?? "/images/home-hero-banner.webp";
+  switch (site.id) {
+    case "bleeq-ca":
+      return sizedImageUrl(site.rangerProducts[0]?.image, 1200) || "/images/home-hero-banner.webp";
+    case "verveace":
+      return "/images/home-hero-banner.webp";
+    default: {
+      const _exhaustive: never = site.id;
+      return _exhaustive;
+    }
   }
-  return "/images/home-hero-banner.webp";
+}
+
+/** Open Graph locale for the storefront's primary market. */
+export function siteOgLocale(site: SiteConfig): "en_CA" | "en_US" {
+  switch (site.id) {
+    case "bleeq-ca":
+      return "en_CA";
+    case "verveace":
+      return "en_US";
+    default: {
+      const _exhaustive: never = site.id;
+      return _exhaustive;
+    }
+  }
+}
+
+/** Public logo path used in metadata + Organization JSON-LD. */
+export function siteLogoPath(site: SiteConfig): string {
+  switch (site.id) {
+    case "bleeq-ca":
+      return "/bleeq-logo.svg";
+    case "verveace":
+      return "/verveace_logo.webp";
+    default: {
+      const _exhaustive: never = site.id;
+      return _exhaustive;
+    }
+  }
 }
 
 /** Trim copy to a search-snippet-friendly length without cutting words. */
@@ -26,4 +62,74 @@ export function metaDescription(text: string, maxLength = 160): string {
   const cut = clean.slice(0, maxLength - 1);
   const lastSpace = cut.lastIndexOf(" ");
   return `${cut.slice(0, lastSpace > 80 ? lastSpace : maxLength - 1)}…`;
+}
+
+/** PDP title — keep Verveace as the product name; mark Bleeq as Canada. */
+export function productMetaTitle(site: SiteConfig, name: string): string {
+  switch (site.id) {
+    case "bleeq-ca":
+      return `${name} — Canada`;
+    case "verveace":
+      return name;
+    default: {
+      const _exhaustive: never = site.id;
+      return _exhaustive;
+    }
+  }
+}
+
+/** PDP description with market-specific closer so the two domains don't share snippets. */
+export function productMetaDescription(site: SiteConfig, description: string): string {
+  let closer: string;
+  switch (site.id) {
+    case "bleeq-ca":
+      closer = "Authorized BleeqUp retailer for Canada. CAD pricing, free 30-day returns.";
+      break;
+    case "verveace":
+      closer = "Authorized retailer. Ships to the USA and Canada.";
+      break;
+    default: {
+      const _exhaustive: never = site.id;
+      return _exhaustive;
+    }
+  }
+  const body = description.replace(/\s+/g, " ").trim();
+  const room = 160 - closer.length - 1;
+  const head = body ? metaDescription(body, Math.max(40, room)) : "";
+  return [head, closer].filter(Boolean).join(" ");
+}
+
+/** Brand name for Product JSON-LD. */
+export function inferProductBrand(name: string): string {
+  const n = name.toLowerCase();
+  if (n.includes("bleeq")) return "BleeqUp";
+  if (n.includes("motocaddy")) return "Motocaddy";
+  if (n.includes("mgi")) return "MGI";
+  if (n.includes("zeiss")) return "ZEISS";
+  return "VerveaceSports";
+}
+
+/** BreadcrumbList for a product detail page. */
+export function productBreadcrumbJsonLd(opts: {
+  site: SiteConfig;
+  category: string;
+  name: string;
+  slug: string;
+}) {
+  const base = siteBaseUrl(opts.site);
+  const productUrl = siteAbsoluteUrl(opts.site, `/products/${opts.slug}`);
+  return {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      { "@type": "ListItem", position: 1, name: "Home", item: base },
+      {
+        "@type": "ListItem",
+        position: 2,
+        name: categoryLabel(opts.category),
+        item: `${base}/products?category=${opts.category}`,
+      },
+      { "@type": "ListItem", position: 3, name: opts.name, item: productUrl },
+    ],
+  };
 }

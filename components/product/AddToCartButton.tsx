@@ -8,7 +8,7 @@ import type { Product } from "@/lib/supabase/types";
 import { toast } from "sonner";
 
 type Props = {
-  product: Product;
+  product: Pick<Product, "id" | "slug" | "name" | "images" | "stock">;
   variantId: string;
   variantLabel?: string;
   priceUsd: number;

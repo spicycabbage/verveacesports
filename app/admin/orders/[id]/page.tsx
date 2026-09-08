@@ -7,7 +7,6 @@ import { Separator } from "@/components/ui/separator";
 import { buttonVariants } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
 import { formatPrice, formatDate } from "@/lib/utils/format";
-import type { Currency } from "@/lib/constants";
 import { countryName } from "@/lib/constants";
 import { SITES, type SiteId } from "@/lib/site/config";
 import type {
@@ -17,10 +16,14 @@ import type {
   Refund,
   Fulfillment,
   FinancialStatus,
-  OrderFulfillmentStatus,
+  ShippingAddress,
 } from "@/lib/supabase/types";
 import { OrderFulfillPanel } from "./OrderFulfillPanel";
 import { OrderRefundPanel } from "./OrderRefundPanel";
+import { InvoiceActions } from "./InvoiceActions";
+import { adminFulfillmentLabel } from "@/lib/orders/status-label";
+import { requireAdminPage } from "@/lib/auth/admin";
+import { taxLinesForOrder } from "@/lib/tax/label";
 
 export const metadata = { title: "Admin · Order" };
 
@@ -37,23 +40,17 @@ const FIN_VARIANTS: Record<FinancialStatus, "default" | "secondary" | "outline" 
   voided: "destructive",
 };
 
-const FUL_VARIANTS: Record<OrderFulfillmentStatus, "default" | "secondary" | "outline"> = {
-  unfulfilled: "secondary",
-  partially_fulfilled: "outline",
-  fulfilled: "default",
-  restocked: "outline",
-};
-
 type Params = Promise<{ id: string }>;
 
 export default async function AdminOrderDetailPage({ params }: { params: Params }) {
+  await requireAdminPage();
   const { id } = await params;
   const admin = createSupabaseAdminClient();
 
   const { data: orderData } = await admin.from("orders").select("*").eq("id", id).single();
   if (!orderData) notFound();
   const order = orderData as Order;
-  const currency = order.currency as Currency;
+  const currency = "CAD" as const;
   const orderSite = isSiteId(order.site_id) ? order.site_id : "verveace";
 
   const [{ data: itemsData }, { data: paymentsData }, { data: refundsData }, { data: fulfillmentsData }] =
@@ -75,9 +72,17 @@ export default async function AdminOrderDetailPage({ params }: { params: Params 
 
   return (
     <div className="space-y-6">
-      <Link href="/admin/orders" className={buttonVariants({ variant: "ghost", size: "sm" })}>
-        <ArrowLeft className="h-4 w-4" /> All orders
-      </Link>
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <Link href="/admin/orders" className={buttonVariants({ variant: "ghost", size: "sm" })}>
+          <ArrowLeft className="h-4 w-4" /> All orders
+        </Link>
+        <InvoiceActions
+          orderId={order.id}
+          email={order.email ?? ""}
+          customerName={(order.shipping_address as ShippingAddress | null)?.full_name ?? ""}
+          printHref={`/admin/orders/${order.id}/invoice?print=1`}
+        />
+      </div>
 
       <div className="grid gap-6 lg:grid-cols-3">
         <div className="space-y-6 lg:col-span-2">
@@ -92,15 +97,20 @@ export default async function AdminOrderDetailPage({ params }: { params: Params 
                   {order.email && <p className="text-sm text-muted-foreground">{order.email}</p>}
                 </div>
                 <div className="flex flex-col items-end gap-1">
+                  {order.sales_channel === "pos" && <Badge variant="outline">In-person POS</Badge>}
                   <Badge variant={orderSite === "bleeq-ca" ? "secondary" : "default"}>
                     {SITES[orderSite].name}
                   </Badge>
                   <Badge variant={FIN_VARIANTS[order.financial_status]} className="capitalize">
                     {order.financial_status.replace("_", " ")}
                   </Badge>
-                  <Badge variant={FUL_VARIANTS[order.fulfillment_status]} className="capitalize">
-                    {order.fulfillment_status.replace("_", " ")}
-                  </Badge>
+                  <p className="text-sm capitalize text-muted-foreground">
+                    {adminFulfillmentLabel(
+                      order.fulfillment_status,
+                      order.sales_channel,
+                      order.financial_status,
+                    )}
+                  </p>
                 </div>
               </div>
 
@@ -138,9 +148,13 @@ export default async function AdminOrderDetailPage({ params }: { params: Params 
                     Number(order.shipping) === 0 ? "FREE" : formatPrice(Number(order.shipping), currency)
                   }
                 />
-                {Number(order.tax) > 0 && (
-                  <Row label={`Tax (${(Number(order.tax_rate) * 100).toFixed(2)}%)`} value={formatPrice(Number(order.tax), currency)} />
-                )}
+                {taxLinesForOrder(order).map((line) => (
+                  <Row
+                    key={line.label}
+                    label={line.label}
+                    value={formatPrice(line.amount, currency)}
+                  />
+                ))}
                 {Number(order.points_value) > 0 && (
                   <Row
                     label={`Points (${order.points_redeemed})`}
@@ -185,7 +199,7 @@ export default async function AdminOrderDetailPage({ params }: { params: Params 
                 {payments.map((p) => (
                   <div key={p.id} className="flex justify-between gap-2 text-muted-foreground">
                     <span className="capitalize">
-                      {p.kind} · {p.status} · {formatPrice(Number(p.amount), p.currency as Currency)}
+                      {p.kind} · {p.status} · {formatPrice(Number(p.amount))}
                     </span>
                     <span>{formatDate(p.created_at)}</span>
                   </div>
@@ -193,7 +207,7 @@ export default async function AdminOrderDetailPage({ params }: { params: Params 
                 {refunds.map((r) => (
                   <div key={r.id} className="flex justify-between gap-2 text-muted-foreground">
                     <span>
-                      Refund · {formatPrice(Number(r.amount), r.currency as Currency)}
+                      Refund · {formatPrice(Number(r.amount))}
                       {r.reason ? ` · ${r.reason}` : ""}
                     </span>
                     <span>{formatDate(r.created_at)}</span>

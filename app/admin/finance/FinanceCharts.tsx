@@ -330,7 +330,6 @@ export function FinanceCharts({
     .reverse();
 
   const anyTrend =
-    hasActivity(dailySeries.USD) ||
     hasActivity(dailySeries.CAD) ||
     taxChartData.length > 0 ||
     discountChartData.length > 0 ||
@@ -352,7 +351,7 @@ export function FinanceCharts({
         <h2 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">
           Trends
         </h2>
-        {(["USD", "CAD"] as const).map((currency) => (
+        {(["CAD"] as const).map((currency) => (
           <CurrencyTrendCharts
             key={currency}
             currency={currency}

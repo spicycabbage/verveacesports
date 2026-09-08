@@ -125,9 +125,27 @@
     @apply bg-background text-foreground;
   }
   html {
-    @apply font-sans;
+    @apply font-sans overflow-x-clip;
     color-scheme: dark;
+    /* Overlay scrollbars on phones — reserving gutter clips the header. */
+    scrollbar-gutter: auto;
+  }
+}
+
+@media (min-width: 768px) {
+  html {
     /* Avoid horizontal jump when dialogs/sheets lock body scroll. */
     scrollbar-gutter: stable;
+  }
+}
+
+@media (display-mode: standalone), (display-mode: fullscreen) {
+  html {
+    scrollbar-gutter: auto;
+    overscroll-behavior: none;
+  }
+  body {
+    overscroll-behavior: none;
+    max-width: 100%;
   }
 }

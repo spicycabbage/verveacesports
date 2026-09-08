@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
-import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { getSessionProfile, getSessionUser } from "@/lib/auth/session";
 import { LOCALE_COOKIE, parseLocaleCookie } from "@/lib/i18n/locale";
 import { getDictionary } from "@/lib/i18n/dictionary";
 
@@ -14,11 +14,11 @@ export default async function AccountLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const supabase = await createSupabaseServerClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const user = await getSessionUser();
   if (!user) redirect("/login?next=/account");
+
+  const profile = await getSessionProfile();
+  if (profile?.is_admin) redirect("/admin");
 
   const cookieStore = await cookies();
   const dict = getDictionary(parseLocaleCookie(cookieStore.get(LOCALE_COOKIE)?.value));
@@ -29,12 +29,6 @@ export default async function AccountLayout({
     { href: "/account/loyalty", label: dict.account.loyalty },
     { href: "/account/referrals", label: dict.account.referrals },
   ] as const;
-
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("is_admin")
-    .eq("id", user.id)
-    .single<{ is_admin: boolean }>();
 
   return (
     <div className="mx-auto grid max-w-6xl gap-6 px-4 py-8 md:grid-cols-[220px_1fr]">
@@ -53,14 +47,6 @@ export default async function AccountLayout({
                 {item.label}
               </Link>
             ))}
-            {profile?.is_admin && (
-              <Link
-                href="/admin"
-                className="min-w-0 flex-1 rounded-md px-1 py-2 text-center text-xs font-medium text-primary hover:bg-accent sm:text-sm md:flex-none md:px-3 md:text-left md:text-sm"
-              >
-                {dict.account.admin}
-              </Link>
-            )}
           </nav>
         </div>
       </aside>

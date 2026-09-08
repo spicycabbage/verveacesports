@@ -1,6 +1,6 @@
 # VerveaceSports
 
-A production-ready e-commerce sporting-goods store: Next.js 15+ App Router, TypeScript, Tailwind v4, shadcn/ui, Supabase (Auth + Postgres + Storage), Stripe Payment Element (Card / Apple Pay / Google Pay), Zustand cart, multi-currency (USD/CAD), loyalty points, referral system, dashboards, admin overview.
+A production-ready e-commerce sporting-goods store: Next.js 15+ App Router, TypeScript, Tailwind v4, shadcn/ui, Supabase (Auth + Postgres + Storage), Stripe Payment Element (Card / Apple Pay / Google Pay), Zustand cart, CAD-only pricing, loyalty points, referral system, dashboards, admin overview.
 
 ## Quick start
 
@@ -60,30 +60,40 @@ Now `/admin` is unlocked.
 
 ## 2. Stripe setup
 
-Two Stripe accounts: **USD** (default / international) and **CAD** (Canada). Canadian visitors are charged in CAD on the Canadian account; everyone else uses USD.
+**CAD only.** New charges, checkout, and Terminal use the Canadian Stripe account.
 
-### USD account (required)
-1. Create or use your primary Stripe account → **Test mode**.
+1. Canadian Stripe account (CAD settlement) → **Test mode**.
 2. **Developers → API keys**:
-   - `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY`
-   - `STRIPE_SECRET_KEY`
-3. **Developers → Webhooks** → endpoint `https://your-domain.com/api/stripe/webhook` → copy `STRIPE_WEBHOOK_SECRET`.
-
-### CAD account (required for Canada)
-1. Create a separate Canadian Stripe account (or Stripe account with CAD settlement).
-2. Copy its publishable + secret keys:
    - `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY_CAD`
    - `STRIPE_SECRET_KEY_CAD`
-3. Add a webhook on the **CAD** account pointing to the same URL → `STRIPE_WEBHOOK_SECRET_CAD`.
+3. **Developers → Webhooks** → endpoint `https://your-domain.com/api/stripe/webhook` → `STRIPE_WEBHOOK_SECRET_CAD`.
+
+`STRIPE_SECRET_KEY` / `STRIPE_WEBHOOK_SECRET` / `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY` are leftover from an old second account. Do not use them for new charges; the webhook route may still try them when verifying historical events.
 
 ### Local webhooks
 ```bash
 stripe login
-stripe listen --forward-to localhost:3000/api/stripe/webhook   # USD account
-# For CAD, run a second listener with --api-key sk_test_... from the CAD account
+stripe listen --forward-to localhost:3000/api/stripe/webhook --api-key $STRIPE_SECRET_KEY_CAD
 ```
 
-4. **Settings → Payment methods** → enable Card, Apple Pay, Google Pay, Link on both accounts.
+4. **Settings → Payment methods** → enable Card, Apple Pay, Google Pay, Link on the CAD account.
+
+### Stripe Terminal (in-person POS)
+Physical **smart readers** (Stripe Reader S700/S710, BBPOS WisePOS E, Verifone). **CAD only** — uses `STRIPE_SECRET_KEY_CAD`. Bluetooth M2/WisePad are not supported.
+
+1. Apply migration `0037_pos_terminal.sql` in Supabase.
+2. **CAD** Stripe Dashboard → **Payments → Terminal** → enable Terminal. Register the reader on this account.
+3. Add webhook events on the CAD account’s endpoint (`/api/stripe/webhook` + `STRIPE_WEBHOOK_SECRET_CAD`):
+   - `terminal.reader.action_succeeded`
+   - `terminal.reader.action_failed`
+   (`payment_intent.succeeded` already marks the order paid.)
+4. Open **Admin → POS**:
+   - Save store address + Canadian tax province
+   - Create a Stripe Terminal location (or paste existing `tml_…`)
+   - On the reader: Settings → Generate pairing code (or `0-7-1-3-9` on older devices)
+   - Paste the code → Pair
+5. Optional env fallback: `STRIPE_TERMINAL_LOCATION_ID_CAD`
+6. Test mode: **Add simulated reader** then **Simulate tap** after charging.
 
 ### Notes on wallets
 - **Apple Pay** only renders over HTTPS on a verified domain. Stripe handles `apple-developer-merchantid-domain-association.txt` automatically once you register your production domain in Stripe → Settings → Payment methods → Apple Pay → Add new domain.
@@ -104,6 +114,9 @@ STRIPE_WEBHOOK_SECRET=whsec_...
 NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY_CAD=pk_test_...
 STRIPE_SECRET_KEY_CAD=sk_test_...
 STRIPE_WEBHOOK_SECRET_CAD=whsec_...
+
+# Optional Terminal location ID for CAD POS (otherwise created from Admin → POS)
+# STRIPE_TERMINAL_LOCATION_ID_CAD=tml_...
 
 # Optional: force market locally (CA or US)
 # GEO_COUNTRY_OVERRIDE=CA
@@ -126,12 +139,13 @@ NEXT_PUBLIC_SITE_URL=http://localhost:3000
 | Feature | Where |
 | --- | --- |
 | Auth (email + password, Google) | `lib/actions/auth.ts`, `/login`, `/signup`, `/callback` |
-| Geo market (CA → CAD, else USD) | `lib/geo/market.ts`, `proxy.ts`, `components/layout/MarketBadge.tsx` |
-| Catalog admin (USD + CAD prices) | `app/admin/catalog`, `app/admin/catalog/ProductEditor.tsx` |
+| Geo market (shipping CA vs US; prices always CAD) | `lib/geo/market.ts`, `proxy.ts`, `components/layout/MarketBadge.tsx` |
+| Catalog admin (CAD prices) | `app/admin/products` |
 | Catalog + filters/search | `app/products/page.tsx`, `components/product/*` |
 | PDP + gallery | `app/products/[slug]/page.tsx`, `components/product/Gallery.tsx` |
 | Cart (Zustand + persist) | `lib/store/cart.ts`, `components/layout/CartDrawer.tsx`, `app/cart` |
 | Checkout (Stripe Payment Element) | `app/checkout/`, `app/api/stripe/payment-intent`, `app/api/stripe/webhook` |
+| In-person POS (Stripe Terminal) | `app/admin/pos`, `app/api/admin/terminal/*` |
 | Brevo emails (welcome + order confirm) | `lib/brevo/send.ts`, `lib/brevo/emails.ts` |
 | Loyalty points (earn + redeem) | DB triggers in `0001_init.sql`, `app/account/loyalty`, redeem slider in checkout |
 | Referrals (`?ref=CODE`) | `middleware.ts` (cookie), `handle_new_user()` trigger, `award_loyalty_on_paid_order()` qualifies + double-rewards on first paid order, `app/account/referrals` |
@@ -149,8 +163,8 @@ npm run lint     # eslint
 
 ## 6. Architecture notes
 
-- **Multi-currency**: products store `price_usd` and `price_cad` columns. Server picks the active price based on the user's country; Stripe charges in the currency of the active cart. Both currencies counted separately in admin reporting.
-- **Loyalty math**: 1 point earned per $1 of subtotal (USD-equivalent of native currency). 100 points = $1 redeem at checkout. Redemption is reserved at PI creation and refunded if the payment fails.
+- **CAD only**: storefront, checkout, POS, and admin report in CAD. `price_usd` columns are unused mirrors — writes copy CAD into both. Do not add a second selling currency.
+- **Loyalty math**: 1 point earned per $1 CAD of subtotal. 100 points = $1 CAD redeem at checkout. Redemption is reserved at PI creation and refunded if the payment fails.
 - **Referrals**: `?ref=CODE` → 30-day cookie via Edge middleware. Signup passes the code to Supabase Auth as user metadata; the `handle_new_user` trigger looks up the referrer and inserts a pending `referrals` row. On the referee's first paid order, `award_loyalty_on_paid_order` qualifies the referral and awards both parties 100 pts.
 - **Admin gating**: `profiles.is_admin = true` toggled manually. `/admin` performs a server-side check and 404s otherwise.
 - **RLS**: enabled on every table. Service-role admin client (`lib/supabase/admin.ts`) bypasses RLS for trusted server-side mutations (order creation, stock decrement, loyalty inserts).

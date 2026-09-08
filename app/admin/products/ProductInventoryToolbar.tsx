@@ -1,41 +1,31 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Search, X } from "lucide-react";
 import { CATEGORIES, categoryLabel } from "@/lib/constants";
 
-export function ProductInventoryToolbar() {
-  const router = useRouter();
-  const pathname = usePathname();
-  const sp = useSearchParams();
-  const category = sp.get("category") ?? "";
-  const qParam = sp.get("q") ?? "";
+type Props = {
+  category: string;
+  q: string;
+  onCategory: (category: string) => void;
+  onSearch: (q: string) => void;
+};
+
+export function ProductInventoryToolbar({ category, q: qParam, onCategory, onSearch }: Props) {
   const [q, setQ] = useState(qParam);
-
-  useEffect(() => setQ(qParam), [qParam]);
-
-  function pushParams(next: { category?: string | null; q?: string | null; page?: number }) {
-    const params = new URLSearchParams(sp.toString());
-    if (next.category === null) params.delete("category");
-    else if (next.category) params.set("category", next.category);
-    if (next.q === null) params.delete("q");
-    else if (next.q !== undefined) {
-      const trimmed = next.q.trim();
-      if (trimmed) params.set("q", trimmed);
-      else params.delete("q");
-    }
-    params.delete("page");
-    if (next.page && next.page > 1) params.set("page", String(next.page));
-    const qs = params.toString();
-    router.push(qs ? `${pathname}?${qs}` : pathname);
+  // Re-sync the input when the URL param changes (React "adjust state during
+  // render" pattern — no effect, no extra commit).
+  const [syncedParam, setSyncedParam] = useState(qParam);
+  if (syncedParam !== qParam) {
+    setSyncedParam(qParam);
+    setQ(qParam);
   }
 
   function submitSearch(e: React.FormEvent) {
     e.preventDefault();
-    pushParams({ q });
+    onSearch(q);
   }
 
   return (
@@ -54,7 +44,7 @@ export function ProductInventoryToolbar() {
           Search
         </Button>
         {qParam && (
-          <Button type="button" variant="ghost" size="icon" onClick={() => pushParams({ q: null })} aria-label="Clear search">
+          <Button type="button" variant="ghost" size="icon" onClick={() => onSearch("")} aria-label="Clear search">
             <X className="h-4 w-4" />
           </Button>
         )}
@@ -64,7 +54,7 @@ export function ProductInventoryToolbar() {
           type="button"
           size="sm"
           variant={!category ? "default" : "outline"}
-          onClick={() => pushParams({ category: null })}
+          onClick={() => onCategory("")}
         >
           All
         </Button>
@@ -74,7 +64,7 @@ export function ProductInventoryToolbar() {
             type="button"
             size="sm"
             variant={category === c ? "default" : "outline"}
-            onClick={() => pushParams({ category: c })}
+            onClick={() => onCategory(c)}
           >
             {categoryLabel(c)}
           </Button>

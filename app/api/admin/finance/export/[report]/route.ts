@@ -3,9 +3,6 @@ import { requireAdmin } from "@/lib/auth/admin";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { getPayouts, getTaxReport, parseRange } from "@/lib/actions/finance";
 
-export const runtime = "nodejs";
-export const dynamic = "force-dynamic";
-
 function csvEscape(value: unknown): string {
   const s = value == null ? "" : String(value);
   return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;

@@ -5,15 +5,17 @@ import { UserMenu } from "./UserMenu";
 import { CartButton } from "./CartButton";
 import { SearchBar } from "./SearchBar";
 import { GeoMarketHydrator } from "./GeoMarketHydrator";
+import { MarketBadge } from "./MarketBadge";
 import { LocaleHydrator } from "./LocaleHydrator";
 import { LanguageSelector } from "./LanguageSelector";
 import {
   HeaderCategoryNav,
+  type NavCartFeature,
   type NavMegaCategory,
-  type NavMegaProduct,
 } from "./HeaderCategoryNav";
-import { ThemeToggle } from "@/components/theme/ThemeToggle";
-import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { getSessionProfile, getSessionUser } from "@/lib/auth/session";
+import { getCachedNavProducts } from "@/lib/catalog/nav-products";
+import { isAdminPath } from "@/lib/request/pathname";
 import { profileDisplayName } from "@/lib/utils/profileDisplayName";
 import { parseMarketCookie, MARKET_COOKIE } from "@/lib/geo/market";
 import { LOCALE_COOKIE, parseLocaleCookie } from "@/lib/i18n/locale";
@@ -21,98 +23,98 @@ import { getDictionary } from "@/lib/i18n/dictionary";
 import { categoryLabelFromDict } from "@/lib/i18n/helpers";
 import { getSite } from "@/lib/site/get-site";
 import type { Category } from "@/lib/constants";
+import {
+  CART_FEATURE_IDS,
+  cartHasFeature,
+  type CartFeatureId,
+} from "@/lib/catalog/cart-features";
 
-/** One row in the mega menu — keep low enough that cards don't wrap. */
-const MEGA_PRODUCT_LIMIT = 5;
+const ANNOUNCEMENT_CODE = "fondo2026";
 
-function productImage(images: unknown): string | null {
-  if (!Array.isArray(images)) return null;
-  const first = images.find((img): img is string => typeof img === "string" && img.length > 0);
-  return first ?? null;
+function AnnouncementPromo({ text }: { text: string }) {
+  const i = text.indexOf(ANNOUNCEMENT_CODE);
+  if (i < 0) return text;
+  return (
+    <>
+      {text.slice(0, i)}
+      <span className="mx-0.5 inline-flex items-center rounded-[0.28rem] border border-dashed border-[#e4c56a] px-1.5 py-px font-semibold tracking-wide text-[#e4c56a]">
+        {ANNOUNCEMENT_CODE}
+      </span>
+      {text.slice(i + ANNOUNCEMENT_CODE.length)}
+    </>
+  );
 }
 
 export async function Header() {
-  const site = await getSite();
-  const cookieStore = await cookies();
+  const [site, cookieStore, user, profile, adminRoute] = await Promise.all([
+    getSite(),
+    cookies(),
+    getSessionUser(),
+    getSessionProfile(),
+    isAdminPath(),
+  ]);
   const market = parseMarketCookie(cookieStore.get(MARKET_COOKIE)?.value);
   const locale = parseLocaleCookie(cookieStore.get(LOCALE_COOKIE)?.value);
   const dict = getDictionary(locale);
 
-  const supabase = await createSupabaseServerClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const nav = adminRoute
+    ? { byCategory: {}, electricCartProducts: [] }
+    : await getCachedNavProducts(site.categories);
+  const byCategory = nav.byCategory;
+  const electricCartProducts = nav.electricCartProducts;
 
-  type HeaderProfile = {
-    full_name: string | null;
-    first_name: string | null;
-    last_name: string | null;
-    loyalty_points: number;
-    is_admin: boolean;
-  };
-  let profile: HeaderProfile | null = null;
-  if (user) {
-    const { data } = await supabase
-      .from("profiles")
-      .select("full_name, first_name, last_name, loyalty_points, is_admin")
-      .eq("id", user.id)
-      .single<HeaderProfile>();
-    if (data) profile = data;
-  }
-
-  const { data: productRows } = await supabase
-    .from("products")
-    .select("id, slug, name, category, images")
-    .eq("is_active", true)
-    .in("category", [...site.categories])
-    .order("created_at", { ascending: false });
-
-  type NavProductRow = {
-    id: string;
-    slug: string;
-    name: string;
-    category: string | null;
-    images: unknown;
+  const cartFeatureLabels: Record<CartFeatureId, string> = {
+    "follow-me": dict.cartFeatures.followMe,
+    remote: dict.cartFeatures.remote,
+    "no-remote": dict.cartFeatures.noRemote,
+    gps: dict.cartFeatures.gps,
   };
 
-  const byCategory = new Map<string, NavMegaProduct[]>();
-  for (const row of (productRows ?? []) as NavProductRow[]) {
-    const category = row.category;
-    if (!category) continue;
-    const list = byCategory.get(category) ?? [];
-    if (list.length >= MEGA_PRODUCT_LIMIT) continue;
-    list.push({
-      id: row.id,
-      slug: row.slug,
-      name: row.name,
-      image: productImage(row.images),
-    });
-    byCategory.set(category, list);
-  }
+  const cartFeatures: NavCartFeature[] = CART_FEATURE_IDS.map((id) => ({
+    id,
+    label: cartFeatureLabels[id],
+    products: electricCartProducts.filter((p) => cartHasFeature(p.slug, id)),
+  })).filter((f) => f.products.length > 0);
 
-  const navCategories: NavMegaCategory[] = site.categories.map((c) => ({
-    id: c as Category,
-    label: categoryLabelFromDict(dict, c),
-    href: `/products?category=${c}`,
-    products: byCategory.get(c) ?? [],
-  }));
+  const navCategories: NavMegaCategory[] = site.categories.map((c) => {
+    const base: NavMegaCategory = {
+      id: c as Category,
+      label: categoryLabelFromDict(dict, c),
+      href: `/products?category=${c}`,
+      products: byCategory[c] ?? [],
+    };
+    if (c === "electric-carts") {
+      return { ...base, products: [], cartFeatures };
+    }
+    return base;
+  });
 
   return (
     <header className="sticky top-0 z-40 border-b border-border bg-background/90 backdrop-blur supports-[backdrop-filter]:bg-background/75">
       <GeoMarketHydrator market={market} />
       <LocaleHydrator locale={locale} />
-      <div className="mx-auto flex h-[4.5rem] max-w-7xl items-center gap-3 px-3 sm:h-[5.2rem] sm:gap-4 sm:px-4">
-        <MobileNav categories={site.categories} />
-        <Logo className="shrink-0 sm:flex-none" />
+      <div className="border-b border-border/60 bg-muted/40">
+        <p className="mx-auto flex h-9 max-w-7xl items-center justify-center px-3 text-center text-[11px] font-medium tracking-wide text-muted-foreground sm:text-xs lg:text-sm">
+          <AnnouncementPromo text={dict.bleeq.trust.promo} />
+        </p>
+      </div>
+      <div className="mx-auto flex h-14 min-w-0 w-full max-w-7xl items-center gap-1.5 px-2 sm:h-[5.2rem] sm:gap-4 sm:px-4">
+        <MobileNav
+          categories={site.categories}
+          cartFeatures={cartFeatures}
+          isAdmin={profile?.is_admin ?? false}
+        />
+        <Logo className="shrink-0" />
         <HeaderCategoryNav
           categories={navCategories}
           faqLabel={dict.nav.faq}
           viewAllLabel={dict.home.viewAll}
+          pickCartCategoryLabel={dict.cartFeatures.pickCategory}
         />
         <SearchBar className="hidden min-w-0 flex-1 lg:block lg:max-w-md" />
-        <div className="ml-auto flex shrink-0 items-center gap-1.5 sm:gap-2.5">
+        <div className="ml-auto flex shrink-0 items-center gap-0.5 sm:gap-2.5">
+          <MarketBadge className="hidden sm:flex" />
           <LanguageSelector className="hidden sm:flex" />
-          <ThemeToggle />
           <CartButton />
           <UserMenu
             user={

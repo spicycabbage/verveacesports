@@ -6,8 +6,7 @@ import {
   useContext,
   useEffect,
   useMemo,
-  useRef,
-  useState,
+  useSyncExternalStore,
   type ReactNode,
 } from "react";
 import { toast } from "sonner";
@@ -15,9 +14,10 @@ import {
   applyTheme,
   clearStoredTheme,
   exportThemeCss,
-  readStoredTheme,
+  getServerThemeSnapshot,
+  getStoredThemeSnapshot,
   saveTheme,
-  type StoredTheme,
+  subscribeStoredTheme,
 } from "@/lib/theme/apply";
 import {
   buildPalette,
@@ -30,8 +30,6 @@ import { readableOn } from "@/lib/theme/color";
 type ThemeContextValue = {
   mode: ThemeMode;
   colors: ThemeColors;
-  setMode: (mode: ThemeMode) => void;
-  toggleMode: () => void;
   setBrand: (hex: string) => void;
   setBackground: (hex: string) => void;
   resetMode: () => void;
@@ -40,97 +38,59 @@ type ThemeContextValue = {
 
 const ThemeContext = createContext<ThemeContextValue | null>(null);
 
+// localStorage is the source of truth (see lib/theme/apply.ts). The server and
+// hydration renders see `null` → defaults, matching the inline theme-init
+// script in app/layout.tsx that already styled the document before paint.
 export function ThemeProvider({ children }: { children: ReactNode }) {
-  const [mode, setModeState] = useState<ThemeMode>("dark");
-  const [palettes, setPalettes] = useState<Record<ThemeMode, ThemeColors>>(DEFAULT_THEMES);
-  const initialized = useRef(false);
-
-  const persist = useCallback(
-    (next: { mode: ThemeMode; palettes: Record<ThemeMode, ThemeColors> }) => {
-      const stored: StoredTheme = {
-        mode: next.mode,
-        light: next.palettes.light,
-        dark: next.palettes.dark,
-      };
-      saveTheme(stored);
-    },
-    [],
+  const stored = useSyncExternalStore(
+    subscribeStoredTheme,
+    getStoredThemeSnapshot,
+    getServerThemeSnapshot,
   );
 
+  const mode = "dark" as const;
+  const palettes = useMemo<Record<ThemeMode, ThemeColors>>(
+    () => (stored ? { light: stored.light, dark: stored.dark } : DEFAULT_THEMES),
+    [stored],
+  );
+
+  // Sync the document with the current theme (DOM side effect only).
   useEffect(() => {
-    const stored = readStoredTheme();
-    if (stored) {
-      const restored = { light: stored.light, dark: stored.dark };
-      setPalettes(restored);
-      setModeState(stored.mode);
-      applyTheme(restored[stored.mode], stored.mode);
-    } else {
-      applyTheme(DEFAULT_THEMES.dark, "dark");
-    }
-    initialized.current = true;
+    applyTheme(palettes.dark, "dark");
+  }, [palettes]);
+
+  const persist = useCallback((nextPalettes: Record<ThemeMode, ThemeColors>) => {
+    saveTheme({ mode: "dark", light: nextPalettes.light, dark: nextPalettes.dark });
   }, []);
-
-  const setMode = useCallback(
-    (next: ThemeMode) => {
-      setModeState(next);
-      setPalettes((current) => {
-        applyTheme(current[next], next);
-        persist({ mode: next, palettes: current });
-        return current;
-      });
-    },
-    [persist],
-  );
-
-  const toggleMode = useCallback(() => {
-    setMode(mode === "dark" ? "light" : "dark");
-  }, [mode, setMode]);
 
   const setBrand = useCallback(
     (hex: string) => {
-      setPalettes((current) => {
-        const base = current[mode];
-        // oklch surfaces can't go through hex mix() — only swap brand tokens.
-        const next: ThemeColors = base.background.includes("oklch")
-          ? {
-              ...base,
-              primary: hex,
-              "primary-foreground": readableOn(hex),
-            }
-          : buildPalette(mode, base.background, hex);
-        const updated = { ...current, [mode]: next };
-        applyTheme(next, mode);
-        persist({ mode, palettes: updated });
-        return updated;
-      });
+      const base = palettes.dark;
+      // oklch surfaces can't go through hex mix() — only swap brand tokens.
+      const next: ThemeColors = base.background.includes("oklch")
+        ? {
+            ...base,
+            primary: hex,
+            "primary-foreground": readableOn(hex),
+          }
+        : buildPalette("dark", base.background, hex);
+      persist({ ...palettes, dark: next });
     },
-    [mode, persist],
+    [palettes, persist],
   );
 
   const setBackground = useCallback(
     (hex: string) => {
-      setPalettes((current) => {
-        const base = current[mode];
-        const next = buildPalette(mode, hex, base.primary);
-        const updated = { ...current, [mode]: next };
-        applyTheme(next, mode);
-        persist({ mode, palettes: updated });
-        return updated;
-      });
+      const base = palettes.dark;
+      persist({ ...palettes, dark: buildPalette("dark", hex, base.primary) });
     },
-    [mode, persist],
+    [palettes, persist],
   );
 
   const resetMode = useCallback(() => {
-    setPalettes((current) => {
-      const updated = { ...current, [mode]: DEFAULT_THEMES[mode] };
-      applyTheme(updated[mode], mode);
-      persist({ mode, palettes: updated });
-      return updated;
-    });
     clearStoredTheme();
-    toast.success(`Reset ${mode} theme to defaults`);
-  }, [mode, persist]);
+    toast.success("Reset theme to defaults");
+  }, []);
 
   const copyCss = useCallback(async () => {
     await navigator.clipboard.writeText(exportThemeCss(palettes.light, palettes.dark));
@@ -140,15 +100,13 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
   const value = useMemo<ThemeContextValue>(
     () => ({
       mode,
-      colors: palettes[mode],
-      setMode,
-      toggleMode,
+      colors: palettes.dark,
       setBrand,
       setBackground,
       resetMode,
       copyCss,
     }),
-    [mode, palettes, setMode, toggleMode, setBrand, setBackground, resetMode, copyCss],
+    [mode, palettes, setBrand, setBackground, resetMode, copyCss],
   );
 
   return <ThemeContext.Provider value={value}>{children}</ThemeContext.Provider>;

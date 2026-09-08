@@ -1,9 +1,9 @@
 import Stripe from "stripe";
-import type { Currency } from "@/lib/constants";
+import type { StripeAccountCurrency } from "@/lib/constants";
 
-const stripeByCurrency = new Map<Currency, Stripe>();
+const stripeByCurrency = new Map<StripeAccountCurrency, Stripe>();
 
-function secretFor(currency: Currency): string {
+function secretFor(currency: StripeAccountCurrency): string {
   const key =
     currency === "CAD"
       ? process.env.STRIPE_SECRET_KEY_CAD
@@ -18,7 +18,7 @@ function secretFor(currency: Currency): string {
   return key;
 }
 
-export function getStripe(currency: Currency = "USD"): Stripe {
+export function getStripe(currency: StripeAccountCurrency = "CAD"): Stripe {
   let stripe = stripeByCurrency.get(currency);
   if (!stripe) {
     stripe = new Stripe(secretFor(currency), {
@@ -30,7 +30,7 @@ export function getStripe(currency: Currency = "USD"): Stripe {
   return stripe;
 }
 
-export function webhookSecretFor(currency: Currency): string | undefined {
+export function webhookSecretFor(currency: StripeAccountCurrency): string | undefined {
   return currency === "CAD"
     ? process.env.STRIPE_WEBHOOK_SECRET_CAD
     : process.env.STRIPE_WEBHOOK_SECRET;

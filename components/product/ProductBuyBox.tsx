@@ -77,7 +77,6 @@ export function ProductBuyBox({
 
   const stock = selected?.available ?? 0;
   const disabled = !selected || stock === 0;
-  const priceUsd = selected?.priceUsd ?? 0;
   const priceCad = selected?.priceCad ?? 0;
 
   function handleAdd() {
@@ -90,7 +89,7 @@ export function ProductBuyBox({
         slug: product.slug,
         name: product.name,
         image: selected?.imageUrl ?? product.images?.[0] ?? "",
-        priceUsd,
+        priceUsd: priceCad,
         priceCad,
         stock,
       },
@@ -107,8 +106,7 @@ export function ProductBuyBox({
     <div className="space-y-5 sm:space-y-6">
       <div className="flex flex-wrap items-center gap-2 sm:gap-3">
         <ProductPrice
-          priceUsd={priceUsd}
-          priceCad={priceCad}
+          price={priceCad}
           className="text-xl font-bold tabular-nums sm:text-2xl"
         />
         {stock === 0 ? (

@@ -3,7 +3,12 @@ import { Input as InputPrimitive } from "@base-ui/react/input"
 
 import { cn } from "@/lib/utils"
 
-function Input({ className, type, ...props }: React.ComponentProps<"input">) {
+function Input({
+  className,
+  type,
+  onChange,
+  ...props
+}: React.ComponentProps<"input">) {
   return (
     <InputPrimitive
       type={type}
@@ -13,6 +18,15 @@ function Input({ className, type, ...props }: React.ComponentProps<"input">) {
         className
       )}
       {...props}
+      onChange={onChange}
+      // Field.Control's internal onChange only calls onValueChange. Without this,
+      // controlled inputs (prices, stock, shipping) never update React state.
+      onValueChange={(value) => {
+        onChange?.({
+          target: { value },
+          currentTarget: { value },
+        } as React.ChangeEvent<HTMLInputElement>);
+      }}
     />
   )
 }

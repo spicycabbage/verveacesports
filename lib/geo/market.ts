@@ -3,7 +3,7 @@ import type { CountryCode } from "@/lib/constants";
 
 export const MARKET_COOKIE = "verveacesports_market";
 
-/** Canada → CAD market; everywhere else → USD. */
+/** Shipping market only — prices are CAD regardless. */
 export function marketFromGeoCountry(geoCountry: string | null | undefined): CountryCode {
   return geoCountry?.toUpperCase() === "CA" ? "CA" : "US";
 }

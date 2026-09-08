@@ -1,8 +1,11 @@
 import type { SiteConfig, SiteId } from "@/lib/site/config";
 import { getSiteById } from "@/lib/site/get-site";
-import type { OrderItem, ShippingAddress } from "@/lib/supabase/types";
+import type { OrderItem, SalesChannel, ShippingAddress } from "@/lib/supabase/types";
 import { formatPrice } from "@/lib/utils/format";
 import { sendBrevoEmail, type BrevoSendResult } from "@/lib/brevo/send";
+import { GST_NUMBER, taxLinesForOrder } from "@/lib/tax/label";
+
+const GST_LINE = `GST/HST ${GST_NUMBER}`;
 
 export type BuiltEmail = {
   subject: string;
@@ -13,7 +16,9 @@ export type BuiltEmail = {
 type OrderEmailFields = {
   id: string;
   email: string | null;
-  currency: "USD" | "CAD";
+  currency: "CAD";
+  country?: string | null;
+  tax_rate?: number | null;
   subtotal: number;
   tax: number;
   shipping: number;
@@ -202,55 +207,68 @@ function formatAddress(addr: ShippingAddress | null): { html: string; text: stri
   };
 }
 
-export function buildOrderConfirmationEmail(input: {
-  site: SiteConfig;
-  order: OrderEmailFields;
-  items: Pick<OrderItem, "product_name" | "qty" | "unit_price" | "currency">[];
-  orderUrl: string;
-}): BuiltEmail {
-  const currency = input.order.currency;
-  const shortId = input.order.id.slice(0, 8).toUpperCase();
-  const title = `Order confirmed`;
-  const subject = `Order confirmed · #${shortId}`;
+type EmailLineItem = Pick<OrderItem, "product_name" | "qty" | "unit_price" | "currency"> & {
+  sku?: string | null;
+};
 
-  const itemRowsHtml = input.items
+function orderItemRows(items: EmailLineItem[], currency: "CAD"): { html: string; text: string } {
+  const html = items
     .map((item) => {
       const lineTotal = Number(item.unit_price) * Number(item.qty);
+      const sku = item.sku?.trim()
+        ? `<div style="font-size:13px;color:#71717a">${escapeHtml(item.sku)}</div>`
+        : "";
       return `<tr>
-  <td style="padding:8px 0;border-bottom:1px solid #e4e4e7">${escapeHtml(item.product_name)} × ${item.qty}</td>
+  <td style="padding:8px 0;border-bottom:1px solid #e4e4e7">${escapeHtml(item.product_name)} × ${item.qty}${sku}</td>
   <td style="padding:8px 0;border-bottom:1px solid #e4e4e7;text-align:right">${escapeHtml(formatPrice(lineTotal, currency))}</td>
 </tr>`;
     })
     .join("");
-
-  const itemRowsText = input.items
+  const text = items
     .map((item) => {
       const lineTotal = Number(item.unit_price) * Number(item.qty);
       return `- ${item.product_name} × ${item.qty}: ${formatPrice(lineTotal, currency)}`;
     })
     .join("\n");
+  return { html, text };
+}
 
+function orderTotals(order: OrderEmailFields): { html: string; text: string } {
+  const currency = order.currency;
+  const shippingValue =
+    Number(order.shipping) === 0 ? "FREE" : formatPrice(Number(order.shipping), currency);
   const totals: { label: string; value: string }[] = [
-    { label: "Subtotal", value: formatPrice(Number(input.order.subtotal), currency) },
-    { label: "Shipping", value: formatPrice(Number(input.order.shipping), currency) },
-    { label: "Tax", value: formatPrice(Number(input.order.tax), currency) },
+    { label: "Subtotal", value: formatPrice(Number(order.subtotal), currency) },
+    { label: "Shipping", value: shippingValue },
+    ...taxLinesForOrder({
+      country: order.country,
+      tax: Number(order.tax),
+      tax_rate: Number(order.tax_rate ?? 0),
+      subtotal: Number(order.subtotal),
+      discount_total: order.discount_total,
+      points_value: order.points_value,
+      shipping_address: order.shipping_address,
+    }).map((line) => ({
+      label: line.label,
+      value: formatPrice(line.amount, currency),
+    })),
   ];
-  if (Number(input.order.discount_total) > 0) {
-    const code = input.order.discount_code ? ` (${input.order.discount_code})` : "";
+  if (Number(order.discount_total) > 0) {
+    const code = order.discount_code ? ` (${order.discount_code})` : "";
     totals.push({
       label: `Discount${code}`,
-      value: `−${formatPrice(Number(input.order.discount_total), currency)}`,
+      value: `−${formatPrice(Number(order.discount_total), currency)}`,
     });
   }
-  if (Number(input.order.points_value) > 0) {
+  if (Number(order.points_value) > 0) {
     totals.push({
       label: "Loyalty credit",
-      value: `−${formatPrice(Number(input.order.points_value), currency)}`,
+      value: `−${formatPrice(Number(order.points_value), currency)}`,
     });
   }
-  totals.push({ label: "Total", value: formatPrice(Number(input.order.total), currency) });
+  totals.push({ label: "Total", value: formatPrice(Number(order.total), currency) });
 
-  const totalsHtml = totals
+  const html = totals
     .map(
       (t, i) =>
         `<tr>
@@ -259,33 +277,50 @@ export function buildOrderConfirmationEmail(input: {
 </tr>`,
     )
     .join("");
+  const text = totals.map((t) => `${t.label}: ${t.value}`).join("\n");
+  return { html, text };
+}
 
-  const totalsText = totals.map((t) => `${t.label}: ${t.value}`).join("\n");
+export function buildOrderConfirmationEmail(input: {
+  site: SiteConfig;
+  order: OrderEmailFields;
+  items: EmailLineItem[];
+  orderUrl: string;
+}): BuiltEmail {
+  const currency = input.order.currency;
+  const shortId = input.order.id.slice(0, 8).toUpperCase();
+  const title = `Order confirmed`;
+  const subject = `Order confirmed · #${shortId}`;
+  const items = orderItemRows(input.items, currency);
+  const totals = orderTotals(input.order);
   const address = formatAddress(input.order.shipping_address);
 
   const bodyHtml = `
     <p style="margin:0 0 14px">Thanks for your order with ${escapeHtml(input.site.name)}. We've received your payment and will start preparing it shortly.</p>
     <p style="margin:0 0 18px"><strong>Order #${escapeHtml(shortId)}</strong></p>
     <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:0 0 18px;font-size:15px">
-      ${itemRowsHtml || "<tr><td colspan=\"2\" style=\"padding:8px 0;color:#71717a\">No line items</td></tr>"}
+      ${items.html || "<tr><td colspan=\"2\" style=\"padding:8px 0;color:#71717a\">No line items</td></tr>"}
     </table>
     <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:0 0 22px;font-size:15px">
-      ${totalsHtml}
+      ${totals.html}
     </table>
     <p style="margin:0 0 6px;font-weight:700">Ship to</p>
     ${address.html}
+    <p style="margin:18px 0 0;font-size:13px;color:#71717a">${escapeHtml(GST_LINE)}</p>
   `;
 
   const bodyText = `Thanks for your order with ${input.site.name}. We've received your payment and will start preparing it shortly.
 
 Order #${shortId}
 
-${itemRowsText || "No line items"}
+${items.text || "No line items"}
 
-${totalsText}
+${totals.text}
 
 Ship to:
-${address.text}`;
+${address.text}
+
+${GST_LINE}`;
 
   return {
     subject,
@@ -302,6 +337,72 @@ ${address.text}`;
       bodyText,
       ctaLabel: "View order",
       ctaUrl: input.orderUrl,
+    }),
+  };
+}
+
+export function buildPosInvoiceEmail(input: {
+  site: SiteConfig;
+  order: OrderEmailFields;
+  items: EmailLineItem[];
+}): BuiltEmail {
+  const currency = input.order.currency;
+  const shortId = input.order.id.slice(0, 8).toUpperCase();
+  const title = "Invoice";
+  const subject = `Invoice · #${shortId}`;
+  const items = orderItemRows(input.items, currency);
+  const totals = orderTotals(input.order);
+  const billName = input.order.shipping_address?.full_name?.trim() || "";
+  const billEmail = input.order.email?.trim() || "";
+  const billLines = [billName, billEmail].filter(Boolean);
+  const billHtml = billLines.length
+    ? `<p style="margin:0;white-space:pre-line">${escapeHtml(billLines.join("\n"))}</p>`
+    : `<p style="margin:0;color:#71717a">In-store customer</p>`;
+  const billText = billLines.join("\n") || "In-store customer";
+
+  const bodyHtml = `
+    <p style="margin:0 0 14px">Thanks for shopping at ${escapeHtml(input.site.name)}. Here's your invoice for this in-store purchase.</p>
+    <p style="margin:0 0 18px"><strong>Invoice #${escapeHtml(shortId)}</strong></p>
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:0 0 18px;font-size:15px">
+      ${items.html || "<tr><td colspan=\"2\" style=\"padding:8px 0;color:#71717a\">No line items</td></tr>"}
+    </table>
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:0 0 22px;font-size:15px">
+      ${totals.html}
+    </table>
+    <p style="margin:0 0 6px;font-weight:700">Bill to</p>
+    ${billHtml}
+    <p style="margin:18px 0 6px;font-weight:700">Fulfillment</p>
+    <p style="margin:0">In-store pickup · paid in person</p>
+    <p style="margin:18px 0 0;font-size:13px;color:#71717a">${escapeHtml(GST_LINE)}</p>
+  `;
+
+  const bodyText = `Thanks for shopping at ${input.site.name}. Here's your invoice for this in-store purchase.
+
+Invoice #${shortId}
+
+${items.text || "No line items"}
+
+${totals.text}
+
+Bill to:
+${billText}
+
+Fulfillment:
+In-store pickup · paid in person
+
+${GST_LINE}`;
+
+  return {
+    subject,
+    html: layoutHtml({
+      site: input.site,
+      title,
+      bodyHtml,
+    }),
+    text: layoutText({
+      site: input.site,
+      title,
+      bodyText,
     }),
   };
 }
@@ -353,7 +454,8 @@ export async function sendNewsletterWelcomeEmail(input: {
 export async function sendOrderConfirmationEmail(input: {
   siteId: SiteId;
   order: OrderEmailFields;
-  items: Pick<OrderItem, "product_name" | "qty" | "unit_price" | "currency">[];
+  items: EmailLineItem[];
+  salesChannel?: SalesChannel;
 }): Promise<BrevoSendResult> {
   const email = input.order.email?.trim();
   if (!email) {
@@ -361,12 +463,19 @@ export async function sendOrderConfirmationEmail(input: {
   }
   const site = getSiteById(input.siteId);
   const base = siteBaseUrl(input.siteId);
-  const built = buildOrderConfirmationEmail({
-    site,
-    order: input.order,
-    items: input.items,
-    orderUrl: `${base}/account/orders/${input.order.id}`,
-  });
+  const built =
+    input.salesChannel === "pos"
+      ? buildPosInvoiceEmail({
+          site,
+          order: input.order,
+          items: input.items,
+        })
+      : buildOrderConfirmationEmail({
+          site,
+          order: input.order,
+          items: input.items,
+          orderUrl: `${base}/account/orders/${input.order.id}`,
+        });
   const shipName = input.order.shipping_address?.full_name;
   return sendBrevoEmail({
     to: { email, name: shipName },

@@ -1,5 +1,6 @@
 import Image from "next/image";
 import { cookies } from "next/headers";
+import newsletterHero from "@/public/bleeq-newsletter-nbda.webp";
 import { notFound } from "next/navigation";
 import { DrawSignupForm } from "@/components/draw/DrawSignupForm";
 import { getSite } from "@/lib/site/get-site";
@@ -32,10 +33,11 @@ export default async function DrawPage() {
         <div className="relative mx-auto grid max-w-7xl lg:grid-cols-2">
           <div className="relative h-[185px] overflow-hidden sm:h-auto sm:min-h-[280px] lg:min-h-[420px]">
             <Image
-              src="/bleeq-newsletter-nbda.webp"
+              src={newsletterHero}
               alt="Meet BleeqUp at NBDA Canada 2026"
               fill
               priority
+              placeholder="blur"
               className="object-cover object-top"
               sizes="(max-width: 1024px) 100vw, 50vw"
               quality={82}

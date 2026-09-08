@@ -1,12 +1,12 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { ShieldCheck, Sparkles, Truck } from "lucide-react";
 import { Gallery } from "@/components/product/Gallery";
 import { ProductBuyBox } from "@/components/product/ProductBuyBox";
 import { ReviewStars } from "@/components/product/ReviewStars";
 import { Separator } from "@/components/ui/separator";
-import { parseProductOptions } from "@/lib/catalog/variants";
+import { parseProductOptions } from "@/lib/catalog/product-options";
 import type { ProductReviewSummary } from "@/lib/reviews/summary";
 import { useSite } from "@/lib/site/SiteProvider";
 import { useDictionary, useT } from "@/lib/i18n/I18nProvider";
@@ -53,20 +53,19 @@ export function ProductDetailPanel({
     [product.images, variants],
   );
 
-  const [activeIndex, setActiveIndex] = useState(0);
+  const [rawActiveIndex, setActiveIndex] = useState(0);
 
-  useEffect(() => {
-    const hero = selected?.imageUrl;
-    if (!hero) return;
-    const idx = galleryImages.indexOf(hero);
+  // Jump the gallery to the selected variant's image when the selection changes
+  // (state adjusted during render — no effect/extra commit). The user can still
+  // browse other images afterwards.
+  const [syncedHero, setSyncedHero] = useState(selected?.imageUrl);
+  if (selected?.imageUrl !== syncedHero) {
+    setSyncedHero(selected?.imageUrl);
+    const idx = selected?.imageUrl ? galleryImages.indexOf(selected.imageUrl) : -1;
     if (idx >= 0) setActiveIndex(idx);
-  }, [selected?.id, selected?.imageUrl, galleryImages]);
-
-  useEffect(() => {
-    if (activeIndex >= galleryImages.length) {
-      setActiveIndex(Math.max(0, galleryImages.length - 1));
-    }
-  }, [activeIndex, galleryImages.length]);
+  }
+  // Clamp instead of correcting via effect when the image list shrinks.
+  const activeIndex = Math.min(rawActiveIndex, Math.max(0, galleryImages.length - 1));
 
   return (
     <div className="grid min-w-0 gap-6 lg:grid-cols-2 lg:gap-10">
@@ -126,7 +125,7 @@ export function ProductDetailPanel({
           </li>
           <li className="flex items-start gap-2 text-muted-foreground">
             <Sparkles className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
-            {t("product.earnPoints", { n: Math.floor(selected?.priceUsd ?? 0) })}
+            {t("product.earnPoints", { n: Math.floor(selected?.priceCad ?? 0) })}
           </li>
         </ul>
       </div>

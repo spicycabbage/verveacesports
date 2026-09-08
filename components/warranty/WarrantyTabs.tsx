@@ -17,7 +17,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useDictionary } from "@/lib/i18n/I18nProvider";
-import { interpolate } from "@/lib/i18n/dictionary";
+import { interpolate } from "@/lib/i18n/translate";
 import type { WarrantyPolicy } from "@/lib/content/warranty";
 
 type ProductOption = { value: string; label: string };

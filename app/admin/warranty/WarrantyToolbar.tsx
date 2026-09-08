@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, type FormEvent } from "react";
+import { useState, type FormEvent } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -20,8 +20,13 @@ export function WarrantyToolbar() {
   const site = sp.get("site") ?? "";
   const qParam = sp.get("q") ?? "";
   const [q, setQ] = useState(qParam);
-
-  useEffect(() => setQ(qParam), [qParam]);
+  // Re-sync the input when the URL param changes (React "adjust state during
+  // render" pattern — no effect, no extra commit).
+  const [syncedParam, setSyncedParam] = useState(qParam);
+  if (syncedParam !== qParam) {
+    setSyncedParam(qParam);
+    setQ(qParam);
+  }
 
   function pushParams(next: {
     site?: string | null;

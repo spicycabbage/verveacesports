@@ -6,19 +6,17 @@ import {
   upsertPayout,
 } from "@/lib/stripe/reconcile";
 import { markOrderPaidFromPaymentIntent } from "@/lib/stripe/mark-order-paid";
-import type { Currency } from "@/lib/constants";
+import { voidPendingOrder } from "@/lib/pos/void-pending-order";
+import type { StripeAccountCurrency } from "@/lib/constants";
 import type Stripe from "stripe";
-
-export const runtime = "nodejs";
-export const dynamic = "force-dynamic";
 
 type Admin = ReturnType<typeof createSupabaseAdminClient>;
 
 function verifyStripeEvent(
   rawBody: string,
   sig: string,
-): { event: Stripe.Event; currency: Currency } {
-  const currencies: Currency[] = ["USD", "CAD"];
+): { event: Stripe.Event; currency: StripeAccountCurrency } {
+  const currencies: StripeAccountCurrency[] = ["CAD", "USD"];
   let lastError: string | undefined;
   let verified: Stripe.Event | undefined;
 
@@ -37,12 +35,12 @@ function verifyStripeEvent(
   throw new Error(lastError ?? "No webhook secret configured");
 }
 
-function currencyFromEvent(event: Stripe.Event, fallback: Currency): Currency {
+function currencyFromEvent(event: Stripe.Event, fallback: StripeAccountCurrency): StripeAccountCurrency {
   const obj = event.data.object as {
     currency?: string | null;
   };
   const code = (obj.currency ?? "").toUpperCase();
-  if (code === "CAD" || code === "USD") return code;
+  if (code === "CAD") return "CAD";
   return fallback;
 }
 
@@ -54,7 +52,7 @@ export async function POST(req: NextRequest) {
 
   const rawBody = await req.text();
   let event: Stripe.Event;
-  let currency: Currency;
+  let currency: StripeAccountCurrency;
   try {
     ({ event, currency } = verifyStripeEvent(rawBody, sig));
   } catch (err) {
@@ -64,13 +62,18 @@ export async function POST(req: NextRequest) {
 
   const admin = createSupabaseAdminClient();
 
-  // Idempotency: skip events we've already processed.
-  const { data: seen } = await admin
+  // Idempotency: claim the event id up front. The PK makes this atomic, so two
+  // concurrent deliveries can't both pass a check-then-act and run handlers twice.
+  const { error: claimErr } = await admin
     .from("webhook_events")
-    .select("id")
-    .eq("id", event.id)
-    .maybeSingle();
-  if (seen) return NextResponse.json({ received: true, duplicate: true });
+    .insert({ id: event.id, type: event.type, payload: event as unknown as Record<string, unknown> });
+  if (claimErr) {
+    if (claimErr.code === "23505") {
+      return NextResponse.json({ received: true, duplicate: true });
+    }
+    console.error("webhook: could not record event", claimErr.message);
+    return NextResponse.json({ error: "Could not record event" }, { status: 500 });
+  }
 
   try {
     switch (event.type) {
@@ -78,8 +81,16 @@ export async function POST(req: NextRequest) {
         await handleSucceeded(admin, currency, event.data.object as Stripe.PaymentIntent);
         break;
       case "payment_intent.payment_failed":
+        await handleFailed(admin, event.data.object as Stripe.PaymentIntent, { voidPos: false });
+        break;
       case "payment_intent.canceled":
-        await handleFailed(admin, event.data.object as Stripe.PaymentIntent);
+        await handleFailed(admin, event.data.object as Stripe.PaymentIntent, { voidPos: true });
+        break;
+      case "terminal.reader.action_succeeded":
+        await handleReaderAction(admin, currency, event.data.object as Stripe.Terminal.Reader, true);
+        break;
+      case "terminal.reader.action_failed":
+        await handleReaderAction(admin, currency, event.data.object as Stripe.Terminal.Reader, false);
         break;
       case "charge.refunded":
         await handleChargeRefunded(admin, currency, event.data.object as Stripe.Charge);
@@ -94,24 +105,25 @@ export async function POST(req: NextRequest) {
         break;
     }
   } catch (err) {
-    // Don't record the event so Stripe retries.
+    // Release the claim so Stripe's retry gets processed.
+    await admin.from("webhook_events").delete().eq("id", event.id);
     const msg = err instanceof Error ? err.message : "Webhook handler error";
-    return NextResponse.json({ error: msg }, { status: 500 });
+    console.error(`webhook ${event.type} ${event.id} failed:`, msg);
+    return NextResponse.json({ error: "Webhook handler error" }, { status: 500 });
   }
-
-  await admin
-    .from("webhook_events")
-    .insert({ id: event.id, type: event.type, payload: event as unknown as Record<string, unknown> })
-    .then(() => undefined);
 
   return NextResponse.json({ received: true });
 }
 
-async function handleSucceeded(admin: Admin, currency: Currency, pi: Stripe.PaymentIntent) {
+async function handleSucceeded(admin: Admin, currency: StripeAccountCurrency, pi: Stripe.PaymentIntent) {
   await markOrderPaidFromPaymentIntent(admin, currency, pi);
 }
 
-async function handleFailed(admin: Admin, pi: Stripe.PaymentIntent) {
+async function handleFailed(
+  admin: Admin,
+  pi: Stripe.PaymentIntent,
+  opts: { voidPos: boolean },
+) {
   const orderId = pi.metadata.order_id;
   if (!orderId) return;
 
@@ -119,46 +131,58 @@ async function handleFailed(admin: Admin, pi: Stripe.PaymentIntent) {
     .from("orders")
     .select("id, status, user_id, points_redeemed")
     .eq("id", orderId)
-    .single();
+    .maybeSingle();
   if (!order || order.status !== "pending") return;
 
-  await admin
-    .from("orders")
-    .update({
-      status: "cancelled",
-      financial_status: "voided",
-      cancelled_at: new Date().toISOString(),
-    })
-    .eq("id", orderId);
-
-  // Release the inventory reservation and any reserved discount usage.
-  await admin.rpc("release_order_inventory", { p_order: orderId });
-  await admin.rpc("release_discount", { p_order: orderId });
-
-  // Refund any reserved loyalty points (atomic).
-  if (order.points_redeemed && order.points_redeemed > 0) {
-    await admin.from("loyalty_transactions").insert({
-      user_id: order.user_id,
-      order_id: orderId,
-      type: "adjust",
-      points: order.points_redeemed,
-      note: "Refunded redemption (payment failed)",
-    });
-    await admin.rpc("adjust_loyalty_points", {
-      p_user: order.user_id,
-      p_delta: order.points_redeemed,
-    });
+  const isPos = pi.metadata.sales_channel === "pos";
+  if (isPos && !opts.voidPos) {
+    await admin
+      .from("payments")
+      .update({
+        status: "failed",
+        error_message: pi.last_payment_error?.message ?? "Card declined — retry on the reader",
+      })
+      .eq("stripe_payment_intent_id", pi.id)
+      .eq("kind", "sale");
+    return;
   }
 
+  await voidPendingOrder(admin, orderId, pi.last_payment_error?.message ?? "Payment failed");
+}
+
+async function handleReaderAction(
+  admin: Admin,
+  currency: StripeAccountCurrency,
+  reader: Stripe.Terminal.Reader,
+  succeeded: boolean,
+) {
+  const action = reader.action;
+  if (!action || action.type !== "process_payment_intent") return;
+  const raw = action.process_payment_intent?.payment_intent;
+  const piId = typeof raw === "string" ? raw : raw?.id;
+  if (!piId) return;
+
+  const stripe = getStripe(currency);
+  const pi = await stripe.paymentIntents.retrieve(piId);
+  if (succeeded) {
+    await markOrderPaidFromPaymentIntent(admin, currency, pi);
+    return;
+  }
+
+  const orderId = pi.metadata.order_id;
+  if (!orderId) return;
   await admin
     .from("payments")
-    .update({ status: "failed", error_message: pi.last_payment_error?.message ?? "Payment failed" })
+    .update({
+      status: "failed",
+      error_message: action.failure_message ?? "Reader action failed",
+    })
     .eq("stripe_payment_intent_id", pi.id)
     .eq("kind", "sale");
 }
 
 // Handle refunds initiated outside the app (e.g. Stripe dashboard).
-async function handleChargeRefunded(admin: Admin, currency: Currency, charge: Stripe.Charge) {
+async function handleChargeRefunded(admin: Admin, currency: StripeAccountCurrency, charge: Stripe.Charge) {
   const piId = typeof charge.payment_intent === "string" ? charge.payment_intent : charge.payment_intent?.id;
   if (!piId) return;
 

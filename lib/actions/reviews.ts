@@ -1,10 +1,10 @@
 "use server";
 
 import { z } from "zod";
-import { revalidatePath } from "next/cache";
+import { revalidatePath, updateTag } from "next/cache";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { profileDisplayName } from "@/lib/utils/profileDisplayName";
-import type { ProductReview } from "@/lib/reviews/summary";
+import { reviewsTag } from "@/lib/catalog/tags";
 
 const submitSchema = z.object({
   productId: z.string().uuid(),
@@ -13,60 +13,6 @@ const submitSchema = z.object({
   title: z.string().trim().max(120).optional(),
   body: z.string().trim().min(10, "Write at least 10 characters").max(5000),
 });
-
-export async function getProductReviews(productId: string): Promise<ProductReview[]> {
-  const supabase = await createSupabaseServerClient();
-  const { data, error } = await supabase
-    .from("product_reviews")
-    .select(
-      "id, product_id, user_id, rating, title, body, author_display_name, is_verified_purchase, source, created_at",
-    )
-    .eq("product_id", productId)
-    .eq("is_published", true)
-    .order("created_at", { ascending: false });
-
-  if (error) {
-    console.error("getProductReviews", error.message);
-    return [];
-  }
-  return (data ?? []) as ProductReview[];
-}
-
-export async function getReviewEligibility(productId: string): Promise<{
-  signedIn: boolean;
-  canReview: boolean;
-  alreadyReviewed: boolean;
-}> {
-  const supabase = await createSupabaseServerClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) {
-    return { signedIn: false, canReview: false, alreadyReviewed: false };
-  }
-
-  const { data: existing } = await supabase
-    .from("product_reviews")
-    .select("id")
-    .eq("product_id", productId)
-    .eq("user_id", user.id)
-    .maybeSingle();
-
-  if (existing) {
-    return { signedIn: true, canReview: false, alreadyReviewed: true };
-  }
-
-  const { data: can } = await supabase.rpc("can_review_product", {
-    p_product_id: productId,
-  });
-
-  return {
-    signedIn: true,
-    canReview: Boolean(can),
-    alreadyReviewed: false,
-  };
-}
 
 export async function submitProductReview(input: z.infer<typeof submitSchema>) {
   const parsed = submitSchema.safeParse(input);
@@ -130,6 +76,7 @@ export async function submitProductReview(input: z.infer<typeof submitSchema>) {
     return { error: error.message };
   }
 
+  updateTag(reviewsTag(parsed.data.productId));
   revalidatePath(`/products/${parsed.data.productSlug}`);
   return { ok: true as const };
 }

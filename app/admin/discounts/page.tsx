@@ -1,10 +1,12 @@
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { DiscountManager } from "./DiscountManager";
 import type { Discount } from "@/lib/supabase/types";
+import { requireAdminPage } from "@/lib/auth/admin";
 
 export const metadata = { title: "Admin · Coupons" };
 
 export default async function AdminCouponsPage() {
+  await requireAdminPage();
   const admin = createSupabaseAdminClient();
   const { data: discounts } = await admin
     .from("discounts")

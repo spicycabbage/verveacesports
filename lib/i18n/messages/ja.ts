@@ -72,6 +72,14 @@ export const ja: Dictionary = {
     "golf-gear": "ゴルフギア",
   },
 
+  cartFeatures: {
+    followMe: "フォローミー",
+    remote: "リモコン",
+    noRemote: "リモコンなし",
+    gps: "GPS",
+    pickCategory: "カテゴリにカーソルを合わせてカートを表示",
+  },
+
   products: {
     allProducts: "すべての商品",
     shopAllTitle: "すべての商品を見る",
@@ -86,7 +94,7 @@ export const ja: Dictionary = {
     searching: "検索中：",
     clearSearch: "検索をクリア",
     all: "すべて",
-    shopRanger: "Rangerを購入",
+    shopRanger: "RangerとRoverを購入",
     rangerMeta:
       "{n}モデル販売中 · 30日以内の返品無料 · 1ドルごとに1ロイヤルティポイント獲得",
   },
@@ -294,7 +302,7 @@ export const ja: Dictionary = {
           },
           {
             q: "送料は無料ですか？",
-            a: "${freeShippingOver} USD以上（カナダでのお会計は${freeShippingOver} CAD以上）のご注文は、アメリカ・カナダ国内で通常配送が無料になります。それ未満のご注文はお支払い前に送料が表示されます。",
+            a: "${freeShippingOver} CAD以上のご注文は、アメリカ・カナダ国内で通常配送が無料になります。それ未満のご注文はお支払い前に送料が表示されます。",
           },
           {
             q: "注文はいつ届きますか？",
@@ -331,8 +339,8 @@ export const ja: Dictionary = {
             a: "はい。VerveaceSportsは、BleeqUp AIカメラグラスおよびMGI・Motocaddyの電動ゴルフカート、キャディ、アクセサリーの正規販売店です。",
           },
           {
-            q: "なぜ価格がUSDまたはCADで表示されるのですか？",
-            a: "選択された市場に基づき、アメリカのお客様にはUSD、カナダのお客様にはCADで価格を表示します。各商品ページとお会計に表示される通貨が、実際に請求される金額です。",
+            q: "なぜ価格がCADなのですか？",
+            a: "すべての価格とお会計合計はカナダドル（CAD）です。配送先の国にかかわらず、CADで請求されます。",
           },
           {
             q: "商品が在庫切れの場合は？",
@@ -559,7 +567,7 @@ export const ja: Dictionary = {
         {
           title: "商品と価格",
           body: [
-            "価格は選択した国に応じてUSDまたはCADで表示されます。税金と送料はお会計時に計算されます。",
+            "価格はCADで表示されます。税金と送料はお会計時に計算されます。",
             "正確な在庫の表示に努めていますが、お支払いが承認されるまで在庫は保証されません。価格の誤りや在庫不足の影響を受けた注文はキャンセルする場合があり、請求分は返金します。",
             "商品画像および説明はイメージであり、細部が異なる場合があります。",
           ],
@@ -610,7 +618,7 @@ export const ja: Dictionary = {
         },
       ],
       productsPricingVerveace:
-        "価格は選択した国に応じてUSDまたはCADで表示されます。税金と送料はお会計時に計算されます。",
+        "価格はCADで表示されます。税金と送料はお会計時に計算されます。",
       productsPricingBleeq: "価格はCADで表示されます。税金と送料はお会計時に計算されます。",
       shippingBodyVerveace:
         "アメリカおよびカナダ国内の住所へ発送します。配送日数は目安であり、保証ではありません。",
@@ -655,7 +663,14 @@ export const ja: Dictionary = {
     descVerveace:
       "VerveaceSportsからBleeqUpの新作、限定オファー、新商品のお知らせをお届けします。",
     descBleeq:
-      "ニュースレターに登録して、BleeqUp Rangers AI Glassesを無料で当てよう",
+      "ニュースレターに登録して、BleeqUp Ranger AIグラスを無料で当てよう",
+    eventDesc:
+      "ブース58でお待ちしています。BleeqUp Ranger AIグラスが無料で当たるチャンス。登録して抽選に参加し、開催前にリマインダーを受け取りましょう。",
+    eventKicker: "会場でお会いしましょう",
+    eventName: "VeloSpoke Bike Expo",
+    eventBooth: "ブース58",
+    eventMeta: "2026年9月11日（金）・11:00–20:00・Vancouver Convention Centre East, Hall B・入場無料",
+    eventLink: "イベント詳細",
     email: "メールアドレス",
     emailPlaceholder: "you@example.com",
     subscribe: "登録する",
@@ -697,18 +712,18 @@ export const ja: Dictionary = {
 
   bleeq: {
     trust: {
-      promo: "コード NBDA2026 で 10% オフ",
+      promo: "コード fondo2026 で 20% オフ。有効期限 2026年9月25日",
       promoDesktop:
-        "コード NBDA2026 で 10% オフ。${amount}以上のご注文で送料無料。",
+        "コード fondo2026 で 20% オフ。有効期限 2026年9月25日",
     },
     header: {
-      shopRanger: "Rangerを購入",
+      shopRanger: "ショップ",
       accessories: "アクセサリー",
       support: "サポート",
       faq: "よくある質問",
       allProducts: "すべての商品",
       supportFaq: "サポート / よくある質問",
-      viewAllModels: "すべてのRangerモデルを見る →",
+      viewAllModels: "すべてのモデルを見る →",
       allAccessories: "すべてのアクセサリー →",
       canada: "カナダ",
     },

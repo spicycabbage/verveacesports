@@ -12,31 +12,31 @@ function readSiteIdFromCookie(): SiteId {
   return "verveace";
 }
 
-export function newsletterKeys() {
-  const site = SITES[readSiteIdFromCookie()];
+export function newsletterKeys(siteId?: SiteId) {
+  const site = SITES[siteId ?? readSiteIdFromCookie()];
   return {
     subscribed: site.newsletterSubscribedKey,
     dismissed: site.newsletterDismissedKey,
   };
 }
 
-export function shouldShowNewsletterPopup(): boolean {
+export function shouldShowNewsletterPopup(siteId?: SiteId): boolean {
   if (typeof window === "undefined") return false;
-  const keys = newsletterKeys();
+  const keys = newsletterKeys(siteId);
   return !localStorage.getItem(keys.subscribed) && !localStorage.getItem(keys.dismissed);
 }
 
-export function markNewsletterSubscribed() {
-  const keys = newsletterKeys();
+export function markNewsletterSubscribed(siteId?: SiteId) {
+  const keys = newsletterKeys(siteId);
   localStorage.setItem(keys.subscribed, "1");
   localStorage.removeItem(keys.dismissed);
 }
 
-export function markNewsletterDismissed() {
-  const keys = newsletterKeys();
+export function markNewsletterDismissed(siteId?: SiteId) {
+  const keys = newsletterKeys(siteId);
   localStorage.setItem(keys.dismissed, "1");
 }
 
 /** @deprecated use newsletterKeys() — kept for any static imports */
-export const NEWSLETTER_SUBSCRIBED_KEY = "verveacesports_newsletter_subscribed_v1";
-export const NEWSLETTER_DISMISSED_KEY = "verveacesports_newsletter_dismissed_v1";
+export const NEWSLETTER_SUBSCRIBED_KEY = SITES.verveace.newsletterSubscribedKey;
+export const NEWSLETTER_DISMISSED_KEY = SITES.verveace.newsletterDismissedKey;

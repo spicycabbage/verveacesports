@@ -22,7 +22,8 @@ export const BLEEQUUP_HERO = {
   title: "BleeqUp Ranger AI Sports Camera Glasses",
   subtitle:
     "4-in-1 smart eyewear — camera, open-ear audio, UV protection, and prescription-ready lenses. Capture POV footage hands-free while you move.",
-  mp4: `${CDN}/9e8a190539d5437c9c118137f12a5c34/9e8a190539d5437c9c118137f12a5c34.HD-1080p-7.2Mbps-87727345.mp4?v=0`,
+  // 720p ~6.3MB vs 1080p ~10MB. Homepage defers this until after LCP.
+  mp4: `${CDN}/9e8a190539d5437c9c118137f12a5c34/9e8a190539d5437c9c118137f12a5c34.HD-720p-4.5Mbps-87727345.mp4?v=0`,
   poster:
     `${POSTER}/9e8a190539d5437c9c118137f12a5c34.thumbnail.0000000000_1000x.jpg?v=1782793329`,
 } as const;

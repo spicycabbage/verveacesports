@@ -25,7 +25,7 @@ async function recordLocalSubscriber(email: string, source: string, siteId: Site
 }
 
 export async function POST(request: NextRequest) {
-  const limited = rateLimit(`newsletter:${clientIp(request)}`, 5, 60_000);
+  const limited = await rateLimit(`newsletter:${clientIp(request)}`, 5, 60_000);
   if (!limited.ok) {
     return NextResponse.json(
       { error: "Too many attempts, try again shortly" },

@@ -38,6 +38,77 @@ const ZEISS_IMG =
   "https://cdn.shopify.com/s/files/1/0674/8527/0213/files/BleeqUp_Ranger_Black_Standard_Lens.jpg?v=1781082522";
 const BUNDLE_IMG =
   "https://cdn.shopify.com/s/files/1/0674/8527/0213/files/BleeqUp_Ranger_Black_Standard_Lens.jpg?v=1781082522";
+const ROVER_IMG =
+  "https://cdn.shopify.com/s/files/1/0674/8527/0213/files/4feb7c0139c4d61e49e5d93a29c4093d.png?v=1788523792";
+const ROVER_BUNDLE_IMG =
+  "https://cdn.shopify.com/s/files/1/0674/8527/0213/files/rover-bundle-kit-black-gold-zeiss.png?v=1788522779";
+const ROVER_LENS_IMG =
+  "https://cdn.shopify.com/s/files/1/0674/8527/0213/files/rover-lens-zeiss.webp?v=1788538089";
+const ROVER_POWER_IMG =
+  "https://cdn.shopify.com/s/files/1/0674/8527/0213/files/rover-power-plus.png?v=1788509881";
+
+const ROVER_LINEUP: readonly NavProductLink[] = [
+  {
+    slug: "bleequp-rover-ai-sports-glasses",
+    label: "Rover — ZEISS",
+    shortLabel: "Rover ZEISS",
+    image: ROVER_IMG,
+  },
+  {
+    slug: "bleequp-rover-ai-sports-glasses-bundle",
+    label: "Rover — Bundle",
+    shortLabel: "Rover Bundle",
+    image: ROVER_BUNDLE_IMG,
+  },
+];
+
+const RANGER_LINEUP: readonly NavProductLink[] = [
+  {
+    slug: "bleequp-ranger-standard-lens",
+    label: "Ranger — Standard Lens",
+    shortLabel: "Standard Lens",
+    image: RANGER_IMG,
+  },
+  {
+    slug: "bleequp-ranger-zeiss-lens",
+    label: "Ranger — Lenses by Zeiss",
+    shortLabel: "Zeiss Lens",
+    image: ZEISS_IMG,
+  },
+  {
+    slug: "bleequp-ranger-ultimate-bundle",
+    label: "Ranger — Ultimate Bundle",
+    shortLabel: "Ultimate Bundle",
+    image: BUNDLE_IMG,
+  },
+];
+
+const ROVER_ACCESSORIES: readonly NavProductLink[] = [
+  {
+    slug: "bleequp-rover-power-plus",
+    label: "Rover Power Plus",
+    shortLabel: "Rover Power Plus",
+    image: ROVER_POWER_IMG,
+  },
+  {
+    slug: "bleequp-rover-zeiss-lens",
+    label: "Rover ZEISS Lens",
+    shortLabel: "Rover ZEISS Lens",
+    image: ROVER_LENS_IMG,
+  },
+  {
+    slug: "bleequp-rover-photochromic-lens",
+    label: "Rover Photochromic Lens",
+    shortLabel: "Rover Photochromic",
+    image: "https://cdn.shopify.com/s/files/1/0674/8527/0213/files/rover-lens-photochromic.webp?v=1788538095",
+  },
+  {
+    slug: "bleequp-rover-polarized-lens",
+    label: "Rover Polarized Lens",
+    shortLabel: "Rover Polarized",
+    image: "https://cdn.shopify.com/s/files/1/0674/8527/0213/files/rover-lens-polarized.webp?v=1788538103",
+  },
+];
 
 export const SITES: Record<SiteId, SiteConfig> = {
   verveace: {
@@ -61,28 +132,11 @@ export const SITES: Record<SiteId, SiteConfig> = {
     cartStorageKey: "verveacesports_cart_v2",
     themeStorageKey: "verveacesports_theme_v8",
     newsletterSubscribedKey: "verveacesports_newsletter_subscribed_v1",
-    newsletterDismissedKey: "verveacesports_newsletter_dismissed_v1",
-    rangerProducts: [
-      {
-        slug: "bleequp-ranger-standard-lens",
-        label: "Ranger — Standard Lens",
-        shortLabel: "Standard Lens",
-        image: RANGER_IMG,
-      },
-      {
-        slug: "bleequp-ranger-zeiss-lens",
-        label: "Ranger — Lenses by Zeiss",
-        shortLabel: "Zeiss Lens",
-        image: ZEISS_IMG,
-      },
-      {
-        slug: "bleequp-ranger-ultimate-bundle",
-        label: "Ranger — Ultimate Bundle",
-        shortLabel: "Ultimate Bundle",
-        image: BUNDLE_IMG,
-      },
-    ],
+    // Bumped to v3 so the closeable expo popup re-shows after the mobile close-button fix.
+    newsletterDismissedKey: "verveacesports_newsletter_dismissed_v3",
+    rangerProducts: [...ROVER_LINEUP, ...RANGER_LINEUP],
     accessoryProducts: [
+      ...ROVER_ACCESSORIES,
       {
         slug: "bleequp-power-plus",
         label: "Power Plus",
@@ -121,9 +175,9 @@ export const SITES: Record<SiteId, SiteConfig> = {
     hosts: ["ca.bleequp.com"],
     name: "BleeqUp Canada",
     shortName: "BleeqUp",
-    tagline: "AI Sports Camera Glasses",
+    tagline: "Rover & Ranger AI Sports Glasses",
     description:
-      "Authorized BleeqUp retailer for Canada. Shop Ranger AI sports camera glasses and accessories — CAD pricing, free returns within 30 days.",
+      "Buy BleeqUp Rover and Ranger AI sports glasses in Canada. Official authorized retailer — CAD pricing and free 30-day returns.",
     supportEmail: "info@bleequp.ca",
     freeShippingOver: 500,
     categories: ["ai-glasses", "wearables"],
@@ -132,28 +186,11 @@ export const SITES: Record<SiteId, SiteConfig> = {
     cartStorageKey: "bleeq_ca_cart_v1",
     themeStorageKey: "bleeq_ca_theme_v1",
     newsletterSubscribedKey: "bleeq_ca_newsletter_subscribed_v1",
-    newsletterDismissedKey: "bleeq_ca_newsletter_dismissed_v1",
-    rangerProducts: [
-      {
-        slug: "bleequp-ranger-standard-lens",
-        label: "Ranger — Standard Lens",
-        shortLabel: "Standard Lens",
-        image: RANGER_IMG,
-      },
-      {
-        slug: "bleequp-ranger-zeiss-lens",
-        label: "Ranger — Lenses by Zeiss",
-        shortLabel: "Zeiss Lens",
-        image: ZEISS_IMG,
-      },
-      {
-        slug: "bleequp-ranger-ultimate-bundle",
-        label: "Ranger — Ultimate Bundle",
-        shortLabel: "Ultimate Bundle",
-        image: BUNDLE_IMG,
-      },
-    ],
+    // Bumped to v3 so the closeable expo popup re-shows after the mobile close-button fix.
+    newsletterDismissedKey: "bleeq_ca_newsletter_dismissed_v3",
+    rangerProducts: [...ROVER_LINEUP, ...RANGER_LINEUP],
     accessoryProducts: [
+      ...ROVER_ACCESSORIES,
       {
         slug: "bleequp-power-plus",
         label: "Power Plus",

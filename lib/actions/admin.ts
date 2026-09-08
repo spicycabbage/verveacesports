@@ -1,30 +1,16 @@
 "use server";
 
 import { z } from "zod";
-import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
+import { requireAdmin } from "@/lib/auth/admin";
+import { getSessionUser } from "@/lib/auth/session";
 import { revalidatePath } from "next/cache";
+import { updateCatalogCache } from "@/lib/catalog/invalidate";
 
 const statusSchema = z.object({
   orderId: z.string().uuid(),
   status: z.enum(["pending", "paid", "shipped", "delivered", "cancelled"]),
 });
-
-async function requireAdmin(): Promise<{ ok: true } | { ok: false; error: string }> {
-  const supabase = await createSupabaseServerClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) return { ok: false, error: "Not authenticated" };
-
-  const { data } = await supabase
-    .from("profiles")
-    .select("is_admin")
-    .eq("id", user.id)
-    .single<{ is_admin: boolean }>();
-  if (!data?.is_admin) return { ok: false, error: "Forbidden" };
-  return { ok: true };
-}
 
 const inventorySchema = z.object({
   productId: z.string().uuid(),
@@ -50,6 +36,7 @@ export async function updateProductInventory(input: z.infer<typeof inventorySche
     .eq("id", parsed.data.productId);
   if (error) return { error: error.message };
 
+  updateCatalogCache();
   revalidatePath("/admin/products");
   revalidatePath("/products");
   revalidatePath(`/products/${parsed.data.slug}`);
@@ -90,10 +77,7 @@ export async function deleteAdminUser(input: { userId: string }) {
   const guard = await requireAdmin();
   if (!guard.ok) return { error: guard.error };
 
-  const supabase = await createSupabaseServerClient();
-  const {
-    data: { user: actor },
-  } = await supabase.auth.getUser();
+  const actor = await getSessionUser();
   if (!actor) return { error: "Not authenticated" };
   if (actor.id === parsed.data.userId) {
     return { error: "You can’t delete your own account from here" };
@@ -106,6 +90,9 @@ export async function deleteAdminUser(input: { userId: string }) {
     .eq("id", parsed.data.userId)
     .maybeSingle();
   if (!target) return { error: "User not found" };
+  if (target.is_admin) {
+    return { error: "Admins can’t be deleted from here — revoke admin first, then delete" };
+  }
 
   const { error } = await admin.auth.admin.deleteUser(parsed.data.userId);
   if (error) {

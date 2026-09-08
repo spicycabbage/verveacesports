@@ -10,10 +10,9 @@ type CountryState = {
   setCountry: (country: CountryCode) => void;
 };
 
-/** Market is set from geo (server cookie) — not persisted client-side. */
+/** Market is set from geo (server cookie) — prices are CAD-only. */
 export const useCountryStore = create<CountryState>()((set) => ({
-  country: "US",
-  currency: "USD",
-  setCountry: (country) =>
-    set({ country, currency: COUNTRIES[country].currency }),
+  country: "CA",
+  currency: "CAD",
+  setCountry: (country) => set({ country, currency: "CAD" }),
 }));

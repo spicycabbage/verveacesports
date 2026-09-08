@@ -2,34 +2,21 @@ import { Suspense } from "react";
 import Link from "next/link";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { formatPrice, formatDate } from "@/lib/utils/format";
-import type { Order, FinancialStatus, OrderFulfillmentStatus } from "@/lib/supabase/types";
-import type { Currency } from "@/lib/constants";
+import type { Order } from "@/lib/supabase/types";
 import { countryName } from "@/lib/constants";
 import { SITES, type SiteId } from "@/lib/site/config";
 import { OrdersToolbar } from "./OrdersToolbar";
+import { Printer } from "lucide-react";
+import { buttonVariants } from "@/components/ui/button";
+import { adminFulfillmentLabel } from "@/lib/orders/status-label";
+import { requireAdminPage } from "@/lib/auth/admin";
+import { cn } from "@/lib/utils";
 
 export const metadata = { title: "Admin · Orders" };
 
 type SearchParams = Promise<{ site?: string }>;
-
-const FIN_VARIANTS: Record<FinancialStatus, "default" | "secondary" | "outline" | "destructive"> = {
-  pending: "secondary",
-  authorized: "outline",
-  paid: "default",
-  partially_refunded: "outline",
-  refunded: "destructive",
-  voided: "destructive",
-};
-
-const FUL_VARIANTS: Record<OrderFulfillmentStatus, "default" | "secondary" | "outline"> = {
-  unfulfilled: "secondary",
-  partially_fulfilled: "outline",
-  fulfilled: "default",
-  restocked: "outline",
-};
 
 function isSiteId(value: string | undefined): value is SiteId {
   return value === "verveace" || value === "bleeq-ca";
@@ -44,6 +31,7 @@ export default async function AdminOrdersPage({
 }: {
   searchParams: SearchParams;
 }) {
+  await requireAdminPage();
   const sp = await searchParams;
   const site = isSiteId(sp.site) ? sp.site : undefined;
 
@@ -94,6 +82,7 @@ export default async function AdminOrdersPage({
                   <TableHead>Fulfillment</TableHead>
                   <TableHead>Country</TableHead>
                   <TableHead className="text-right">Total</TableHead>
+                  <TableHead className="w-[72px] text-right">Invoice</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -102,34 +91,51 @@ export default async function AdminOrdersPage({
                   return (
                     <TableRow key={o.id}>
                       <TableCell>
-                        <Link
-                          href={`/admin/orders/${o.id}`}
-                          className="font-mono text-xs text-primary underline-offset-2 hover:underline"
-                        >
-                          #{o.id.slice(0, 8).toUpperCase()}
-                        </Link>
+                        <div className="flex items-center gap-1.5">
+                          <Link
+                            href={`/admin/orders/${o.id}`}
+                            className="font-mono text-xs text-primary underline-offset-2 hover:underline"
+                          >
+                            #{o.id.slice(0, 8).toUpperCase()}
+                          </Link>
+                          {o.sales_channel === "pos" ? (
+                            <span className="text-xs text-muted-foreground">POS</span>
+                          ) : null}
+                        </div>
                       </TableCell>
                       <TableCell className="text-muted-foreground">
                         {formatDate(o.created_at)}
                       </TableCell>
-                      <TableCell>
-                        <Badge variant={orderSite === "bleeq-ca" ? "secondary" : "default"}>
-                          {siteLabel(orderSite)}
-                        </Badge>
+                      <TableCell>{siteLabel(orderSite)}</TableCell>
+                      <TableCell
+                        className={cn(
+                          "capitalize",
+                          (o.financial_status === "voided" || o.financial_status === "refunded") &&
+                            "text-destructive",
+                        )}
+                      >
+                        {o.financial_status.replace("_", " ")}
                       </TableCell>
-                      <TableCell>
-                        <Badge variant={FIN_VARIANTS[o.financial_status]} className="capitalize">
-                          {o.financial_status.replace("_", " ")}
-                        </Badge>
-                      </TableCell>
-                      <TableCell>
-                        <Badge variant={FUL_VARIANTS[o.fulfillment_status]} className="capitalize">
-                          {o.fulfillment_status.replace("_", " ")}
-                        </Badge>
+                      <TableCell className="capitalize text-muted-foreground">
+                        {adminFulfillmentLabel(
+                          o.fulfillment_status,
+                          o.sales_channel,
+                          o.financial_status,
+                        )}
                       </TableCell>
                       <TableCell>{countryName(o.country)}</TableCell>
                       <TableCell className="text-right tabular-nums">
-                        {formatPrice(Number(o.total), o.currency as Currency)}
+                        {formatPrice(Number(o.total))}
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <Link
+                          href={`/admin/orders/${o.id}/invoice`}
+                          className={buttonVariants({ variant: "outline", size: "sm" })}
+                          title="Print invoice"
+                        >
+                          <Printer className="h-3.5 w-3.5" />
+                          Print
+                        </Link>
                       </TableCell>
                     </TableRow>
                   );
@@ -137,7 +143,7 @@ export default async function AdminOrdersPage({
                 {orders.length === 0 && (
                   <TableRow>
                     <TableCell
-                      colSpan={7}
+                      colSpan={8}
                       className="py-10 text-center text-sm text-muted-foreground"
                     >
                       {site ? "No orders for this property." : "No orders yet."}

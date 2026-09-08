@@ -2,13 +2,13 @@
 
 import { useState } from "react";
 import Image from "next/image";
-import { Check, ChevronDown, Copy, Moon, RotateCcw, Sliders, Sun } from "lucide-react";
+import logo from "@/public/verveace_logo.webp";
+import { Check, ChevronDown, Copy, RotateCcw, Sliders } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   BRAND_SWATCHES,
   SURFACE_SWATCHES,
   type ThemeColors,
-  type ThemeMode,
 } from "@/lib/theme/tokens";
 import { useTheme } from "./ThemeProvider";
 import { ColorPicker } from "./ColorPicker";
@@ -70,10 +70,8 @@ function ThemePreview({ colors }: { colors: ThemeColors }) {
         style={{ backgroundColor: colors.background, borderColor: colors.border }}
       >
         <Image
-          src="/verveace_logo.webp"
+          src={logo}
           alt="VerveaceSports"
-          width={130}
-          height={30}
           className="h-6 w-auto"
         />
         <span className="ml-auto text-[11px]" style={{ color: colors["muted-foreground"] }}>
@@ -155,15 +153,13 @@ type ThemeEditorPanelProps = {
 };
 
 export function ThemeEditorPanel({ variant = "page" }: ThemeEditorPanelProps) {
-  const { mode, colors, setMode, setBrand, setBackground, resetMode, copyCss } = useTheme();
+  const { colors, setBrand, setBackground, resetMode, copyCss } = useTheme();
   const isModal = variant === "modal";
 
-  const surfaces = SURFACE_SWATCHES[mode];
+  const surfaces = SURFACE_SWATCHES.dark;
 
   const body = (
     <div className="space-y-6">
-      <ModeToggle mode={mode} onChange={setMode} />
-
       <ThemePreview colors={colors} />
 
       <section className="space-y-2.5">
@@ -191,7 +187,7 @@ export function ThemeEditorPanel({ variant = "page" }: ThemeEditorPanelProps) {
       <section className="space-y-2.5">
         <div>
           <p className="text-sm font-semibold">
-            {mode === "dark" ? "Dark background" : "Light background"}
+            Background
           </p>
           <p className="text-xs text-muted-foreground">
             The page backdrop. Cards &amp; surfaces are shaded from this automatically.
@@ -217,7 +213,7 @@ export function ThemeEditorPanel({ variant = "page" }: ThemeEditorPanelProps) {
       <div className="flex gap-2">
         <Button variant="outline" size="sm" onClick={resetMode} className="flex-1">
           <RotateCcw className="size-4" data-icon="inline-start" />
-          Reset {mode}
+          Reset
         </Button>
         <Button variant="secondary" size="sm" onClick={copyCss} className="flex-1">
           <Copy className="size-4" data-icon="inline-start" />
@@ -238,35 +234,3 @@ export function ThemeEditorPanel({ variant = "page" }: ThemeEditorPanelProps) {
   return <div className="mx-auto max-w-lg">{body}</div>;
 }
 
-function ModeToggle({ mode, onChange }: { mode: ThemeMode; onChange: (mode: ThemeMode) => void }) {
-  return (
-    <div>
-      <p className="mb-1.5 text-sm font-semibold">Editing theme</p>
-      <div className="grid grid-cols-2 gap-1 rounded-lg border border-border bg-muted/40 p-1">
-        {(["light", "dark"] as const).map((value) => {
-          const active = mode === value;
-          const Icon = value === "light" ? Sun : Moon;
-          return (
-            <button
-              key={value}
-              type="button"
-              onClick={() => onChange(value)}
-              aria-pressed={active}
-              className={`flex items-center justify-center gap-1.5 rounded-md px-3 py-1.5 text-sm font-medium capitalize transition-colors ${
-                active
-                  ? "bg-background text-foreground shadow-sm ring-1 ring-border"
-                  : "text-muted-foreground hover:text-foreground"
-              }`}
-            >
-              <Icon className="size-4" />
-              {value}
-            </button>
-          );
-        })}
-      </div>
-      <p className="mt-1.5 text-xs text-muted-foreground">
-        Customers switch between these two with the toggle in the header.
-      </p>
-    </div>
-  );
-}

@@ -125,6 +125,10 @@ export type Location = {
   is_active: boolean;
   is_default: boolean;
   priority: number;
+  stripe_location_id: string | null;
+  stripe_location_id_cad: string | null;
+  tax_country: string | null;
+  tax_region: string | null;
   created_at: string;
 };
 
@@ -166,7 +170,7 @@ export type Collection = {
 export type OrderItem = {
   id: string;
   order_id: string;
-  product_id: string;
+  product_id: string | null;
   variant_id: string | null;
   location_id: string | null;
   sku: string | null;
@@ -181,13 +185,16 @@ export type OrderItem = {
   product_image: string | null;
 };
 
+export type SalesChannel = "online" | "pos";
+
 export type Order = {
   id: string;
-  user_id: string;
+  user_id: string | null;
   site_id: "verveace" | "bleeq-ca";
   status: OrderStatus;
   financial_status: FinancialStatus;
   fulfillment_status: OrderFulfillmentStatus;
+  sales_channel: SalesChannel;
   currency: "USD" | "CAD";
   email: string | null;
   subtotal: number;

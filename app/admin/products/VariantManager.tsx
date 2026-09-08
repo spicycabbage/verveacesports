@@ -2,6 +2,7 @@
 
 import {
   forwardRef,
+  useEffect,
   useImperativeHandle,
   useRef,
   useState,
@@ -23,8 +24,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { updateProductOptions, updateVariantDetails } from "@/lib/actions/catalog";
-import { createVariant, setInventoryOnHand } from "@/lib/actions/inventory";
+import { createVariant } from "@/lib/actions/inventory";
 import type { ProductOption } from "@/lib/supabase/types";
 import { Plus } from "lucide-react";
 
@@ -48,16 +48,36 @@ type Props = {
   locationId: string;
   productOptions: ProductOption[];
   variants: AdminVariantRow[];
-  defaultPriceUsd: number;
   defaultPriceCad: number;
 };
 
+export type VariantDraft = {
+  variantId: string;
+  sku?: string;
+  title: string;
+  option1: string | null;
+  option2: string | null;
+  option3: string | null;
+  priceUsd: number;
+  priceCad: number;
+  isActive: boolean;
+  onHand?: number;
+};
+
+export type VariantManagerDraft = {
+  persistOptions: boolean;
+  option1Name?: string;
+  option2Name?: string;
+  option3Name?: string;
+  variants: VariantDraft[];
+};
+
 export type VariantManagerHandle = {
-  saveAll: () => Promise<{ ok: true } | { error: string } | null>;
+  getDraft: () => VariantManagerDraft | { error: string };
 };
 
 export const VariantManager = forwardRef<VariantManagerHandle, Props>(function VariantManager(
-  { productId, locationId, productOptions, variants, defaultPriceUsd, defaultPriceCad },
+  { productId, locationId, productOptions, variants, defaultPriceCad },
   ref,
 ) {
   const router = useRouter();
@@ -72,7 +92,6 @@ export const VariantManager = forwardRef<VariantManagerHandle, Props>(function V
   const [newOpt1, setNewOpt1] = useState("");
   const [newOpt2, setNewOpt2] = useState("");
   const [newOpt3, setNewOpt3] = useState("");
-  const [newUsd, setNewUsd] = useState(String(defaultPriceUsd));
   const [newCad, setNewCad] = useState(String(defaultPriceCad));
   const [newStock, setNewStock] = useState("0");
 
@@ -84,34 +103,25 @@ export const VariantManager = forwardRef<VariantManagerHandle, Props>(function V
   useImperativeHandle(
     ref,
     () => ({
-      async saveAll() {
-        if (optionLabelsDirty) {
-          const res = await updateProductOptions({
-            productId,
-            option1Name: opt1Name || undefined,
-            option2Name: opt2Name || undefined,
-            option3Name: opt3Name || undefined,
-          });
-          if ("error" in res) return res;
-        }
-
-        let anyVariantChange = false;
+      getDraft() {
+        const rows: VariantDraft[] = [];
         for (const v of variants) {
           const handle = rowRefs.current.get(v.id);
           if (!handle) continue;
-          const res = await handle.saveIfDirty();
-          if (res === null) continue;
-          anyVariantChange = true;
-          if ("error" in res) return res;
+          const row = handle.getDraft();
+          if ("error" in row) return row;
+          rows.push(row);
         }
-
-        if (!optionLabelsDirty && !anyVariantChange) {
-          return null;
-        }
-        return { ok: true };
+        return {
+          persistOptions: optionLabelsDirty,
+          option1Name: opt1Name || undefined,
+          option2Name: opt2Name || undefined,
+          option3Name: opt3Name || undefined,
+          variants: rows,
+        };
       },
     }),
-    [optionLabelsDirty, opt1Name, opt2Name, opt3Name, productId, variants],
+    [optionLabelsDirty, opt1Name, opt2Name, opt3Name, variants],
   );
 
   function addVariant() {
@@ -127,7 +137,7 @@ export const VariantManager = forwardRef<VariantManagerHandle, Props>(function V
         option1: newOpt1 || undefined,
         option2: newOpt2 || undefined,
         option3: newOpt3 || undefined,
-        priceUsd: Number(newUsd),
+        priceUsd: Number(newCad),
         priceCad: Number(newCad),
         initialStock: Number(newStock) || 0,
       });
@@ -202,7 +212,6 @@ export const VariantManager = forwardRef<VariantManagerHandle, Props>(function V
                   <TableHead>SKU</TableHead>
                   <TableHead>{opt1Name || "Opt 1"}</TableHead>
                   <TableHead>{opt2Name || "Opt 2"}</TableHead>
-                  <TableHead>USD</TableHead>
                   <TableHead>CAD</TableHead>
                   <TableHead>Stock</TableHead>
                   <TableHead>Active</TableHead>
@@ -247,8 +256,7 @@ export const VariantManager = forwardRef<VariantManagerHandle, Props>(function V
               onChange={setNewOpt2}
               placeholder="Black"
             />
-            <Field label="USD" value={newUsd} onChange={setNewUsd} type="number" />
-            <Field label="CAD" value={newCad} onChange={setNewCad} type="number" />
+            <Field label="Price (CAD)" value={newCad} onChange={setNewCad} type="number" />
             <Field label="Initial stock" value={newStock} onChange={setNewStock} type="number" />
           </div>
           <Button onClick={addVariant} disabled={pending}>
@@ -289,12 +297,12 @@ function Field({
 }
 
 export type VariantRowHandle = {
-  saveIfDirty: () => Promise<{ ok: true } | { error: string } | null>;
+  getDraft: () => VariantDraft | { error: string };
 };
 
 function VariantRow({
-  productId,
-  locationId,
+  productId: _productId,
+  locationId: _locationId,
   variant: v,
   opt1Label,
   opt2Label,
@@ -311,72 +319,49 @@ function VariantRow({
   const [sku, setSku] = useState(v.sku ?? "");
   const [opt1, setOpt1] = useState(v.option1 ?? "");
   const [opt2, setOpt2] = useState(v.option2 ?? "");
-  const [usd, setUsd] = useState(String(v.priceUsd));
   const [cad, setCad] = useState(String(v.priceCad));
   const [active, setActive] = useState(v.isActive);
   const [qty, setQty] = useState("");
 
-  const variantDirty =
-    title !== v.title ||
-    sku !== (v.sku ?? "") ||
-    opt1 !== (v.option1 ?? "") ||
-    opt2 !== (v.option2 ?? "") ||
-    usd !== String(v.priceUsd) ||
-    cad !== String(v.priceCad) ||
-    active !== v.isActive;
+  const handleRef = useRef<VariantRowHandle>({
+    getDraft: () => ({ error: "Variant row not ready" }),
+  });
 
-  const handleRef = useRef<VariantRowHandle>({ saveIfDirty: async () => null });
-
-  handleRef.current.saveIfDirty = async () => {
-    const stockTarget = qty.trim() === "" ? null : Number.parseInt(qty, 10);
-    const stockDirty =
-      stockTarget !== null &&
-      !Number.isNaN(stockTarget) &&
-      stockTarget >= 0 &&
-      stockTarget !== v.onHand;
-
-    if (!variantDirty && !stockDirty) {
-      return null;
-    }
-
-    if (stockTarget !== null && (Number.isNaN(stockTarget) || stockTarget < 0)) {
+  // Imperative handle for the parent's Save: (re)registered after every commit
+  // so it always reads the latest field state. Refs must not be touched during render.
+  const getDraft = (): VariantDraft | { error: string } => {
+    const stockTarget = qty.trim() === "" ? undefined : Number.parseInt(qty, 10);
+    if (stockTarget !== undefined && (Number.isNaN(stockTarget) || stockTarget < 0)) {
       return { error: "Enter a valid stock quantity (0 or higher)" };
     }
 
-    const usdNum = Number(usd);
     const cadNum = Number(cad);
-    if (Number.isNaN(usdNum) || usdNum < 0 || Number.isNaN(cadNum) || cadNum < 0) {
-      return { error: "Enter valid variant prices (0 or higher)" };
+    if (Number.isNaN(cadNum) || cadNum < 0) {
+      return { error: "Enter a valid variant price (0 or higher)" };
     }
 
-    if (variantDirty) {
-      const res = await updateVariantDetails({
-        variantId: v.id,
-        productId,
-        sku: sku || undefined,
-        title,
-        option1: opt1 || undefined,
-        option2: opt2 || undefined,
-        priceUsd: usdNum,
-        priceCad: cadNum,
-        isActive: active,
-      });
-      if ("error" in res) return res;
-    }
-
-    if (stockDirty && stockTarget !== null) {
-      const res = await setInventoryOnHand({
-        variantId: v.id,
-        locationId,
-        onHand: stockTarget,
-      });
-      if ("error" in res) return res;
-    }
-
-    return { ok: true };
+    return {
+      variantId: v.id,
+      sku: sku || undefined,
+      title,
+      option1: opt1 || null,
+      option2: opt2 || null,
+      option3: v.option3,
+      priceUsd: cadNum,
+      priceCad: cadNum,
+      isActive: active,
+      onHand: stockTarget,
+    };
   };
 
-  rowRefs.current.set(v.id, handleRef.current);
+  useEffect(() => {
+    handleRef.current.getDraft = getDraft;
+    const rows = rowRefs.current;
+    rows.set(v.id, handleRef.current);
+    return () => {
+      rows.delete(v.id);
+    };
+  });
 
   return (
     <TableRow>
@@ -391,9 +376,6 @@ function VariantRow({
       </TableCell>
       <TableCell>
         <Input className="h-8 w-20" value={opt2} onChange={(e) => setOpt2(e.target.value)} placeholder={opt2Label} />
-      </TableCell>
-      <TableCell>
-        <Input className="h-8 w-20 tabular-nums" type="number" step="0.01" value={usd} onChange={(e) => setUsd(e.target.value)} />
       </TableCell>
       <TableCell>
         <Input className="h-8 w-20 tabular-nums" type="number" step="0.01" value={cad} onChange={(e) => setCad(e.target.value)} />

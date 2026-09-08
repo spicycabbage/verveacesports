@@ -1,6 +1,7 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
-import type { Product, ProductOption } from "@/lib/supabase/types";
+import type { Product } from "@/lib/supabase/types";
 import { normalizeVariantPrices } from "@/lib/catalog/pricing";
+import { getDefaultLocation } from "@/lib/catalog/default-location";
 import type { StorefrontVariant } from "@/lib/utils/variants";
 
 /** First variant per product (lowest position) for quick-add on product cards. */
@@ -59,20 +60,18 @@ export async function loadStorefrontVariants(
   productId: string,
   fallbackStock?: number,
 ): Promise<StorefrontVariant[]> {
-  const { data: location } = await client
-    .from("locations")
-    .select("id")
-    .eq("is_default", true)
-    .maybeSingle();
-
-  const { data: variants } = await client
-    .from("product_variants")
-    .select(
-      "id, option1, option2, option3, title, price_usd, price_cad, is_active, position, image_url",
-    )
-    .eq("product_id", productId)
-    .eq("is_active", true)
-    .order("position", { ascending: true });
+  // Default location is cached cross-request (1h) — no per-PDP query for it.
+  const [location, { data: variants }] = await Promise.all([
+    getDefaultLocation(),
+    client
+      .from("product_variants")
+      .select(
+        "id, option1, option2, option3, title, price_usd, price_cad, is_active, position, image_url",
+      )
+      .eq("product_id", productId)
+      .eq("is_active", true)
+      .order("position", { ascending: true }),
+  ]);
 
   if (!variants?.length) return [];
 
@@ -103,17 +102,6 @@ export async function loadStorefrontVariants(
         ? fallbackStock
         : (avail.get(v.id) ?? 0),
   }));
-}
-
-export function parseProductOptions(raw: unknown): ProductOption[] {
-  if (!Array.isArray(raw)) return [];
-  return raw.filter(
-    (o): o is ProductOption =>
-      typeof o === "object" &&
-      o !== null &&
-      typeof (o as ProductOption).name === "string" &&
-      Array.isArray((o as ProductOption).values),
-  );
 }
 
 export type ProductWithDefaultVariant = Product & {

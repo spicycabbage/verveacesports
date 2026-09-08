@@ -1,0 +1,13 @@
+---
+description: One-off POS products are admin-only — never checkout
+alwaysApply: true
+---
+
+# POS custom items & manual discounts
+
+Cashiers on `/admin/pos` only (`requireAdmin`):
+
+- One-off name/price (`allowCustomItems: true`)
+- Manual `$` / `%` off, or a real promo code (`allowManualDiscount: true`)
+
+Never add `customItems`, `allowCustomItems`, or `allowManualDiscount` to storefront cart or `/api/checkout` / `/api/stripe/payment-intent`. Checkout stays catalog + legit codes only.

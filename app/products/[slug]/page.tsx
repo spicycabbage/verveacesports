@@ -4,53 +4,61 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { ProductDetailPanel } from "@/components/product/ProductDetailPanel";
 import { ProductReviews } from "@/components/product/ProductReviews";
 import { ProductGrid } from "@/components/product/ProductGrid";
-import {
-  attachDefaultVariantIds,
-  loadStorefrontVariants,
-  parseProductOptions,
-} from "@/lib/catalog/variants";
+import { loadStorefrontVariants } from "@/lib/catalog/variants";
+import { parseProductOptions } from "@/lib/catalog/product-options";
+import { getActiveProductBySlug, getRelatedProducts } from "@/lib/catalog/queries";
 import type { Product } from "@/lib/supabase/types";
 import type { Metadata } from "next";
 import { getSite } from "@/lib/site/get-site";
-import { applySiteCatalogFilter, categoryAllowedOnSite } from "@/lib/site/catalog";
-import { metaDescription, siteAbsoluteUrl } from "@/lib/site/seo";
+import { categoryAllowedOnSite } from "@/lib/site/catalog";
+import {
+  inferProductBrand,
+  metaDescription,
+  productBreadcrumbJsonLd,
+  productMetaDescription,
+  productMetaTitle,
+  siteAbsoluteUrl,
+} from "@/lib/site/seo";
 import { JsonLd } from "@/components/seo/JsonLd";
 import {
   getProductReviews,
   getReviewEligibility,
-} from "@/lib/actions/reviews";
+} from "@/lib/reviews/queries";
 import { summarizeReviews } from "@/lib/reviews/summary";
 import { LOCALE_COOKIE, parseLocaleCookie } from "@/lib/i18n/locale";
 import { getDictionary } from "@/lib/i18n/dictionary";
 import { categoryLabelFromDict } from "@/lib/i18n/helpers";
+import { sizedImageUrl } from "@/lib/images/cdn";
 
 type Params = Promise<{ slug: string }>;
 
+// Product + related products come from "use cache" reads (lib/catalog/queries) —
+// shared across requests and between generateMetadata and the page.
+
 export async function generateMetadata({ params }: { params: Params }): Promise<Metadata> {
   const { slug } = await params;
-  const supabase = await createSupabaseServerClient();
-  const { data } = await supabase
-    .from("products")
-    .select("name, description, images")
-    .eq("slug", slug)
-    .single();
+  const [site, data] = await Promise.all([getSite(), getActiveProductBySlug(slug)]);
   if (!data) return { title: "Product" };
+  if (!categoryAllowedOnSite(site, data.category)) {
+    return { title: "Product", robots: { index: false, follow: false } };
+  }
 
-  const description = metaDescription(data.description ?? "");
-  const image = (data.images as string[] | null)?.[0];
+  const title = productMetaTitle(site, data.name);
+  const description = productMetaDescription(site, data.description ?? "");
+  const image = sizedImageUrl((data.images as string[] | null)?.[0], 1200);
   return {
-    title: data.name,
+    title,
     description,
     alternates: { canonical: `/products/${slug}` },
     openGraph: {
-      title: data.name,
+      title: `${title} | ${site.name}`,
       description,
       url: `/products/${slug}`,
       ...(image ? { images: [{ url: image, alt: data.name }] } : {}),
     },
     twitter: {
       card: "summary_large_image",
-      title: data.name,
+      title: `${title} | ${site.name}`,
       description,
       ...(image ? { images: [image] } : {}),
     },
@@ -58,55 +66,44 @@ export async function generateMetadata({ params }: { params: Params }): Promise<
 }
 
 export default async function ProductDetailPage({ params }: { params: Params }) {
-  const site = await getSite();
-  const cookieStore = await cookies();
-  const dict = getDictionary(parseLocaleCookie(cookieStore.get(LOCALE_COOKIE)?.value));
   const { slug } = await params;
-  const supabase = await createSupabaseServerClient();
-  const { data: product } = await supabase
-    .from("products")
-    .select("*")
-    .eq("slug", slug)
-    .eq("is_active", true)
-    .single();
+  const [site, cookieStore, supabase, product] = await Promise.all([
+    getSite(),
+    cookies(),
+    createSupabaseServerClient(),
+    getActiveProductBySlug(slug),
+  ]);
+  const dict = getDictionary(parseLocaleCookie(cookieStore.get(LOCALE_COOKIE)?.value));
   if (!product) notFound();
   if (!categoryAllowedOnSite(site, product.category)) notFound();
 
-  const variants = await loadStorefrontVariants(supabase, product.id, Number(product.stock));
   const productOptions = parseProductOptions(product.options);
 
-  let relatedQuery = applySiteCatalogFilter(
-    supabase
-      .from("products")
-      .select("*")
-      .eq("is_active", true)
-      .eq("category", product.category)
-      .neq("id", product.id)
-      .limit(4),
-    site,
-  );
-  const { data: relatedRaw } = await relatedQuery;
-  const related = await attachDefaultVariantIds(supabase, relatedRaw ?? []);
-
-  const reviews = await getProductReviews(product.id);
+  // Independent reads — fan out instead of a 6-deep await waterfall. Variant
+  // availability + review eligibility are live (per-request); the rest is cached.
+  const [variants, related, reviews, eligibility] = await Promise.all([
+    loadStorefrontVariants(supabase, product.id, Number(product.stock)),
+    getRelatedProducts({ siteId: site.id, category: product.category, excludeId: product.id }),
+    getProductReviews(product.id),
+    getReviewEligibility(product.id),
+  ]);
   const summary = summarizeReviews(reviews);
-  const eligibility = await getReviewEligibility(product.id);
 
-  const isCad = site.lockMarket === "CA";
   const productUrl = siteAbsoluteUrl(site, `/products/${product.slug}`);
   const productJsonLd = {
     "@context": "https://schema.org",
     "@type": "Product",
     name: product.name,
     description: metaDescription(product.description ?? "", 5000),
-    image: (product.images as string[]) ?? [],
+    image: ((product.images as string[]) ?? []).map((src) => sizedImageUrl(src, 1200)),
     url: productUrl,
     sku: product.slug,
+    brand: { "@type": "Brand", name: inferProductBrand(product.name) },
     offers: {
       "@type": "Offer",
       url: productUrl,
-      priceCurrency: isCad ? "CAD" : "USD",
-      price: isCad ? Number(product.price_cad) : Number(product.price_usd),
+      priceCurrency: "CAD",
+      price: Number(product.price_cad),
       availability:
         Number(product.stock) > 0
           ? "https://schema.org/InStock"
@@ -142,6 +139,14 @@ export default async function ProductDetailPage({ params }: { params: Params }) 
   return (
     <div className="mx-auto max-w-7xl overflow-x-hidden px-4 py-4 sm:py-8">
       <JsonLd data={productJsonLd} />
+      <JsonLd
+        data={productBreadcrumbJsonLd({
+          site,
+          category: product.category,
+          name: product.name,
+          slug: product.slug,
+        })}
+      />
       <ProductDetailPanel
         product={product as Product}
         variants={variants}

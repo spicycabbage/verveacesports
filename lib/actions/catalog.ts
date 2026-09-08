@@ -2,12 +2,12 @@
 
 import { z } from "zod";
 import { revalidatePath } from "next/cache";
+import { updateCatalogCache } from "@/lib/catalog/invalidate";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { requireAdmin } from "@/lib/auth/admin";
 import { CATEGORIES } from "@/lib/constants";
 
 const PRODUCT_IMAGE_BUCKET = "product-images";
-const MAX_IMAGE_BYTES = 5 * 1024 * 1024;
 
 type ActionResult = { ok: true } | { error: string };
 
@@ -31,6 +31,124 @@ const updateProductSchema = z.object({
     )
     .max(12),
 });
+
+const saveProductEditSchema = updateProductSchema.extend({
+  locationId: z.string().uuid().optional(),
+  option1Name: z.string().trim().max(40).optional(),
+  option2Name: z.string().trim().max(40).optional(),
+  option3Name: z.string().trim().max(40).optional(),
+  persistOptions: z.boolean().optional(),
+  variants: z
+    .array(
+      z.object({
+        variantId: z.string().uuid(),
+        sku: z.string().trim().max(64).optional(),
+        title: z.string().trim().min(1).max(120),
+        option1: z.union([z.string().trim().max(120), z.null()]).optional(),
+        option2: z.union([z.string().trim().max(120), z.null()]).optional(),
+        option3: z.union([z.string().trim().max(120), z.null()]).optional(),
+        priceUsd: z.coerce.number().nonnegative(),
+        priceCad: z.coerce.number().nonnegative(),
+        isActive: z.boolean(),
+        onHand: z.number().int().min(0).optional(),
+      }),
+    )
+    .max(50)
+    .optional(),
+});
+
+/**
+ * One request, one getUser(). Chaining catalog + variant actions burns the
+ * refresh token on the first call and 401s the price write.
+ */
+export async function saveProductEdit(
+  input: z.infer<typeof saveProductEditSchema>,
+): Promise<ActionResult> {
+  const parsed = saveProductEditSchema.safeParse(input);
+  if (!parsed.success) return { error: parsed.error.issues[0]?.message ?? "Invalid input" };
+
+  const guard = await requireAdmin();
+  if (!guard.ok) return { error: guard.error };
+
+  const admin = createSupabaseAdminClient();
+  const d = parsed.data;
+
+  const { data: existing, error: fetchErr } = await admin
+    .from("products")
+    .select("slug")
+    .eq("id", d.productId)
+    .single<{ slug: string }>();
+  if (fetchErr || !existing) return { error: "Product not found" };
+
+  const productPatch: Record<string, unknown> = {
+    name: d.name,
+    description: d.description,
+    category: d.category,
+    is_active: d.isActive,
+    images: d.images,
+  };
+
+  if (d.persistOptions) {
+    productPatch.options = [
+      d.option1Name ? { name: d.option1Name, values: [] as string[] } : null,
+      d.option2Name ? { name: d.option2Name, values: [] as string[] } : null,
+      d.option3Name ? { name: d.option3Name, values: [] as string[] } : null,
+    ].filter(Boolean);
+  }
+
+  if (d.variants?.length === 1) {
+    const cad = d.variants[0].priceCad;
+    productPatch.price_usd = cad;
+    productPatch.price_cad = cad;
+  }
+
+  const { error: productErr } = await admin
+    .from("products")
+    .update(productPatch)
+    .eq("id", d.productId);
+  if (productErr) return { error: productErr.message };
+
+  for (const v of d.variants ?? []) {
+    const { data: updated, error: variantErr } = await admin
+      .from("product_variants")
+      .update({
+        sku: v.sku || null,
+        title: v.title || "Default",
+        option1: v.option1 ?? null,
+        option2: v.option2 ?? null,
+        option3: v.option3 ?? null,
+        price_usd: v.priceCad,
+        price_cad: v.priceCad,
+        is_active: v.isActive,
+      })
+      .eq("id", v.variantId)
+      .eq("product_id", d.productId)
+      .select("id, price_usd, price_cad")
+      .maybeSingle<{ id: string; price_usd: number; price_cad: number }>();
+    if (variantErr) return { error: variantErr.message };
+    if (!updated) return { error: "Variant not found — price was not saved" };
+    if (
+      Math.round(Number(updated.price_usd) * 100) !== Math.round(v.priceCad * 100) ||
+      Math.round(Number(updated.price_cad) * 100) !== Math.round(v.priceCad * 100)
+    ) {
+      return { error: "Price write did not stick — refresh and try again" };
+    }
+
+    if (v.onHand !== undefined && d.locationId) {
+      const { error: stockErr } = await admin.rpc("inventory_set_on_hand", {
+        p_variant: v.variantId,
+        p_location: d.locationId,
+        p_new_on_hand: v.onHand,
+        p_note: "Admin product save",
+        p_actor: guard.userId,
+      });
+      if (stockErr) return { error: stockErr.message };
+    }
+  }
+
+  revalidateCatalog(d.productId, existing.slug);
+  return { ok: true };
+}
 
 export async function updateProductCatalog(
   input: z.infer<typeof updateProductSchema>,
@@ -104,45 +222,6 @@ export async function setProductStorefrontVisibility(
 
   revalidateCatalog(productId, product.slug);
   return { ok: true };
-}
-
-export async function uploadProductImage(
-  formData: FormData,
-): Promise<{ url: string } | { error: string }> {
-  const guard = await requireAdmin();
-  if (!guard.ok) return { error: guard.error };
-
-  const productId = formData.get("productId");
-  const file = formData.get("file");
-  if (typeof productId !== "string" || !z.string().uuid().safeParse(productId).success) {
-    return { error: "Invalid product" };
-  }
-  if (!(file instanceof File) || file.size === 0) return { error: "No file selected" };
-  if (file.size > MAX_IMAGE_BYTES) return { error: "Image must be 5 MB or smaller" };
-  if (!file.type.startsWith("image/")) return { error: "File must be an image" };
-
-  const ext = file.name.split(".").pop()?.toLowerCase() || "jpg";
-  const safeExt = ["jpg", "jpeg", "png", "webp", "gif"].includes(ext) ? ext : "jpg";
-  const path = `${productId}/${crypto.randomUUID()}.${safeExt}`;
-
-  const admin = createSupabaseAdminClient();
-  const buffer = Buffer.from(await file.arrayBuffer());
-  const { error: uploadError } = await admin.storage
-    .from(PRODUCT_IMAGE_BUCKET)
-    .upload(path, buffer, {
-      contentType: file.type,
-      upsert: false,
-    });
-  if (uploadError) {
-    return {
-      error: uploadError.message.includes("Bucket not found")
-        ? "Storage bucket product-images is missing — run migration 0007 or create the bucket in Supabase Storage"
-        : uploadError.message,
-    };
-  }
-
-  const { data: urlData } = admin.storage.from(PRODUCT_IMAGE_BUCKET).getPublicUrl(path);
-  return { url: urlData.publicUrl };
 }
 
 const optionSchema = z.object({
@@ -226,7 +305,7 @@ export async function updateVariantDetails(
       option1: d.option1 || null,
       option2: d.option2 || null,
       option3: d.option3 || null,
-      price_usd: d.priceUsd,
+      price_usd: d.priceCad,
       price_cad: d.priceCad,
       is_active: d.isActive,
     })
@@ -292,6 +371,7 @@ async function deleteProductRecord(
 }
 
 function revalidateAfterProductDelete(slug: string) {
+  updateCatalogCache();
   revalidatePath("/admin/products");
   revalidatePath("/products");
   revalidatePath(`/products/${slug}`);
@@ -359,6 +439,7 @@ export async function deleteProducts(
 }
 
 function revalidateCatalog(productId: string, slug: string) {
+  updateCatalogCache();
   revalidatePath("/admin/products");
   revalidatePath(`/admin/products/${productId}`);
   revalidatePath("/products");

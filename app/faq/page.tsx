@@ -12,7 +12,8 @@ export async function generateMetadata() {
   const cookieStore = await cookies();
   const dict = getDictionary(parseLocaleCookie(cookieStore.get(LOCALE_COOKIE)?.value));
   return {
-    title: dict.faq.title,
+    title:
+      site.id === "bleeq-ca" ? { absolute: "BleeqUp Canada FAQ" } : dict.faq.title,
     description: interpolate(
       site.id === "bleeq-ca" ? dict.faq.introBleeq : dict.faq.introVerveace,
       { email: site.supportEmail },
@@ -56,7 +57,9 @@ export default async function FaqPage() {
         {" / "}
         {dict.faq.title}
       </p>
-      <h1 className="mt-4 text-2xl font-bold tracking-tight sm:text-3xl">{dict.faq.title}</h1>
+      <h1 className="mt-4 text-2xl font-bold tracking-tight sm:text-3xl">
+        {site.id === "bleeq-ca" ? "BleeqUp Canada FAQ" : dict.faq.title}
+      </h1>
       <p className="mt-3 text-sm leading-relaxed text-muted-foreground sm:text-base">
         {intro.split(site.supportEmail).map((part, i, arr) =>
           i < arr.length - 1 ? (

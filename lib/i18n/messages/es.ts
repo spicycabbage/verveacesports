@@ -72,6 +72,14 @@ export const es: Dictionary = {
     "golf-gear": "Equipo de golf",
   },
 
+  cartFeatures: {
+    followMe: "Follow Me",
+    remote: "Mando",
+    noRemote: "Sin mando",
+    gps: "GPS",
+    pickCategory: "Pasa el cursor sobre una categoría para ver los carros",
+  },
+
   products: {
     allProducts: "Todos los productos",
     shopAllTitle: "Ver todos los productos",
@@ -86,7 +94,7 @@ export const es: Dictionary = {
     searching: "Buscando:",
     clearSearch: "Borrar búsqueda",
     all: "Todos",
-    shopRanger: "Comprar Ranger",
+    shopRanger: "Comprar Ranger y Rover",
     rangerMeta:
       "{n} modelos disponibles · Devoluciones gratuitas en 30 días · Gana 1 punto de fidelidad por dólar",
   },
@@ -296,7 +304,7 @@ export const es: Dictionary = {
           },
           {
             q: "¿El envío es gratis?",
-            a: "Los pedidos de {freeShippingOver} $ USD o más (o {freeShippingOver} $ CAD en el pago canadiense) tienen envío estándar gratuito dentro de EE. UU. y Canadá. Los pedidos más pequeños muestran la tarifa de envío antes de pagar.",
+            a: "Los pedidos de {freeShippingOver} $ CAD o más tienen envío estándar gratuito dentro de EE. UU. y Canadá. Los pedidos más pequeños muestran la tarifa de envío antes de pagar.",
           },
           {
             q: "¿Cuándo llegará mi pedido?",
@@ -333,8 +341,8 @@ export const es: Dictionary = {
             a: "Sí. VerveaceSports es distribuidor autorizado de las gafas-cámara con IA BleeqUp y de los carros de golf eléctricos, caddies y accesorios MGI & Motocaddy.",
           },
           {
-            q: "¿Por qué los precios aparecen en USD o CAD?",
-            a: "Los precios se muestran en USD para compradores de Estados Unidos y en CAD para compradores canadienses según el mercado seleccionado. La moneda que aparece en cada página de producto y al finalizar la compra es el importe que se te cobrará.",
+            q: "¿Por qué los precios están en CAD?",
+            a: "Cada precio y total de pago está en dólares canadienses (CAD). Se te cobrará en CAD independientemente del país de envío.",
           },
           {
             q: "¿Y si un artículo está agotado?",
@@ -561,7 +569,7 @@ export const es: Dictionary = {
         {
           title: "Productos y precios",
           body: [
-            "Los precios se muestran en USD o CAD según el país seleccionado. Los impuestos y el envío se calculan al finalizar la compra.",
+            "Los precios se muestran en CAD. Los impuestos y el envío se calculan al finalizar la compra.",
             "Nos esforzamos por mostrar un inventario exacto, pero el stock no está garantizado hasta que se autorice tu pago. Podemos cancelar pedidos afectados por errores de precio o falta de stock y reembolsaremos cualquier cargo.",
             "Las imágenes y descripciones de los productos son ilustrativas; pueden producirse pequeñas variaciones.",
           ],
@@ -612,7 +620,7 @@ export const es: Dictionary = {
         },
       ],
       productsPricingVerveace:
-        "Los precios se muestran en USD o CAD según el país seleccionado. Los impuestos y el envío se calculan al finalizar la compra.",
+        "Los precios se muestran en CAD. Los impuestos y el envío se calculan al finalizar la compra.",
       productsPricingBleeq:
         "Los precios se muestran en CAD. Los impuestos y el envío se calculan al finalizar la compra.",
       shippingBodyVerveace:
@@ -659,7 +667,14 @@ export const es: Dictionary = {
     descVerveace:
       "Recibe lanzamientos BleeqUp, ofertas exclusivas y avisos de nuevos productos de VerveaceSports.",
     descBleeq:
-      "Suscríbete al boletín para participar y ganar un par GRATIS de BleeqUp Rangers AI Glasses",
+      "Suscríbete al boletín para participar y ganar un par GRATIS de gafas BleeqUp Ranger AI",
+    eventDesc:
+      "Visítanos en el stand 58 y participa para ganar un par GRATIS de gafas BleeqUp Ranger AI. Suscríbete para entrar y recibir un recordatorio antes del evento.",
+    eventKicker: "Ven a vernos",
+    eventName: "VeloSpoke Bike Expo",
+    eventBooth: "Stand 58",
+    eventMeta: "Vie. 11 sept. 2026 · 11:00–20:00 · Vancouver Convention Centre East, Hall B · Entrada gratis",
+    eventLink: "Detalles del evento",
     email: "Correo electrónico",
     emailPlaceholder: "tu@ejemplo.com",
     subscribe: "Suscribirse",
@@ -701,19 +716,19 @@ export const es: Dictionary = {
 
   bleeq: {
     trust: {
-      promo: "Usa el código NBDA2026 para 10% de descuento",
+      promo: "Usa el código fondo2026 para 20% de descuento. Caduca el 25 sept. 2026",
       promoDesktop:
-        "Usa el código NBDA2026 para 10% de descuento. Envío gratis en pedidos superiores a {amount} $.",
+        "Usa el código fondo2026 para 20% de descuento. Caduca el 25 sept. 2026",
     },
     header: {
-      shopRanger: "Comprar Ranger",
+      shopRanger: "Comprar",
       accessories: "Accesorios",
       support: "Soporte",
       faq: "FAQ",
       allProducts: "Todos los productos",
       supportFaq: "Soporte / FAQ",
-      viewAllModels: "Ver todos los modelos Ranger ?",
-      allAccessories: "Todos los accesorios ?",
+      viewAllModels: "Ver todos los modelos →",
+      allAccessories: "Todos los accesorios →",
       canada: "Canadá",
     },
     footer: {

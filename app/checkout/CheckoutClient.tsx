@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { useHydrated } from "@/lib/hooks/use-hydrated";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Elements } from "@stripe/react-stripe-js";
@@ -59,6 +60,7 @@ type Quote = {
   freeShipping: boolean;
   tax: number;
   taxRate: number;
+  taxLines?: { label: string; amount: number }[];
   shipping: number;
   redeemPoints: number;
   redeemValue: number;
@@ -68,7 +70,7 @@ type Quote = {
 type IntentResp = Quote & {
   clientSecret: string;
   orderId: string;
-  currency: "USD" | "CAD";
+  currency: "CAD";
 };
 
 type CreateIntentResult = { clientSecret: string; orderId: string };
@@ -92,8 +94,7 @@ export function CheckoutClient({
   const setPromoCode = useCartStore((s) => s.setPromoCode);
   const setCountry = useCountryStore((s) => s.setCountry);
   const router = useRouter();
-  const [mounted, setMounted] = useState(false);
-  useEffect(() => setMounted(true), []);
+  const mounted = useHydrated();
   useEffect(() => {
     setCountry(defaultMarket);
   }, [defaultMarket, setCountry]);
@@ -110,7 +111,7 @@ export function CheckoutClient({
   });
 
   const checkoutCountry = shipping.country;
-  const checkoutCurrency = COUNTRIES[checkoutCountry].currency;
+  const checkoutCurrency = "CAD" as const;
   const stripePromise = useMemo(() => getStripeClient(checkoutCurrency), [checkoutCurrency]);
 
   const [pointsToRedeem, setPointsToRedeem] = useState(0);
@@ -188,9 +189,11 @@ export function CheckoutClient({
   );
 
   // Baseline quote (tax/shipping) when cart or region changes — no promo applied.
+  // Debounced: coalesces the burst of dep changes on mount/typing into one request.
   useEffect(() => {
     if (!mounted || items.length === 0 || promoCode) return;
-    void fetchQuote(null);
+    const t = window.setTimeout(() => void fetchQuote(null), 150);
+    return () => window.clearTimeout(t);
   }, [
     mounted,
     items.length,
@@ -206,7 +209,8 @@ export function CheckoutClient({
   // Re-quote when points or tax region change while a promo is active.
   useEffect(() => {
     if (!mounted || items.length === 0 || !promoCode) return;
-    void fetchQuote(promoCode);
+    const t = window.setTimeout(() => void fetchQuote(promoCode), 150);
+    return () => window.clearTimeout(t);
   }, [mounted, items.length, pointsToRedeem, debouncedState, promoCode, checkoutCountry, fetchQuote]);
 
   function removePromo() {
@@ -510,9 +514,7 @@ export function CheckoutClient({
             <h2 className="text-lg font-semibold">{dict.checkout.payment}</h2>
             {!stripePromise ? (
               <p className="rounded-md border border-destructive/30 bg-destructive/5 p-3 text-sm text-destructive">
-                {checkoutCurrency === "CAD"
-                  ? dict.checkout.cadNotConfigured
-                  : dict.checkout.currencyNotConfigured}
+                {dict.checkout.cadNotConfigured}
               </p>
             ) : quoteLoading && !quote ? (
               <div className="flex items-center justify-center gap-2 py-8 text-sm text-muted-foreground">
@@ -555,7 +557,7 @@ export function CheckoutClient({
             {items.map((i) => {
               const unit =
                 quotedUnitByKey.get(cartLineKey(i)) ??
-                (checkoutCurrency === "CAD" ? i.priceCad : i.priceUsd);
+                i.priceCad;
               return (
                 <li key={cartLineKey(i)} className="flex justify-between gap-2">
                   <span className="text-muted-foreground">
@@ -591,16 +593,25 @@ export function CheckoutClient({
               }
               value={shippingFee === 0 ? dict.checkout.free : formatPrice(shippingFee, checkoutCurrency)}
             />
-            {tax > 0 && (
+            {(summary?.taxLines?.length
+              ? summary.taxLines
+              : tax > 0
+                ? [
+                    {
+                      label: summary?.taxRate
+                        ? t("checkout.taxWithRate", { rate: (summary.taxRate * 100).toFixed(2) })
+                        : dict.checkout.tax,
+                      amount: tax,
+                    },
+                  ]
+                : []
+            ).map((line) => (
               <Row
-                label={
-                  summary?.taxRate
-                    ? t("checkout.taxWithRate", { rate: (summary.taxRate * 100).toFixed(2) })
-                    : dict.checkout.tax
-                }
-                value={formatPrice(tax, checkoutCurrency)}
+                key={line.label}
+                label={line.label}
+                value={formatPrice(line.amount, checkoutCurrency)}
               />
-            )}
+            ))}
             {redeemPts > 0 && (
               <Row
                 label={t("checkout.points", { n: redeemPts.toLocaleString() })}

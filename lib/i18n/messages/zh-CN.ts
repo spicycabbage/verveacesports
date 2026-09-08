@@ -71,6 +71,14 @@ export const zhCN: Dictionary = {
     "golf-gear": "高尔夫装备",
   },
 
+  cartFeatures: {
+    followMe: "跟随模式",
+    remote: "遥控",
+    noRemote: "无遥控",
+    gps: "GPS",
+    pickCategory: "将鼠标悬停在分类上以查看球车",
+  },
+
   products: {
     allProducts: "全部商品",
     shopAllTitle: "查看全部商品",
@@ -85,7 +93,7 @@ export const zhCN: Dictionary = {
     searching: "搜索：",
     clearSearch: "清除搜索",
     all: "全部",
-    shopRanger: "选购 Ranger",
+    shopRanger: "选购 Ranger 与 Rover",
     rangerMeta: "{n} 款型号在售 · 30 天内免费退货 · 每消费 1 美元赚取 1 积分",
   },
 
@@ -643,7 +651,14 @@ export const zhCN: Dictionary = {
   newsletter: {
     title: "保持关注",
     descVerveace: "获取 VerveaceSports 的 BleeqUp 新品、独家优惠和新产品提醒。",
-    descBleeq: "订阅通讯，即有机会赢取一副免费的 BleeqUp Rangers AI Glasses",
+    descBleeq: "订阅通讯，即有机会赢取一副免费的 BleeqUp Ranger AI 眼镜",
+    eventDesc:
+      "欢迎来 58 号展位找我们，即有机会赢取一副免费的 BleeqUp Ranger AI 眼镜。订阅即可参与抽奖，并在展会前收到提醒。",
+    eventKicker: "现场见",
+    eventName: "VeloSpoke Bike Expo",
+    eventBooth: "58 号展位",
+    eventMeta: "2026 年 9 月 11 日（周五）· 11:00–20:00 · Vancouver Convention Centre East, Hall B · 免费入场",
+    eventLink: "活动详情",
     email: "电子邮箱",
     emailPlaceholder: "you@example.com",
     subscribe: "订阅",
@@ -684,18 +699,18 @@ export const zhCN: Dictionary = {
 
   bleeq: {
     trust: {
-      promo: "使用优惠码 NBDA2026 享 10% 优惠",
+      promo: "使用优惠码 fondo2026 享 20% 优惠。有效期至 2026年9月25日",
       promoDesktop:
-        "使用优惠码 NBDA2026 享 10% 优惠。订单满 {amount} 美元免运费。",
+        "使用优惠码 fondo2026 享 20% 优惠。有效期至 2026年9月25日",
     },
     header: {
-      shopRanger: "选购 Ranger",
+      shopRanger: "选购",
       accessories: "配件",
       support: "支持",
       faq: "常见问题",
       allProducts: "全部商品",
       supportFaq: "支持 / 常见问题",
-      viewAllModels: "查看所有 Ranger 型号 →",
+      viewAllModels: "查看全部型号 →",
       allAccessories: "全部配件 →",
       canada: "加拿大",
     },

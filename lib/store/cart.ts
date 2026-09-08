@@ -135,9 +135,9 @@ export const useCartStore = create<CartState>()(
   ),
 );
 
-export function cartSubtotal(items: CartItem[], currency: Currency): number {
+export function cartSubtotal(items: CartItem[], _currency: Currency): number {
   return items.reduce(
-    (sum, i) => sum + (currency === "CAD" ? i.priceCad : i.priceUsd) * i.qty,
+    (sum, i) => sum + i.priceCad * i.qty,
     0,
   );
 }

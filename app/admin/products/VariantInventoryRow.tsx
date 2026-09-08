@@ -128,7 +128,7 @@ export function VariantInventoryRow({
     return (
       <div className="flex flex-wrap items-center gap-3 text-sm">
         <p className="text-xs tabular-nums text-muted-foreground">
-          {formatPrice(variant.priceUsd, "USD")} / {formatPrice(variant.priceCad, "CAD")}
+          {formatPrice(variant.priceCad, "CAD")}
         </p>
         {stats}
         {stockInput}
@@ -145,7 +145,7 @@ export function VariantInventoryRow({
           <span className="ml-2 font-mono text-xs text-muted-foreground">{variant.sku}</span>
         )}
         <p className="text-xs tabular-nums text-muted-foreground">
-          {formatPrice(variant.priceUsd, "USD")} / {formatPrice(variant.priceCad, "CAD")}
+          {formatPrice(variant.priceCad, "CAD")}
         </p>
       </div>
       {stats}

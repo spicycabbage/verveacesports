@@ -13,7 +13,6 @@ import { updateShippingRate } from "@/lib/actions/shipping";
 
 type RateForm = {
   name: string;
-  priceUsd: string;
   priceCad: string;
   freeOver: string;
   isActive: boolean;
@@ -22,7 +21,6 @@ type RateForm = {
 function rateToForm(rate: ShippingRateWithZone): RateForm {
   return {
     name: rate.name,
-    priceUsd: String(rate.price_usd),
     priceCad: String(rate.price_cad),
     freeOver: rate.free_over != null ? String(rate.free_over) : "",
     isActive: rate.is_active,
@@ -42,7 +40,7 @@ function RateEditor({ rate }: { rate: ShippingRateWithZone }) {
       const res = await updateShippingRate({
         rateId: rate.id,
         name: form.name.trim(),
-        priceUsd: Number(form.priceUsd),
+        priceUsd: Number(form.priceCad),
         priceCad: Number(form.priceCad),
         freeOver: form.freeOver.trim() ? Number(form.freeOver) : null,
         isActive: form.isActive,
@@ -88,18 +86,7 @@ function RateEditor({ rate }: { rate: ShippingRateWithZone }) {
             />
           </div>
           <div className="space-y-1.5">
-            <Label htmlFor={`rate-usd-${rate.id}`}>USD shipping fee</Label>
-            <Input
-              id={`rate-usd-${rate.id}`}
-              type="number"
-              min={0}
-              step={0.01}
-              value={form.priceUsd}
-              onChange={(e) => setForm((f) => ({ ...f, priceUsd: e.target.value }))}
-            />
-          </div>
-          <div className="space-y-1.5">
-            <Label htmlFor={`rate-cad-${rate.id}`}>CAD shipping fee</Label>
+            <Label htmlFor={`rate-cad-${rate.id}`}>Shipping fee (CAD)</Label>
             <Input
               id={`rate-cad-${rate.id}`}
               type="number"

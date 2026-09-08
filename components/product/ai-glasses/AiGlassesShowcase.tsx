@@ -70,7 +70,7 @@ export function AiGlassesHero({ className }: { className?: string }) {
             ))}
           </div>
           <a href="#shop-ranger" className={cn(buttonVariants({ size: "lg" }), "mt-2")}>
-            Shop Ranger models
+            Shop Ranger & Rover models
           </a>
         </div>
         <NativeVideoPlayer

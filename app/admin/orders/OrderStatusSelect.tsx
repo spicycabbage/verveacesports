@@ -10,6 +10,7 @@ import {
 import { useTransition } from "react";
 import { toast } from "sonner";
 import { updateOrderStatus } from "@/lib/actions/admin";
+import { adminOrderStatusLabel } from "@/lib/orders/status-label";
 import type { OrderStatus } from "@/lib/supabase/types";
 
 const STATUSES: OrderStatus[] = ["pending", "paid", "shipped", "delivered", "cancelled"];
@@ -30,7 +31,7 @@ export function OrderStatusSelect({
         start(async () => {
           const res = await updateOrderStatus({ orderId, status: v as OrderStatus });
           if (res?.error) toast.error(res.error);
-          else toast.success(`Marked ${v}`);
+          else toast.success(`Marked ${adminOrderStatusLabel(v)}`);
         });
       }}
       disabled={pending}
@@ -41,7 +42,7 @@ export function OrderStatusSelect({
       <SelectContent>
         {STATUSES.map((s) => (
           <SelectItem key={s} value={s} className="capitalize">
-            {s}
+            {adminOrderStatusLabel(s)}
           </SelectItem>
         ))}
       </SelectContent>

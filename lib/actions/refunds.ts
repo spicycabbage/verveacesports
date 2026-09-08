@@ -2,11 +2,12 @@
 
 import { z } from "zod";
 import { revalidatePath } from "next/cache";
+import { updateCatalogCache } from "@/lib/catalog/invalidate";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { getStripe } from "@/lib/stripe/server";
 import { requireAdmin } from "@/lib/auth/admin";
 import { toMinorUnits } from "@/lib/utils/currency";
-import { LOYALTY } from "@/lib/constants";
+import { LOYALTY, type StripeAccountCurrency } from "@/lib/constants";
 
 type ActionResult = { ok: true; refundId: string; amount: number } | { error: string };
 
@@ -57,7 +58,7 @@ export async function refundOrder(input: z.infer<typeof refundSchema>): Promise<
   const remaining = round2(Number(order.total) - alreadyRefunded);
   if (remaining <= 0) return { error: "Order is already fully refunded" };
 
-  const currency = order.currency as "USD" | "CAD";
+  const currency: StripeAccountCurrency = order.currency === "CAD" ? "CAD" : "USD";
   const orderSubtotal = Number(order.subtotal) || 0;
 
   // Resolve which lines (if any) are being refunded and the base line amount.
@@ -199,6 +200,7 @@ export async function refundOrder(input: z.infer<typeof refundSchema>): Promise<
     await admin.rpc("restock_order_inventory", { p_order: order.id });
   }
 
+  updateCatalogCache();
   revalidatePath("/admin/orders");
   revalidatePath(`/admin/orders/${order.id}`);
   revalidatePath(`/account/orders/${order.id}`);

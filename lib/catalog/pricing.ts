@@ -16,6 +16,6 @@ export function normalizeVariantPrices(row: {
   };
 }
 
-export function pickVariantPrice(prices: VariantPrices, currency: Currency): number {
-  return currency === "CAD" ? prices.priceCad : prices.priceUsd;
+export function pickVariantPrice(prices: VariantPrices, _currency?: Currency): number {
+  return prices.priceCad;
 }

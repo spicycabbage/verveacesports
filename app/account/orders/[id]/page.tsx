@@ -10,8 +10,8 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { formatPrice, formatDate } from "@/lib/utils/format";
-import type { Currency } from "@/lib/constants";
 import { countryName } from "@/lib/constants";
+import { GST_NUMBER } from "@/lib/tax/label";
 import type { OrderStatus } from "@/lib/supabase/types";
 import { ArrowLeft } from "lucide-react";
 import { buttonVariants } from "@/components/ui/button";
@@ -35,7 +35,7 @@ export default async function OrderDetailPage({ params }: { params: Params }) {
     pending: dict.account.status_pending,
     paid: dict.account.status_paid,
     shipped: dict.account.status_shipped,
-    delivered: dict.account.status_delivered,
+    delivered: dict.account.status_shipped,
     cancelled: dict.account.status_cancelled,
   };
   const { data: order } = await supabase
@@ -50,7 +50,7 @@ export default async function OrderDetailPage({ params }: { params: Params }) {
     .select("*")
     .eq("order_id", id);
 
-  const currency = order.currency as Currency;
+  const currency = "CAD" as const;
 
   return (
     <div className="space-y-6">
@@ -122,6 +122,7 @@ export default async function OrderDetailPage({ params }: { params: Params }) {
               label={<strong>{dict.checkout.total}</strong>}
               value={<strong>{formatPrice(Number(order.total), currency)}</strong>}
             />
+            <p className="pt-2 text-xs text-muted-foreground">GST/HST {GST_NUMBER}</p>
           </div>
           {order.shipping_address && (
             <>
