@@ -4,7 +4,6 @@ import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { ChevronDown, ChevronRight } from "lucide-react";
-import { sizedImageUrl } from "@/lib/images/cdn";
 import { cn } from "@/lib/utils";
 import type { Category } from "@/lib/constants";
 import type { CartFeatureId } from "@/lib/catalog/cart-features";
@@ -14,6 +13,7 @@ export type NavMegaProduct = {
   slug: string;
   name: string;
   image: string | null;
+  translations?: unknown;
 };
 
 export type NavCartFeature = {
@@ -33,8 +33,9 @@ export type NavMegaCategory = {
 
 const CLOSE_MS = 120;
 
-/** Must match sticky `Header` (announcement 2.25rem + nav 5.2rem on sm+). */
-const MEGA_TOP = "top-[5.75rem] sm:top-[7.45rem]";
+/** Pins under the sticky header. `--announce-h` is 2.25rem or 0 when dismissed. */
+const MEGA_TOP =
+  "top-[calc(var(--announce-h,2.25rem)+3.5rem)] sm:top-[calc(var(--announce-h,2.25rem)+5.2rem)]";
 
 function ProductGrid({
   products,
@@ -55,7 +56,7 @@ function ProductGrid({
           <div className="relative aspect-square w-full overflow-hidden bg-[#f5f5f5]">
             {p.image ? (
               <Image
-                src={sizedImageUrl(p.image, 400)}
+                src={p.image}
                 alt={p.name}
                 fill
                 sizes="(max-width: 768px) 40vw, 200px"

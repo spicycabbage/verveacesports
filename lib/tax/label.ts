@@ -104,6 +104,7 @@ export function taxLinesForOrder(order: {
   subtotal: number;
   discount_total?: number | null;
   points_value?: number | null;
+  shipping?: number | null;
   shipping_address?: { state?: string | null; country?: string | null } | null;
 }): TaxLine[] {
   const taxableBase = Math.max(
@@ -111,7 +112,8 @@ export function taxLinesForOrder(order: {
     round2(
       Number(order.subtotal) -
         Number(order.discount_total ?? 0) -
-        Number(order.points_value ?? 0),
+        Number(order.points_value ?? 0) +
+        Number(order.shipping ?? 0),
     ),
   );
   return buildTaxLines({

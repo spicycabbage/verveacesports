@@ -30,12 +30,15 @@ const schema = z.object({
     .max(20)
     .default([]),
   siteId: z.enum(["verveace", "bleeq-ca"]),
-  readerId: z.string().min(3).max(64),
+  collect: z.enum(["reader", "tap_to_pay"]).default("reader"),
+  readerId: z.string().min(3).max(64).optional(),
   discountCode: z.string().trim().min(1).max(64).optional(),
   email: z.string().trim().max(200).optional(),
   customerName: z.string().trim().max(80).optional(),
 }).refine((data) => data.items.length + data.customItems.length > 0, {
   message: "Add an item first",
+}).refine((data) => data.collect !== "reader" || Boolean(data.readerId), {
+  message: "Reader required",
 });
 
 export async function POST(req: NextRequest) {

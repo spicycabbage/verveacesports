@@ -18,6 +18,15 @@ export async function Logo({ className }: { className?: string }) {
           className="h-8 w-auto sm:h-12"
           priority
         />
+      ) : site.id === "volt-ca" ? (
+        <Image
+          src={siteLogoPath(site)}
+          alt={site.name}
+          width={220}
+          height={36}
+          className="h-7 w-auto sm:h-10"
+          priority
+        />
       ) : (
         <Image
           src={verveaceLogo}

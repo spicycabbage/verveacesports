@@ -3,7 +3,7 @@
 import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
 import type { Currency } from "@/lib/constants";
-import { SITE_COOKIE, SITES, type SiteId } from "@/lib/site/config";
+import { isSiteId, SITE_COOKIE, SITES, type SiteId } from "@/lib/site/config";
 
 function readSiteIdFromCookie(): SiteId {
   if (typeof document === "undefined") return "verveace";
@@ -11,7 +11,7 @@ function readSiteIdFromCookie(): SiteId {
     new RegExp(`(?:^|; )${SITE_COOKIE.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}=([^;]*)`),
   );
   const id = match?.[1];
-  if (id === "bleeq-ca" || id === "verveace") return id;
+  if (isSiteId(id)) return id;
   return "verveace";
 }
 
@@ -46,6 +46,8 @@ export type CartItem = {
   priceUsd: number;
   priceCad: number;
   stock: number;
+  /** Per-locale names from `products.translations` — used when the slug isn't in catalog files. */
+  translations?: unknown;
 };
 
 export function cartLineKey(item: Pick<CartItem, "productId" | "variantId">): string {

@@ -35,6 +35,16 @@ const nextConfig: NextConfig = {
   // The root layout is host + cookie bound (multi-tenant, locale), so routes stay
   // dynamic — the win is data caching + tag invalidation, not a static shell.
   cacheComponents: true,
+  async redirects() {
+    return [
+      {
+        source: "/:path*",
+        has: [{ type: "host", value: "www.verveacesports.com" }],
+        destination: "https://verveacesports.com/:path*",
+        permanent: true,
+      },
+    ];
+  },
   async headers() {
     return [
       {
@@ -46,6 +56,24 @@ const nextConfig: NextConfig = {
         headers: [
           { key: "Cache-Control", value: "no-cache, no-store, must-revalidate" },
           { key: "Service-Worker-Allowed", value: "/" },
+        ],
+      },
+      {
+        source: "/rover/:path*",
+        headers: [
+          {
+            key: "Cache-Control",
+            value: "public, max-age=31536000, immutable",
+          },
+        ],
+      },
+      {
+        source: "/catalog/:path*",
+        headers: [
+          {
+            key: "Cache-Control",
+            value: "public, max-age=31536000, immutable",
+          },
         ],
       },
     ];
@@ -63,8 +91,8 @@ const nextConfig: NextConfig = {
     "/apple-touch-icon-precomposed.png": ["./public/icons/**"],
   },
   images: {
-    loader: "custom",
-    loaderFile: "./lib/images/loader.ts",
+    // Do not set loader: "custom". Next answers /_next/image with the 404 page
+    // unless the loader is "default", and every catalog <Image> points there.
     formats: ["image/avif", "image/webp"],
     // Next 16 only allows listed qualities; 82/90 are used on LCP assets.
     qualities: [75, 82, 90],
@@ -75,11 +103,7 @@ const nextConfig: NextConfig = {
     remotePatterns: [
       { protocol: "https", hostname: "images.unsplash.com" },
       { protocol: "https", hostname: "*.supabase.co" },
-      { protocol: "https", hostname: "cdn.shopify.com" },
-      { protocol: "https", hostname: "www.bleequp.com" },
       { protocol: "https", hostname: "i.ytimg.com" },
-      { protocol: "https", hostname: "www.powergolfcarts.shop" },
-      { protocol: "https", hostname: "static.wixstatic.com" },
     ],
   },
 };

@@ -1,16 +1,29 @@
-/** Convert ISO timestamptz to `datetime-local` input value (local timezone). */
+import { STORE_TIMEZONE, wallTimeToUtc } from "@/lib/utils/format";
+
+/** `datetime-local` value on the Pacific clock. */
 export function toDatetimeLocalValue(iso: string | null | undefined): string {
   if (!iso) return "";
   const d = new Date(iso);
   if (Number.isNaN(d.getTime())) return "";
-  const pad = (n: number) => String(n).padStart(2, "0");
-  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+  const parts = new Intl.DateTimeFormat("en-US", {
+    timeZone: STORE_TIMEZONE,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    hourCycle: "h23",
+  }).formatToParts(d);
+  const get = (type: Intl.DateTimeFormatPartTypes) =>
+    parts.find((p) => p.type === type)?.value ?? "";
+  return `${get("year")}-${get("month")}-${get("day")}T${get("hour")}:${get("minute")}`;
 }
 
-/** Parse `datetime-local` or empty string to ISO timestamptz, or null. */
+/** Parse a Pacific `datetime-local` value to an ISO instant. */
 export function parseOptionalDatetime(value: string | undefined): string | null {
-  if (!value?.trim()) return null;
-  const d = new Date(value);
+  const match = value?.trim().match(/^(\d{4}-\d{2}-\d{2})T(\d{2}:\d{2})/);
+  if (!match) return null;
+  const d = wallTimeToUtc(match[1], `${match[2]}:00`);
   if (Number.isNaN(d.getTime())) return null;
   return d.toISOString();
 }

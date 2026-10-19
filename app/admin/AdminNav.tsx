@@ -3,7 +3,6 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
-  LayoutDashboard,
   Package,
   Boxes,
   Ticket,
@@ -17,32 +16,34 @@ import {
   LogOut,
 } from "lucide-react";
 import { SIGN_OUT_PATH } from "@/lib/constants";
+import { useUnfulfilledOrderCount } from "@/components/admin/AdminOrderAlerts";
+import { usePendingLiveChatCount } from "@/components/admin/usePendingLiveChatCount";
 import { cn } from "@/lib/utils";
 
 const NAV = [
-  { href: "/admin", label: "Overview", icon: LayoutDashboard },
   { href: "/admin/orders", label: "Orders", icon: Package },
+  { href: "/admin/chat", label: "Chat", icon: MessageCircle },
   { href: "/admin/pos", label: "POS", icon: CreditCard },
   { href: "/admin/users", label: "Users", icon: Users },
   { href: "/admin/finance", label: "Finance", icon: BarChart3 },
   { href: "/admin/analytics", label: "Analytics", icon: LineChart },
   { href: "/admin/products", label: "Products", icon: Boxes },
-  { href: "/admin/chat", label: "Chat", icon: MessageCircle },
   { href: "/admin/warranty", label: "Warranty", icon: Shield },
   { href: "/admin/discounts", label: "Coupons", icon: Ticket },
   { href: "/admin/shipping", label: "Shipping", icon: Truck },
 ] as const;
 
 function isActive(pathname: string, href: string) {
-  if (href === "/admin") return pathname === "/admin";
   return pathname === href || pathname.startsWith(`${href}/`);
 }
 
 export function AdminNav() {
   const pathname = usePathname();
+  const unfulfilled = useUnfulfilledOrderCount();
+  const livePending = usePendingLiveChatCount();
 
   return (
-    <aside className="min-w-0 space-y-1 print:hidden">
+    <aside className="min-w-0 space-y-1 print:hidden" data-admin-nav>
       <h2 className="mb-2 hidden px-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground md:block">
         Admin
       </h2>
@@ -57,7 +58,20 @@ export function AdminNav() {
               isActive(pathname, item.href) && "bg-accent",
             )}
           >
-            <item.icon className="h-4 w-4" /> {item.label}
+            <span className="relative">
+              <item.icon className="h-4 w-4" />
+              {item.href === "/admin/orders" && unfulfilled > 0 ? (
+                <span className="absolute -right-2 -top-2 inline-flex h-4 min-w-4 items-center justify-center rounded-full bg-red-600 px-1 text-[10px] font-bold leading-none text-white">
+                  {unfulfilled > 99 ? "99+" : unfulfilled}
+                </span>
+              ) : null}
+              {item.href === "/admin/chat" && livePending > 0 ? (
+                <span className="absolute -right-2 -top-2 inline-flex h-4 min-w-4 items-center justify-center rounded-full bg-red-600 px-1 text-[10px] font-bold leading-none text-white">
+                  {livePending > 99 ? "99+" : livePending}
+                </span>
+              ) : null}
+            </span>{" "}
+            {item.label}
           </Link>
         ))}
         {/* Plain <a>: next/link would prefetch GET /api/auth/sign-out. */}

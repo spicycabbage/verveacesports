@@ -40,11 +40,22 @@ type ListRow = {
 };
 
 function isSiteId(value: string | undefined | null): value is SiteId {
-  return value === "verveace" || value === "bleeq-ca";
+  return value === "verveace" || value === "bleeq-ca" || value === "volt-ca";
 }
 
 function originLabel(siteId: SiteId): string {
-  return siteId === "bleeq-ca" ? "BUC" : "VAS";
+  switch (siteId) {
+    case "bleeq-ca":
+      return "BUC";
+    case "volt-ca":
+      return "VTC";
+    case "verveace":
+      return "VAS";
+    default: {
+      const _exhaustive: never = siteId;
+      return _exhaustive;
+    }
+  }
 }
 
 function displayName(row: ListRow): string {

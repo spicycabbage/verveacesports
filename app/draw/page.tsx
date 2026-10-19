@@ -9,7 +9,9 @@ import { getDictionary } from "@/lib/i18n/dictionary";
 
 export async function generateMetadata() {
   const site = await getSite();
-  if (site.id !== "bleeq-ca") return { title: "Draw" };
+  if (site.id !== "bleeq-ca") {
+    return { title: "Draw", robots: { index: false, follow: false } };
+  }
   const cookieStore = await cookies();
   const dict = getDictionary(parseLocaleCookie(cookieStore.get(LOCALE_COOKIE)?.value));
   return {

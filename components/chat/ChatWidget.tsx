@@ -6,6 +6,7 @@ import { useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { chatUi } from "@/lib/i18n/chat-ui";
 import { useLocale } from "@/lib/i18n/I18nProvider";
+import { readStoredLiveChat } from "@/lib/chat/live-agent";
 import { useChatStore } from "@/lib/store/chat";
 import { useCartStore } from "@/lib/store/cart";
 import { useSite } from "@/lib/site/SiteProvider";
@@ -16,7 +17,7 @@ import { cn } from "@/lib/utils";
 const ChatPanel = dynamic(() => import("@/components/chat/ChatPanel"), { ssr: false });
 
 export function ChatWidget() {
-  const { isOpen, hasOpened, close, toggle } = useChatStore();
+  const { isOpen, hasOpened, close, requestClose, toggle } = useChatStore();
   const cartOpen = useCartStore((s) => s.isOpen);
   const locale = useLocale();
   const site = useSite();
@@ -25,6 +26,12 @@ export function ChatWidget() {
   useEffect(() => {
     if (cartOpen) close();
   }, [cartOpen, close]);
+
+  useEffect(() => {
+    if (readStoredLiveChat()) {
+      useChatStore.setState({ hasOpened: true });
+    }
+  }, []);
 
   // Keep ChatPanel mounted while the cart drawer is open (it renders nothing
   // when closed) so the conversation isn't thrown away.
@@ -48,7 +55,7 @@ export function ChatWidget() {
       )}
 
       {hasOpened && (
-        <ChatPanel open={isOpen && !cartOpen} ui={ui} locale={locale} onClose={close} />
+        <ChatPanel open={isOpen && !cartOpen} ui={ui} locale={locale} onClose={requestClose} />
       )}
     </>
   );

@@ -11,6 +11,7 @@ export type BrevoSendInput = {
   html: string;
   text: string;
   sender: BrevoSender;
+  replyTo?: BrevoSender;
 };
 
 export type BrevoSendResult = { ok: true; messageId?: string } | { ok: false; error: string };
@@ -47,6 +48,9 @@ export async function sendBrevoEmail(input: BrevoSendInput): Promise<BrevoSendRe
           name: input.sender.name,
           email: input.sender.email,
         },
+        ...(input.replyTo
+          ? { replyTo: { name: input.replyTo.name, email: input.replyTo.email } }
+          : {}),
         to: [
           {
             email: toEmail,

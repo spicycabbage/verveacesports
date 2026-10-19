@@ -11,6 +11,8 @@ export function sitePwaChrome(siteId: SiteId): SitePwaChrome {
   switch (siteId) {
     case "bleeq-ca":
       return { themeColor: "#0a0a0a", backgroundColor: "#0a0a0a" };
+    case "volt-ca":
+      return { themeColor: "#f6efe6", backgroundColor: "#f6efe6" };
     case "verveace":
       return { themeColor: "#193d63", backgroundColor: "#193d63" };
     default: {

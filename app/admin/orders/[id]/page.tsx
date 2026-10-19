@@ -8,7 +8,7 @@ import { buttonVariants } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
 import { formatPrice, formatDate } from "@/lib/utils/format";
 import { countryName } from "@/lib/constants";
-import { SITES, type SiteId } from "@/lib/site/config";
+import { adminPropertyLabel } from "@/lib/site/config";
 import type {
   Order,
   OrderItem,
@@ -24,17 +24,20 @@ import { InvoiceActions } from "./InvoiceActions";
 import { adminFulfillmentLabel } from "@/lib/orders/status-label";
 import { requireAdminPage } from "@/lib/auth/admin";
 import { taxLinesForOrder } from "@/lib/tax/label";
+import { formatOrderNumber } from "@/lib/orders/number";
+import { orderVariantLabel } from "@/lib/orders/variant-label";
+import { resolveOrderSiteId } from "@/lib/orders/send-order-email";
+import { TrackingLink } from "@/components/orders/TrackingLink";
 
 export const metadata = { title: "Admin · Order" };
 
-function isSiteId(value: string | undefined | null): value is SiteId {
-  return value === "verveace" || value === "bleeq-ca";
-}
-
-const FIN_VARIANTS: Record<FinancialStatus, "default" | "secondary" | "outline" | "destructive"> = {
+const FIN_VARIANTS: Record<
+  FinancialStatus,
+  "success" | "secondary" | "outline" | "destructive"
+> = {
   pending: "secondary",
   authorized: "outline",
-  paid: "default",
+  paid: "success",
   partially_refunded: "outline",
   refunded: "destructive",
   voided: "destructive",
@@ -51,7 +54,7 @@ export default async function AdminOrderDetailPage({ params }: { params: Params 
   if (!orderData) notFound();
   const order = orderData as Order;
   const currency = "CAD" as const;
-  const orderSite = isSiteId(order.site_id) ? order.site_id : "verveace";
+  const orderSite = resolveOrderSiteId(order);
 
   const [{ data: itemsData }, { data: paymentsData }, { data: refundsData }, { data: fulfillmentsData }] =
     await Promise.all([
@@ -91,16 +94,14 @@ export default async function AdminOrderDetailPage({ params }: { params: Params 
               <div className="flex flex-wrap items-start justify-between gap-2">
                 <div>
                   <h1 className="text-xl font-bold tracking-tight">
-                    Order #{order.id.slice(0, 8).toUpperCase()}
+                    Order {formatOrderNumber(order)}
                   </h1>
                   <p className="text-sm text-muted-foreground">{formatDate(order.created_at)}</p>
                   {order.email && <p className="text-sm text-muted-foreground">{order.email}</p>}
                 </div>
                 <div className="flex flex-col items-end gap-1">
                   {order.sales_channel === "pos" && <Badge variant="outline">In-person POS</Badge>}
-                  <Badge variant={orderSite === "bleeq-ca" ? "secondary" : "default"}>
-                    {SITES[orderSite].name}
-                  </Badge>
+                  <p className="text-sm text-foreground">{adminPropertyLabel(orderSite)}</p>
                   <Badge variant={FIN_VARIANTS[order.financial_status]} className="capitalize">
                     {order.financial_status.replace("_", " ")}
                   </Badge>
@@ -120,6 +121,9 @@ export default async function AdminOrderDetailPage({ params }: { params: Params 
                   <div key={it.id} className="flex items-center justify-between gap-3 text-sm">
                     <div className="min-w-0">
                       <p className="font-medium">{it.product_name}</p>
+                      {orderVariantLabel(it.variant_title) ? (
+                        <p>{orderVariantLabel(it.variant_title)}</p>
+                      ) : null}
                       <p className="text-muted-foreground">
                         {it.sku ? `${it.sku} · ` : ""}Qty {it.qty}
                         {it.fulfilled_qty > 0 ? ` · ${it.fulfilled_qty} fulfilled` : ""}
@@ -191,7 +195,16 @@ export default async function AdminOrderDetailPage({ params }: { params: Params 
                   <div key={f.id} className="flex justify-between gap-2 text-muted-foreground">
                     <span>
                       Fulfillment · {f.status}
-                      {f.tracking_number ? ` · ${f.tracking_company ?? "tracking"} ${f.tracking_number}` : ""}
+                      {f.tracking_number ? (
+                        <>
+                          {" · "}
+                          <TrackingLink
+                            company={f.tracking_company}
+                            trackingNumber={f.tracking_number}
+                            trackingUrl={f.tracking_url}
+                          />
+                        </>
+                      ) : null}
                     </span>
                     <span>{formatDate(f.created_at)}</span>
                   </div>
@@ -227,6 +240,13 @@ export default async function AdminOrderDetailPage({ params }: { params: Params 
               name: it.product_name,
               remaining: it.qty - it.fulfilled_qty,
             }))}
+            shipments={fulfillments.map((f) => ({
+              id: f.id,
+              company: f.tracking_company,
+              number: f.tracking_number,
+              url: f.tracking_url,
+            }))}
+            hasEmail={Boolean(order.email?.trim())}
           />
           <OrderRefundPanel
             orderId={order.id}
@@ -264,6 +284,7 @@ function ShippingAddress({ address }: { address: Record<string, unknown> }) {
     state?: string;
     postal_code?: string;
     country?: string;
+    phone?: string;
   };
   return (
     <p className="text-muted-foreground">
@@ -275,6 +296,12 @@ function ShippingAddress({ address }: { address: Record<string, unknown> }) {
       {a.city}, {a.state} {a.postal_code}
       <br />
       {countryName(a.country)}
+      {a.phone ? (
+        <>
+          <br />
+          {a.phone}
+        </>
+      ) : null}
     </p>
   );
 }

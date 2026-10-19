@@ -16,6 +16,7 @@ export const fr: Dictionary = {
     profile: "Profil",
     loyaltyPoints: "Points de fidélité",
     referrals: "Parrainages",
+    liveAgent: "Agent en direct",
     admin: "Admin",
     pts: "{n} pts",
     accountMenu: "Menu du compte",
@@ -40,7 +41,7 @@ export const fr: Dictionary = {
     warranty: "Garantie",
     privacy: "Confidentialité",
     terms: "Conditions",
-    themePlayground: "Aire de thèmes",
+    blog: "Blog",
     faq: "FAQ",
     copyright: "© {year} VerveaceSports. Tous droits réservés.",
   },
@@ -94,9 +95,20 @@ export const fr: Dictionary = {
     searching: "Recherche :",
     clearSearch: "Effacer la recherche",
     all: "Tout",
+    filterCategory: "Catégorie",
     shopRanger: "Acheter Ranger et Rover",
     rangerMeta:
       "{n} modèles disponibles · Retours gratuits sous 30 jours · Gagnez 1 point de fidélité par dollar",
+    shopBleeqCanada: "Magasiner BleeqUp Canada",
+    shopRangerBleeq: "Lunettes sport IA BleeqUp Rover et Ranger",
+    rangerMetaDesc:
+      "Magasinez les lunettes sport IA BleeqUp Rover et Ranger au Canada. ZEISS, Standard et ensembles — prix en CAD, retours gratuits sous 30 jours.",
+    aiGlassesMetaDesc:
+      "Magasinez les lunettes caméra sport IA BleeqUp Rover et Ranger. Découvrez les démos, les témoignages d’athlètes et les avis de créateurs. Revendeur agréé, livraison aux États-Unis et au Canada.",
+    metaCloserBleeq:
+      "Revendeur BleeqUp agréé pour le Canada. Prix en CAD, retours gratuits sous 30 jours.",
+    metaCloserVerveace: "Revendeur agréé. Livraison aux États-Unis et au Canada.",
+    metaCloserVolt: "Revendeur Volt Caddy autorisé au Canada. Prix en CAD, livraison au Canada.",
   },
 
   product: {
@@ -168,6 +180,8 @@ export const fr: Dictionary = {
     city: "Ville",
     stateProvince: "État / province",
     postalCode: "Code postal",
+    phone: "Téléphone",
+    phoneInvalid: "Entrez un numéro de téléphone valide",
     country: "Pays",
     unitedStates: "États-Unis",
     canada: "Canada",
@@ -204,6 +218,10 @@ export const fr: Dictionary = {
     completeShipping: "Veuillez compléter le formulaire de livraison.",
     couldNotUpdate: "Impossible de mettre à jour les totaux",
     promoRemoved: "Code promo retiré",
+    checkPaymentDetails: "Vérifiez vos renseignements de paiement",
+    paymentFailed: "Le paiement a échoué",
+    payAgreeBefore: "En effectuant le paiement, vous acceptez nos",
+    securedByStripe: "Sécurisé par Stripe.",
     successConfirmed: "Commande confirmée",
     thankYou: "Merci pour votre commande !",
     viewOrder: "Voir la commande",
@@ -256,6 +274,28 @@ export const fr: Dictionary = {
     status_shipped: "expédiée",
     status_delivered: "livrée",
     status_cancelled: "annulée",
+    tracking: "Suivi",
+    trackPackage: "Suivre le colis",
+    settings: "Paramètres",
+    editInSettings: "Modifier dans les paramètres",
+    name: "Nom",
+    personalTitle: "Informations personnelles",
+    personalDesc: "Votre nom et téléphone tels qu'ils apparaissent sur les commandes et reçus.",
+    phone: "Téléphone",
+    addressTitle: "Adresse par défaut",
+    addressDesc: "Préremplit le paiement et sert à la facturation et à la livraison.",
+    addressLine1: "Adresse",
+    addressLine2: "Appartement, bureau, etc. (facultatif)",
+    city: "Ville",
+    stateProvince: "Province / État",
+    postalCode: "Code postal",
+    addressSaved: "Adresse enregistrée",
+    passwordTitle: "Mot de passe",
+    passwordDescChange: "Modifiez le mot de passe utilisé pour vous connecter.",
+    passwordDescSet: "Vous vous êtes connecté avec Google. Définissez un mot de passe pour aussi vous connecter avec votre e-mail.",
+    currentPassword: "Mot de passe actuel",
+    changePassword: "Changer le mot de passe",
+    setPassword: "Définir un mot de passe",
   },
 
   auth: {
@@ -283,15 +323,31 @@ export const fr: Dictionary = {
     privacyPolicy: "Politique de confidentialité",
     signedIn: "Connecté",
     checkEmailConfirm: "Consultez votre e-mail pour confirmer votre compte.",
+    rememberMe: "Se souvenir de moi",
+    forgotPassword: "Mot de passe oublié ?",
+    forgotTitle: "Réinitialiser votre mot de passe",
+    forgotDesc: "Entrez l'e-mail de votre compte et nous vous enverrons un lien de réinitialisation.",
+    sendResetLink: "Envoyer le lien",
+    resetLinkSent: "Si un compte existe pour cet e-mail, un lien de réinitialisation est en route. Vérifiez votre boîte de réception.",
+    resetLinkExpired: "Ce lien est invalide ou a expiré. Demandez-en un nouveau ci-dessous.",
+    backToSignIn: "Retour à la connexion",
+    resetTitle: "Choisissez un nouveau mot de passe",
+    resetDesc: "Entrez un nouveau mot de passe pour votre compte.",
+    newPassword: "Nouveau mot de passe",
+    confirmPassword: "Confirmer le nouveau mot de passe",
+    passwordsDontMatch: "Les mots de passe ne correspondent pas",
+    updatePassword: "Mettre à jour le mot de passe",
+    passwordUpdated: "Mot de passe mis à jour",
   },
 
   faq: {
     title: "Foire aux questions",
+    titleBleeq: "FAQ BleeqUp Canada",
     home: "Accueil",
     introVerveace:
       "Réponses rapides sur la livraison, les retours, les produits BleeqUp, MGI & Motocaddy, les points de fidélité et le paiement. Vous ne trouvez pas ce qu'il vous faut ? Écrivez à {email}.",
     introBleeq:
-      "Réponses rapides sur la livraison au Canada, les prix en CAD, les retours, les lunettes BleeqUp Ranger, la fidélité et le paiement. Vous ne trouvez pas ce qu'il vous faut ? Écrivez à {email}.",
+      "Réponses rapides sur la livraison au Canada, les prix en CAD, les retours, les lunettes de sport IA BleeqUp Rover et Ranger, la fidélité et le paiement. Vous ne trouvez pas ce qu'il vous faut ? Écrivez à {email}.",
     emailSupport: "Écrivez à {email} pour plus d'aide.",
     sections: {
       ordersShipping: {
@@ -336,8 +392,20 @@ export const fr: Dictionary = {
         title: "Produits & prix",
         items: [
           {
+            q: "Que vendez-vous ?",
+            a: "VerveaceSports est un magasin d'articles de sport multi-marques. Nous vendons les lunettes-caméra de sport IA BleeqUp Rover et Ranger et leurs accessoires, ainsi que les chariots de golf électriques, caddies et accessoires MGI et Motocaddy. Parcourez Lunettes IA, Wearables, Chariots électriques et Équipement de golf sur la page Produits.",
+          },
+          {
             q: "Êtes-vous un revendeur agréé ?",
-            a: "Oui. VerveaceSports est un revendeur agréé des lunettes-caméra IA BleeqUp et des chariots de golf électriques, caddies et accessoires MGI & Motocaddy.",
+            a: "Oui. VerveaceSports est un revendeur agréé des lunettes-caméra IA BleeqUp et des chariots de golf électriques, caddies et accessoires MGI & Motocaddy. Nous ne sommes pas le site fabricant BleeqUp (bleequp.com).",
+          },
+          {
+            q: "Quelles lunettes BleeqUp proposez-vous ?",
+            a: "Nous proposons BleeqUp Rover (ZEISS et Ensemble, plus Rover Power Plus et verres Rover) et BleeqUp Ranger (Verre standard, Verres Zeiss, Ensemble ultime), ainsi que les accessoires partagés : Power Plus, télécommande Bluetooth, câble de charge magnétique, verres interchangeables et service de verres correcteurs. Ouvrez chaque page produit pour les variantes et les prix en CAD.",
+          },
+          {
+            q: "Est-ce le même site que BleeqUp Canada (ca.bleequp.com) ?",
+            a: "Non. VerveaceSports.com est notre boutique multi-marques USA et Canada (BleeqUp + MGI + Motocaddy). BleeqUp Canada sur ca.bleequp.com est une boutique BleeqUp distincte, réservée au Canada, avec des prix en CAD. Les commandes et les comptes sont séparés entre les deux sites.",
           },
           {
             q: "Pourquoi les prix sont-ils en CAD ?",
@@ -436,11 +504,19 @@ export const fr: Dictionary = {
         items: [
           {
             q: "Que vendez-vous ?",
-            a: "Il s'agit d'une boutique BleeqUp dédiée au Canada. Nous vendons les lunettes-caméra de sport IA BleeqUp Ranger et les accessoires officiels (Power Plus, télécommande Bluetooth, verres, câble de charge, options correctrices et objets connectés associés). Nous ne vendons pas de chariots de golf ni d'autres marques sur ce site.",
+            a: "Il s'agit d'une boutique BleeqUp dédiée au Canada. Nous vendons les lunettes-caméra de sport IA BleeqUp Rover et Ranger et les accessoires officiels (Power Plus, Rover Power Plus, télécommande Bluetooth, verres, câble de charge, options correctrices et objets connectés associés). Nous ne vendons pas de chariots de golf ni d'autres marques sur ce site.",
+          },
+          {
+            q: "Quelles lunettes BleeqUp proposez-vous ?",
+            a: "Nous proposons BleeqUp Rover (ZEISS et Ensemble, plus Rover Power Plus et verres Rover) et BleeqUp Ranger (Verre standard, Verres Zeiss, Ensemble ultime), ainsi que Power Plus, télécommande Bluetooth, câble de charge magnétique, verres interchangeables et service de verres correcteurs. Ouvrez chaque page produit pour les prix en CAD et les variantes.",
           },
           {
             q: "Êtes-vous un revendeur BleeqUp agréé ?",
             a: "Oui. Ce site est exploité en tant que revendeur BleeqUp agréé pour le marché canadien. Il ne s'agit pas du site officiel du fabricant BleeqUp (bleequp.com).",
+          },
+          {
+            q: "Est-ce le même site que VerveaceSports.com ?",
+            a: "Non. ca.bleequp.com est BleeqUp Canada — produits BleeqUp seulement, CAD, livraison au Canada. VerveaceSports.com est une boutique multi-marques distincte (BleeqUp + MGI + Motocaddy) qui livre aux États-Unis et au Canada. Les commandes et les comptes sont séparés.",
           },
           {
             q: "Pourquoi les prix sont-ils en CAD ?",
@@ -658,7 +734,20 @@ export const fr: Dictionary = {
       errorProduct: "Sélectionnez un produit",
       errorGeneric: "Une erreur s'est produite. Réessayez.",
       errorConn: "Envoi impossible. Vérifiez votre connexion et réessayez.",
+      otherGolf: "Autre (MGI / Motocaddy / équipement de golf)",
     },
+  },
+
+  site: {
+    verveaceTagline: "Équipement sportif haut de gamme",
+    verveaceDescription:
+      "Revendeur agréé des lunettes caméra sport IA BleeqUp et des chariots de golf électriques, caddies et accessoires MGI et Motocaddy.",
+    bleeqTagline: "Lunettes sport IA Rover et Ranger",
+    bleeqDescription:
+      "Achetez les lunettes sport IA BleeqUp Rover et Ranger au Canada. Revendeur officiel agréé — prix en CAD et retours gratuits sous 30 jours.",
+    voltTagline: "Chariot de golf électrique à télécommande",
+    voltDescription:
+      "Achetez le chariot de golf électrique télécommandé Volt Caddy Pro-S au Canada. Prix en CAD et retours gratuits sous 30 jours.",
   },
 
   newsletter: {
@@ -743,11 +832,15 @@ export const fr: Dictionary = {
       heroKicker: "{shortName} · Canada · CAD",
       shopNow: "Acheter maintenant",
       compareModels: "Comparer les modèles",
-      chooseTitle: "Choisissez votre Ranger",
-      chooseSubtitle: "Standard, Zeiss ou Ultimate Bundle — un clic vers le produit.",
+      chooseTitle: "Achetez BleeqUp Rover",
+      chooseSubtitle:
+        "Rover ZEISS et le ensemble Rover — 3K60 HDR, caméra inclinable et assistant sportif IA.",
+      remainingRangerTitle: "Ranger",
+      remainingRangerSubtitle:
+        "Standard, ZEISS et l'ensemble Ultimate — capture 3K, audio à oreilles libres et protection UV.",
       viewAll: "Tout voir →",
       featuresKicker: "Fonctionnalités du produit",
-      featuresTitle: "Découvrez ce que Ranger sait faire",
+      featuresTitle: "Découvrez ce que BleeqUp sait faire",
       watchMore: "Voir plus sur la page boutique",
       testimonialsKicker: "Ce que disent les clients",
       testimonialsTitle: "Conçu pour votre façon de bouger",
@@ -757,8 +850,27 @@ export const fr: Dictionary = {
       shopAccessories: "Acheter les accessoires →",
       ctaTitle: "Prêt pour votre prochaine sortie ?",
       ctaSubtitle:
-        "Revendeur BleeqUp agréé pour le Canada. Retours gratuits sous 30 jours. Gagnez des points de fidélité à chaque commande.",
-      shopRanger: "Acheter Ranger",
+        "Achetez les lunettes sport IA BleeqUp Rover et Ranger au Canada. Revendeur agréé, prix en CAD, retours gratuits sous 30 jours.",
+      shopRanger: "Acheter Rover",
+      heroSubcopy:
+        "Magasinez les lunettes caméra sport IA BleeqUp au Canada. Caméra POV mains libres, audio à oreilles libres et protection UV — prix en CAD, livraison partout au pays.",
+      heroAlt: "Lunettes sport IA BleeqUp Rover",
+    },
+    showcase: {
+      authorizedRetailer: "Revendeur BleeqUp agréé",
+      shopModels: "Acheter les modèles Ranger et Rover",
+      featuresDesc:
+        "Chaque clip ci-dessous provient du site officiel BleeqUp — stabilisation, montage IA, champ de vision et plus encore.",
+      realAthletes: "Vrais athlètes",
+      testimonialsDesc:
+        "Créateurs et athlètes portant Ranger sur le terrain — POV à la première personne de la communauté officielle BleeqUp.",
+      trustedByCreators: "Adopté par les créateurs",
+      independentReviews: "Avis indépendants",
+      creatorsDesc:
+        "Des créateurs YouTube mettent le Ranger 4-en-1 à l’épreuve en conditions réelles.",
+      gettingStarted: "Pour commencer",
+      questionsFaq: "Des questions ? Consultez notre",
+      orEmail: "ou écrivez à",
     },
   },
 
@@ -776,5 +888,13 @@ export const fr: Dictionary = {
     save: "Enregistrer",
     close: "Fermer",
     error: "Une erreur s'est produite.",
+    offlineTitle: "Vous êtes hors ligne",
+    offlineBody:
+      "Reconnectez-vous pour parcourir {name}. Les prix et le paiement nécessitent une connexion active.",
+    tryAgain: "Réessayer",
+    cadPrices: "Tous les prix sont en dollars canadiens",
+    viewImage: "Voir l’image {n} sur {total}",
+    scrollThumbsLeft: "Faire défiler les miniatures vers la gauche",
+    scrollThumbsRight: "Faire défiler les miniatures vers la droite",
   },
 };

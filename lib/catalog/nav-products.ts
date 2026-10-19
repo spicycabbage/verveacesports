@@ -3,6 +3,7 @@ import type { Category } from "@/lib/constants";
 import type { NavMegaProduct } from "@/components/layout/HeaderCategoryNav";
 import { createSupabasePublicClient } from "@/lib/supabase/public";
 import { CATALOG_CACHE_LIFE, CATALOG_TAG } from "@/lib/catalog/tags";
+import { isMissingColumn } from "@/lib/supabase/order-row";
 
 type NavProductRow = {
   id: string;
@@ -10,6 +11,7 @@ type NavProductRow = {
   name: string;
   category: string | null;
   images: unknown;
+  translations?: unknown;
 };
 
 function productImage(images: unknown): string | null {
@@ -18,7 +20,10 @@ function productImage(images: unknown): string | null {
   return first ?? null;
 }
 
-async function loadNavProducts(categories: readonly string[]): Promise<{
+async function loadNavProducts(
+  categories: readonly string[],
+  slugPrefix: string | null,
+): Promise<{
   byCategory: Record<string, NavMegaProduct[]>;
   electricCartProducts: NavMegaProduct[];
 }> {
@@ -27,12 +32,23 @@ async function loadNavProducts(categories: readonly string[]): Promise<{
   }
 
   const supabase = createSupabasePublicClient();
-  const { data } = await supabase
-    .from("products")
-    .select("id, slug, name, category, images")
-    .eq("is_active", true)
-    .in("category", [...categories])
-    .order("created_at", { ascending: false });
+  const scoped = (columns: string) => {
+    let q = supabase
+      .from("products")
+      .select(columns)
+      .eq("is_active", true)
+      .in("category", [...categories])
+      .order("created_at", { ascending: false });
+    if (slugPrefix) q = q.like("slug", `${slugPrefix}%`);
+    return q;
+  };
+  let { data, error } = await scoped(
+    "id, slug, name, category, images, translations",
+  ).overrideTypes<NavProductRow[]>();
+  if (error && isMissingColumn(error.message, "translations")) {
+    const retry = await scoped("id, slug, name, category, images").overrideTypes<NavProductRow[]>();
+    data = retry.data;
+  }
 
   const byCategory: Record<string, NavMegaProduct[]> = {};
   const electricCartProducts: NavMegaProduct[] = [];
@@ -45,6 +61,7 @@ async function loadNavProducts(categories: readonly string[]): Promise<{
       slug: row.slug,
       name: row.name,
       image: productImage(row.images),
+      translations: row.translations,
     };
     if (category === "electric-carts") {
       electricCartProducts.push(product);
@@ -59,9 +76,12 @@ async function loadNavProducts(categories: readonly string[]): Promise<{
   return { byCategory, electricCartProducts };
 }
 
-export async function getCachedNavProducts(categories: readonly Category[]) {
+export async function getCachedNavProducts(
+  categories: readonly Category[],
+  slugPrefix: string | null = null,
+) {
   "use cache";
   cacheTag(CATALOG_TAG);
   cacheLife(CATALOG_CACHE_LIFE);
-  return loadNavProducts(categories);
+  return loadNavProducts(categories, slugPrefix);
 }

@@ -4,7 +4,7 @@ import Image from "next/image";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { sizedImageUrl } from "@/lib/images/cdn";
+import { useT } from "@/lib/i18n/I18nProvider";
 import { cn } from "@/lib/utils";
 
 export function Gallery({
@@ -18,6 +18,7 @@ export function Gallery({
   activeIndex?: number;
   onActiveIndexChange?: (index: number) => void;
 }) {
+  const t = useT();
   const [internalActive, setInternalActive] = useState(0);
   const active = activeIndex ?? internalActive;
   const setActive = onActiveIndexChange ?? setInternalActive;
@@ -68,12 +69,13 @@ export function Gallery({
       <div className="relative mx-auto aspect-[5/6] w-full max-h-[min(70vh,560px)] overflow-hidden rounded-xl bg-white sm:aspect-square sm:max-h-none sm:rounded-2xl">
         {safe[active] && (
           <Image
-            src={sizedImageUrl(safe[active], 1280)}
+            src={safe[active]}
             alt={alt}
             fill
             sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 640px"
             className="object-contain sm:object-cover"
             priority
+            fetchPriority="high"
           />
         )}
       </div>
@@ -87,7 +89,7 @@ export function Gallery({
               className="size-10 shrink-0"
               disabled={!canScrollPrev}
               onClick={() => scrollThumbs(-1)}
-              aria-label="Scroll thumbnails left"
+              aria-label={t("common.scrollThumbsLeft")}
             >
               <ChevronLeft className="h-4 w-4" />
             </Button>
@@ -105,7 +107,7 @@ export function Gallery({
                 type="button"
                 onClick={() => setActive(idx)}
                 className="flex shrink-0 snap-center flex-col items-stretch gap-1.5"
-                aria-label={`View image ${idx + 1} of ${safe.length}`}
+                aria-label={t("common.viewImage", { n: idx + 1, total: safe.length })}
                 aria-current={idx === active ? "true" : undefined}
               >
                 <span
@@ -116,10 +118,11 @@ export function Gallery({
                 >
                   {src && (
                     <Image
-                      src={sizedImageUrl(src, 160)}
+                      src={src}
                       alt=""
                       fill
                       sizes="72px"
+                      fetchPriority="low"
                       className="object-cover"
                     />
                   )}
@@ -142,7 +145,7 @@ export function Gallery({
               className="size-10 shrink-0"
               disabled={!canScrollNext}
               onClick={() => scrollThumbs(1)}
-              aria-label="Scroll thumbnails right"
+              aria-label={t("common.scrollThumbsRight")}
             >
               <ChevronRight className="h-4 w-4" />
             </Button>

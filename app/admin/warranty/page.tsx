@@ -21,7 +21,7 @@ export const metadata = { title: "Admin · Warranty" };
 type SearchParams = Promise<{ site?: string; q?: string; page?: string }>;
 
 function isSiteId(value: string | undefined): value is SiteId {
-  return value === "verveace" || value === "bleeq-ca";
+  return value === "verveace" || value === "bleeq-ca" || value === "volt-ca";
 }
 
 function siteLabel(siteId: string): string {

@@ -13,18 +13,26 @@ import {
 import { formatDate } from "@/lib/utils/format";
 import type { ChatQuestion } from "@/lib/supabase/types";
 import { ChatQuestionsToolbar } from "./ChatQuestionsToolbar";
+import { LiveChatInbox } from "./LiveChatInbox";
 import { requireAdminPage } from "@/lib/auth/admin";
 import {
   ChatQuestionsPagination,
   CHAT_PAGE_SIZE,
 } from "./ChatQuestionsPagination";
+import Link from "next/link";
 
 export const metadata = { title: "Admin · Chat" };
 
-type SearchParams = Promise<{ site?: string; q?: string; page?: string }>;
+type SearchParams = Promise<{
+  site?: string;
+  q?: string;
+  page?: string;
+  tab?: string;
+  chat?: string;
+}>;
 
 function isSiteId(value: string | undefined): value is SiteId {
-  return value === "verveace" || value === "bleeq-ca";
+  return value === "verveace" || value === "bleeq-ca" || value === "volt-ca";
 }
 
 function siteLabel(siteId: SiteId): string {
@@ -38,6 +46,7 @@ export default async function AdminChatPage({
 }) {
   await requireAdminPage();
   const sp = await searchParams;
+  const tab = sp.tab === "questions" ? "questions" : "live";
   const site = isSiteId(sp.site) ? sp.site : undefined;
   const q = sp.q?.trim() || undefined;
   const page = Math.max(1, Number.parseInt(sp.page ?? "1", 10) || 1);
@@ -45,6 +54,27 @@ export default async function AdminChatPage({
   const to = from + CHAT_PAGE_SIZE - 1;
 
   const admin = createSupabaseAdminClient();
+
+  if (tab === "live") {
+    return (
+      <div className="space-y-4">
+        <div className="flex flex-wrap items-end justify-between gap-3">
+          <div>
+            <h1 className="text-2xl font-bold tracking-tight">Support chat</h1>
+            <p className="text-sm text-muted-foreground">
+              Accept live-agent requests and archive closed conversations.
+            </p>
+          </div>
+          <Link href="/admin/chat?tab=questions" className="text-sm text-muted-foreground hover:text-foreground">
+            Question log
+          </Link>
+        </div>
+        <Suspense fallback={<div className="h-64 animate-pulse rounded-xl bg-muted" />}>
+          <LiveChatInbox />
+        </Suspense>
+      </div>
+    );
+  }
 
   let countQuery = admin
     .from("chat_questions")
@@ -72,10 +102,13 @@ export default async function AdminChatPage({
   return (
     <div className="space-y-4">
       <div>
-        <h1 className="text-2xl font-bold tracking-tight">Chat questions</h1>
+        <h1 className="text-2xl font-bold tracking-tight">Support chat</h1>
         <p className="text-sm text-muted-foreground">
           Questions shoppers submitted to the support chatbots, by property.
         </p>
+        <Link href="/admin/chat" className="mt-2 inline-block text-sm text-muted-foreground hover:text-foreground">
+          Back to live chats
+        </Link>
       </div>
 
       <Suspense fallback={<div className="h-24 animate-pulse rounded-lg bg-muted" />}>

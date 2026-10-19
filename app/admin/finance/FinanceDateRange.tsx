@@ -4,9 +4,10 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useCallback } from "react";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
+import { addCalendarDays, pacificDateKey } from "@/lib/utils/format";
 
 function toInputDate(iso: string): string {
-  return new Date(iso).toISOString().slice(0, 10);
+  return pacificDateKey(iso);
 }
 
 const PRESETS: { label: string; days: number }[] = [
@@ -31,10 +32,8 @@ export function FinanceDateRange({ from, to }: { from: string; to: string }) {
   );
 
   const applyPreset = (days: number) => {
-    const end = new Date();
-    const start = new Date();
-    start.setDate(start.getDate() - days);
-    update({ from: start.toISOString().slice(0, 10), to: end.toISOString().slice(0, 10) });
+    const end = pacificDateKey(new Date());
+    update({ from: addCalendarDays(end, -days), to: end });
   };
 
   return (

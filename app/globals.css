@@ -125,7 +125,7 @@
     @apply bg-background text-foreground;
   }
   html {
-    @apply font-sans overflow-x-clip;
+    @apply font-sans;
     color-scheme: dark;
     /* Overlay scrollbars on phones — reserving gutter clips the header. */
     scrollbar-gutter: auto;
@@ -148,4 +148,14 @@
     overscroll-behavior: none;
     max-width: 100%;
   }
+}
+
+html.pos-native [data-admin-nav] {
+  display: none;
+}
+html.pos-native [data-admin-shell] {
+  display: block;
+  max-width: none;
+  padding: 0.75rem;
+  padding-top: max(0.75rem, env(safe-area-inset-top));
 }

@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import { Card, CardContent } from "@/components/ui/card";
 import { ProductGrid } from "@/components/product/ProductGrid";
 import { BleeqHome } from "@/components/bleeq/BleeqHome";
+import { VoltHome } from "@/components/volt/VoltHome";
 import { HomeHero } from "@/components/home/HomeHero";
 import { CATEGORIES } from "@/lib/constants";
 import { CATEGORY_IMAGES } from "@/lib/catalog/category-images";
@@ -14,7 +15,6 @@ import { cookies } from "next/headers";
 import { LOCALE_COOKIE, parseLocaleCookie } from "@/lib/i18n/locale";
 import { getDictionary } from "@/lib/i18n/dictionary";
 import { categoryLabelFromDict } from "@/lib/i18n/helpers";
-import { sizedImageUrl } from "@/lib/images/cdn";
 
 type HomeSearch = Promise<Record<string, string | string[] | undefined>>;
 
@@ -40,6 +40,11 @@ export default async function HomePage({ searchParams }: { searchParams?: HomeSe
   const dict = getDictionary(parseLocaleCookie(cookieStore.get(LOCALE_COOKIE)?.value));
 
   // Catalog reads are cross-request cached ("use cache", tag: catalog).
+  if (site.id === "volt-ca") {
+    const featured = await listStorefrontProducts({ siteId: site.id, limit: 9 });
+    return <VoltHome site={site} dict={dict} featured={featured} />;
+  }
+
   if (site.id === "bleeq-ca") {
     const [rangerProducts, accessories] = await Promise.all([
       listStorefrontProducts({ siteId: site.id, category: "ai-glasses" }),
@@ -71,7 +76,7 @@ export default async function HomePage({ searchParams }: { searchParams?: HomeSe
                 <CardContent className="p-0">
                   <div className="relative aspect-[4/3] bg-white">
                     <Image
-                      src={sizedImageUrl(CATEGORY_IMAGES[c], 800)}
+                      src={CATEGORY_IMAGES[c]}
                       alt={categoryLabelFromDict(dict, c)}
                       fill
                       sizes="(max-width: 768px) 50vw, 25vw"

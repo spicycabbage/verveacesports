@@ -10,7 +10,7 @@ import {
   YAxis,
 } from "recharts";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { formatPrice } from "@/lib/utils/format";
+import { formatPrice, formatShortDateKey } from "@/lib/utils/format";
 import type { BrevoDailyPoint } from "@/lib/brevo/analytics";
 import type { TrafficDaily } from "@/lib/analytics/pageviews";
 import type { StoreDaily } from "@/lib/analytics/store";
@@ -23,8 +23,7 @@ const CHART = {
 } as const;
 
 function shortDate(iso: string): string {
-  const d = new Date(`${iso}T12:00:00Z`);
-  return d.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+  return formatShortDateKey(iso);
 }
 
 function compactCad(n: number): string {
@@ -38,7 +37,7 @@ export function SalesChart({ points }: { points: StoreDaily[] }) {
     <Card>
       <CardHeader>
         <CardTitle className="text-base">Revenue</CardTitle>
-        <CardDescription>Paid orders after refunds, CAD, by day (UTC).</CardDescription>
+        <CardDescription>Paid orders after refunds, CAD, by day (PST).</CardDescription>
       </CardHeader>
       <CardContent className="h-64">
         {!hasSales ? (
@@ -117,7 +116,7 @@ export function TrafficChart({ points }: { points: TrafficDaily[] }) {
       <Card>
         <CardHeader>
           <CardTitle className="text-base">Visitors & pageviews</CardTitle>
-          <CardDescription>Unique sessions and total pageviews by day (UTC).</CardDescription>
+          <CardDescription>Unique sessions and total pageviews by day (PST).</CardDescription>
         </CardHeader>
         <CardContent className="h-32">
           <p className="flex h-full items-center justify-center text-sm text-muted-foreground">
@@ -131,7 +130,7 @@ export function TrafficChart({ points }: { points: TrafficDaily[] }) {
     <Card>
       <CardHeader>
         <CardTitle className="text-base">Visitors & pageviews</CardTitle>
-        <CardDescription>Unique sessions and total pageviews by day (UTC).</CardDescription>
+        <CardDescription>Unique sessions and total pageviews by day (PST).</CardDescription>
       </CardHeader>
       <CardContent className="h-64">
         <ResponsiveContainer width="100%" height="100%">
@@ -188,7 +187,7 @@ export function EmailChart({ points }: { points: BrevoDailyPoint[] }) {
       <Card>
         <CardHeader>
           <CardTitle className="text-base">Email volume</CardTitle>
-          <CardDescription>Transactional sends, opens, and clicks by day.</CardDescription>
+          <CardDescription>Transactional sends, opens, and clicks by day (PST).</CardDescription>
         </CardHeader>
         <CardContent className="h-32">
           <p className="flex h-full items-center justify-center text-sm text-muted-foreground">
@@ -202,7 +201,7 @@ export function EmailChart({ points }: { points: BrevoDailyPoint[] }) {
     <Card>
       <CardHeader>
         <CardTitle className="text-base">Email volume</CardTitle>
-        <CardDescription>Transactional sends, opens, and clicks by day.</CardDescription>
+        <CardDescription>Transactional sends, opens, and clicks by day (PST).</CardDescription>
       </CardHeader>
       <CardContent className="h-64">
         <ResponsiveContainer width="100%" height="100%">

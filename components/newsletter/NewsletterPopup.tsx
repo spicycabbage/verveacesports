@@ -38,10 +38,12 @@ export function NewsletterPopup() {
     pathname.startsWith("/account") ||
     pathname.startsWith("/login") ||
     pathname.startsWith("/signup") ||
+    pathname.startsWith("/forgot-password") ||
+    pathname.startsWith("/reset-password") ||
     pathname.startsWith("/callback") ||
     pathname.startsWith("/checkout");
   const isBleeq = site.id === "bleeq-ca";
-  const showExpo = Date.now() < EXPO_ENDS_AT;
+  const showExpo = site.id !== "volt-ca" && Date.now() < EXPO_ENDS_AT;
   const blocked = isAdminRoute || isDrawPage || isAuthSurface;
 
   useEffect(() => {
@@ -101,7 +103,7 @@ export function NewsletterPopup() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           email: trimmed,
-          source: isBleeq ? "bleeq-ca-popup" : "verveace-popup",
+          source: `${site.id}-popup`,
         }),
       });
       const data = (await res.json()) as { error?: string; alreadySubscribed?: boolean };
@@ -199,7 +201,11 @@ export function NewsletterPopup() {
                 {dict.newsletter.title}
               </h2>
               <p className="mx-auto mt-2 max-w-sm text-sm text-muted-foreground sm:text-base">
-                {isBleeq ? dict.newsletter.descBleeq : dict.newsletter.descVerveace}
+                {site.id === "volt-ca"
+                  ? dict.site.voltDescription
+                  : isBleeq
+                    ? dict.newsletter.descBleeq
+                    : dict.newsletter.descVerveace}
               </p>
             </div>
           )}

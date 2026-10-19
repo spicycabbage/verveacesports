@@ -92,3 +92,8 @@ export function isStripeTestMode(): boolean {
 export function terminalPaymentMethodTypes(): string[] {
   return ["card_present", "interac_present"];
 }
+
+/** Phone NFC — Visa/MC/Amex/wallets. Skip Interac (often needs chip+PIN). */
+export function tapToPayPaymentMethodTypes(): string[] {
+  return ["card_present"];
+}

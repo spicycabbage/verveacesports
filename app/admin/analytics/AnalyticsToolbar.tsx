@@ -4,10 +4,11 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useCallback } from "react";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
-import { SITES, type SiteId } from "@/lib/site/config";
+import { adminSiteFilters, type SiteId } from "@/lib/site/config";
+import { addCalendarDays, pacificDateKey } from "@/lib/utils/format";
 
 function toInputDate(iso: string): string {
-  return new Date(iso).toISOString().slice(0, 10);
+  return pacificDateKey(iso);
 }
 
 const PRESETS: { label: string; days: number }[] = [
@@ -17,38 +18,57 @@ const PRESETS: { label: string; days: number }[] = [
   { label: "1y", days: 365 },
 ];
 
-const SITE_FILTERS: { id: SiteId | null; label: string }[] = [
-  { id: null, label: "All properties" },
-  { id: "verveace", label: SITES.verveace.name },
-  { id: "bleeq-ca", label: SITES["bleeq-ca"].name },
-];
+const SITE_FILTERS: { id: SiteId | null; label: string }[] = adminSiteFilters().map((f) => {
+  if (f.id === null) return { ...f, label: "All" };
+  if (f.id === "verveace") return { ...f, label: "Verveace" };
+  if (f.id === "bleeq-ca") return { ...f, label: "BleeqUp" };
+  return f;
+});
 
 export function AnalyticsToolbar({ from, to }: { from: string; to: string }) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const site = searchParams.get("site") ?? "";
 
+  const tab = searchParams.get("tab") === "traffic" ? "traffic" : "sales";
+
   const update = useCallback(
-    (next: { from?: string; to?: string; site?: string | null }) => {
+    (next: { from?: string; to?: string; site?: string | null; tab?: "sales" | "traffic" }) => {
       const params = new URLSearchParams(searchParams.toString());
       if (next.from) params.set("from", next.from);
       if (next.to) params.set("to", next.to);
       if (next.site === null) params.delete("site");
       else if (next.site) params.set("site", next.site);
+      if (next.tab === "sales") params.delete("tab");
+      else if (next.tab) params.set("tab", next.tab);
       router.push(`/admin/analytics?${params.toString()}`);
     },
     [router, searchParams],
   );
 
   const applyPreset = (days: number) => {
-    const end = new Date();
-    const start = new Date();
-    start.setDate(start.getDate() - days);
-    update({ from: start.toISOString().slice(0, 10), to: end.toISOString().slice(0, 10) });
+    const end = pacificDateKey(new Date());
+    update({ from: addCalendarDays(end, -days), to: end });
   };
 
   return (
     <div className="space-y-3">
+      <div className="flex flex-wrap gap-2">
+        <Button
+          type="button"
+          variant={tab === "sales" ? "default" : "outline"}
+          onClick={() => update({ tab: "sales" })}
+        >
+          Sales
+        </Button>
+        <Button
+          type="button"
+          variant={tab === "traffic" ? "default" : "outline"}
+          onClick={() => update({ tab: "traffic" })}
+        >
+          Website traffic
+        </Button>
+      </div>
       <div className="flex flex-wrap items-end gap-3">
         <div className="space-y-1.5">
           <Label htmlFor="from" className="text-xs">

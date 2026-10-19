@@ -6,10 +6,15 @@ import { cookies, headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
-import { sendAccountWelcomeEmail } from "@/lib/brevo/emails";
+import { sendAccountWelcomeEmail, sendPasswordResetEmail } from "@/lib/brevo/emails";
 import { postLoginPath, sanitizeAuthNext } from "@/lib/auth/post-login-path";
 import { finalizeOAuthUser } from "@/lib/auth/finalize-oauth";
 import { REFERRAL_COOKIE } from "@/lib/constants";
+import {
+  PASSWORD_RESET_COOKIE,
+  PASSWORD_RESET_PATH,
+  SESSION_ONLY_COOKIE,
+} from "@/lib/auth/cookies";
 import { getSite } from "@/lib/site/get-site";
 
 const credentialsSchema = z.object({
@@ -30,6 +35,12 @@ async function resolveSiteUrl(): Promise<string> {
     const bleeq =
       process.env.NEXT_PUBLIC_BLEEQ_SITE_URL?.trim().replace(/\/+$/, "") ?? "";
     if (bleeq) return bleeq;
+  }
+  if (site.id === "volt-ca") {
+    const volt =
+      process.env.NEXT_PUBLIC_VOLT_SITE_URL?.trim().replace(/\/+$/, "") ?? "";
+    if (volt) return volt;
+    return "https://voltcaddy.ca";
   }
 
   const envUrl =
@@ -90,28 +101,47 @@ export async function signUpWithPassword(input: z.infer<typeof credentialsSchema
   return { ok: true };
 }
 
+async function isAdminUser(userId: string): Promise<boolean> {
+  const admin = createSupabaseAdminClient();
+  const { data: profile } = await admin
+    .from("profiles")
+    .select("is_admin")
+    .eq("id", userId)
+    .maybeSingle<{ is_admin: boolean }>();
+  return !!profile?.is_admin;
+}
+
+/** Persist the "Remember me" choice before Supabase writes the auth cookies. */
+async function setSessionOnly(sessionOnly: boolean) {
+  const c = await cookies();
+  if (!sessionOnly) {
+    c.delete(SESSION_ONLY_COOKIE);
+    return;
+  }
+  c.set(SESSION_ONLY_COOKIE, "1", {
+    path: "/",
+    httpOnly: true,
+    sameSite: "lax",
+    secure: process.env.NODE_ENV === "production",
+  });
+}
+
 export async function signInWithPassword(input: {
   email: string;
   password: string;
+  remember?: boolean;
   next?: string;
 }) {
   const parsed = z.object({ email: z.string().email(), password: z.string().min(1) }).safeParse(input);
   if (!parsed.success) return { error: "Invalid credentials" };
 
-  const supabase = await createSupabaseServerClient();
+  const sessionOnly = input.remember === false;
+  await setSessionOnly(sessionOnly);
+  const supabase = await createSupabaseServerClient({ sessionOnly });
   const { data, error } = await supabase.auth.signInWithPassword(parsed.data);
   if (error) return { error: error.message };
 
-  let isAdmin = false;
-  if (data.user) {
-    const admin = createSupabaseAdminClient();
-    const { data: profile } = await admin
-      .from("profiles")
-      .select("is_admin")
-      .eq("id", data.user.id)
-      .maybeSingle<{ is_admin: boolean }>();
-    isAdmin = !!profile?.is_admin;
-  }
+  const isAdmin = data.user ? await isAdminUser(data.user.id) : false;
 
   revalidatePath("/", "layout");
   return {
@@ -120,7 +150,91 @@ export async function signInWithPassword(input: {
   };
 }
 
+function firstNameFromMeta(meta: Record<string, unknown> | undefined): string | undefined {
+  if (!meta) return undefined;
+  if (typeof meta.first_name === "string" && meta.first_name.trim()) return meta.first_name.trim();
+  if (typeof meta.given_name === "string" && meta.given_name.trim()) return meta.given_name.trim();
+  const full =
+    typeof meta.full_name === "string"
+      ? meta.full_name
+      : typeof meta.name === "string"
+        ? meta.name
+        : "";
+  return full.trim().split(/\s+/)[0] || undefined;
+}
+
+export async function requestPasswordReset(input: { email: string }) {
+  const parsed = z.string().trim().email().safeParse(input.email);
+  if (!parsed.success) return { error: "Enter a valid email" };
+
+  const email = parsed.data.toLowerCase();
+  const site = await getSite();
+  const base = await resolveSiteUrl();
+  const admin = createSupabaseAdminClient();
+  const { data, error } = await admin.auth.admin.generateLink({
+    type: "recovery",
+    email,
+    options: { redirectTo: `${base}/callback?next=${PASSWORD_RESET_PATH}` },
+  });
+  // Same response whether or not the address has an account.
+  if (error) {
+    if (error.status === 429) return { error: "Too many attempts. Try again in a few minutes." };
+    const missing = error.status === 404 || /not found/i.test(error.message);
+    if (!missing) console.error("recovery link failed:", error.status, error.message);
+    return { ok: true as const };
+  }
+
+  const tokenHash = data.properties?.hashed_token;
+  if (!tokenHash) {
+    console.error("recovery link missing hashed_token");
+    return { ok: true as const };
+  }
+
+  const resetUrl = `${base}/callback?${new URLSearchParams({
+    token_hash: tokenHash,
+    type: "recovery",
+    next: PASSWORD_RESET_PATH,
+  })}`;
+  const sent = await sendPasswordResetEmail({
+    siteId: site.id,
+    toEmail: email,
+    firstName: firstNameFromMeta(data.user?.user_metadata),
+    resetUrl,
+  });
+  if (!sent.ok) {
+    console.error("password reset email failed:", sent.error);
+    return { error: "Couldn't send the reset email. Try again in a minute." };
+  }
+  return { ok: true as const };
+}
+
+/** Recovery sessions only (cookie set by /callback). Signed-in users change it in Settings. */
+export async function resetPassword(input: { password: string }) {
+  const parsed = z.string().min(8, "Min 8 characters").max(72).safeParse(input.password);
+  if (!parsed.success) return { error: parsed.error.issues[0]?.message ?? "Invalid password" };
+
+  const c = await cookies();
+  const supabase = await createSupabaseServerClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user || c.get(PASSWORD_RESET_COOKIE)?.value !== user.id) {
+    return { error: "This reset link has expired. Request a new one." };
+  }
+
+  const { error } = await supabase.auth.updateUser({ password: parsed.data });
+  if (error) return { error: error.message };
+
+  c.delete(PASSWORD_RESET_COOKIE);
+  revalidatePath("/", "layout");
+  return {
+    ok: true as const,
+    redirectTo: postLoginPath("/account", await isAdminUser(user.id)),
+  };
+}
+
 export async function signInWithGoogle(nextPath = "/account") {
+  await setSessionOnly(false);
   const supabase = await createSupabaseServerClient();
   const ref = await getRefCode();
   const base = await resolveSiteUrl();
@@ -147,7 +261,8 @@ export async function signInWithGoogleIdToken(idToken: string, nextPath = "/acco
     return { error: "Invalid Google sign-in" };
   }
 
-  const supabase = await createSupabaseServerClient();
+  await setSessionOnly(false);
+  const supabase = await createSupabaseServerClient({ sessionOnly: false });
   const { data, error } = await supabase.auth.signInWithIdToken({
     provider: "google",
     token,

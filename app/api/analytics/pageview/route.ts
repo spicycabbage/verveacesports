@@ -1,4 +1,5 @@
 import { NextResponse, type NextRequest } from "next/server";
+import { getSessionProfile } from "@/lib/auth/session";
 import { getSiteFromRequest } from "@/lib/site/get-site";
 import { clientIp, rateLimit } from "@/lib/utils/rate-limit";
 import {
@@ -12,6 +13,11 @@ import {
 
 export async function POST(request: NextRequest) {
   if (isBotUserAgent(request.headers.get("user-agent"))) {
+    return new NextResponse(null, { status: 204 });
+  }
+
+  const profile = await getSessionProfile();
+  if (profile?.is_admin) {
     return new NextResponse(null, { status: 204 });
   }
 

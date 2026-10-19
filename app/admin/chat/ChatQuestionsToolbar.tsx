@@ -5,13 +5,11 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Search, X } from "lucide-react";
-import { SITES, type SiteId } from "@/lib/site/config";
+import { adminSiteFilters, type SiteId } from "@/lib/site/config";
 
-const SITE_FILTERS: { id: SiteId | null; label: string }[] = [
-  { id: null, label: "All properties" },
-  { id: "verveace", label: SITES.verveace.name },
-  { id: "bleeq-ca", label: SITES["bleeq-ca"].name },
-];
+const SITE_FILTERS: { id: SiteId | null; label: string }[] = adminSiteFilters().map((f) =>
+  f.id === null ? { ...f, label: "All properties" } : f,
+);
 
 export function ChatQuestionsToolbar() {
   const router = useRouter();

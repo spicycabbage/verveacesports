@@ -12,6 +12,8 @@ import { formatPrice } from "@/lib/utils/format";
 import { LOCALE_COOKIE, parseLocaleCookie } from "@/lib/i18n/locale";
 import { getDictionary } from "@/lib/i18n/dictionary";
 import { GST_NUMBER } from "@/lib/tax/label";
+import { formatOrderNumber } from "@/lib/orders/number";
+import { isMissingColumn } from "@/lib/supabase/order-row";
 
 type SearchParams = Promise<{ order?: string }>;
 
@@ -49,13 +51,22 @@ export default async function SuccessPage({
     console.error("checkout success reconcile failed", err);
   }
 
-  const { data: order } = await supabase
+  const successColumns =
+    "id, order_number, status, financial_status, currency, subtotal, shipping, total, points_redeemed, points_value";
+  let { data: order, error: orderLoadError } = await supabase
     .from("orders")
-    .select(
-      "id, status, financial_status, currency, subtotal, shipping, total, points_redeemed, points_value",
-    )
+    .select(successColumns)
     .eq("id", orderId)
     .single();
+  if (orderLoadError && isMissingColumn(orderLoadError.message, "order_number")) {
+    ({ data: order } = await supabase
+      .from("orders")
+      .select(
+        "id, status, financial_status, currency, subtotal, shipping, total, points_redeemed, points_value",
+      )
+      .eq("id", orderId)
+      .single());
+  }
 
   const isPaid =
     order?.status === "paid" ||
@@ -79,7 +90,7 @@ export default async function SuccessPage({
           </div>
           {order && (
             <div className="space-y-2 rounded-lg border bg-muted/30 p-4 text-left text-sm">
-              <Row label={dict.account.order} value={`#${order.id.slice(0, 8).toUpperCase()}`} />
+              <Row label={dict.account.order} value={formatOrderNumber(order)} />
               <Row
                 label={dict.account.status}
                 value={

@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
 import type { Category } from "@/lib/constants";
 import { requireAdminPage } from "@/lib/auth/admin";
+import { isMissingColumn } from "@/lib/supabase/order-row";
 
 export const metadata = { title: "Admin · Edit product" };
 
@@ -19,15 +20,39 @@ export default async function AdminProductEditPage({ params }: { params: Params 
   await requireAdminPage();
   const { id } = await params;
   const admin = createSupabaseAdminClient();
-  const { data: product } = await admin
+  type ProductEditRow = {
+    id: string;
+    slug: string;
+    name: string;
+    description: string;
+    category: string;
+    images: string[] | null;
+    price_usd: number;
+    price_cad: number;
+    is_active: boolean;
+    options: unknown;
+    translations?: unknown;
+  };
+  const productSelect =
+    "id, slug, name, description, category, images, price_usd, price_cad, is_active, options, translations";
+  let { data: product, error: productErr } = await admin
     .from("products")
-    .select(
-      "id, slug, name, description, category, images, price_usd, price_cad, is_active, options",
-    )
+    .select(productSelect)
     .eq("id", id)
-    .single();
+    .single<ProductEditRow>();
+  if (productErr && isMissingColumn(productErr.message, "translations")) {
+    const retry = await admin
+      .from("products")
+      .select(
+        "id, slug, name, description, category, images, price_usd, price_cad, is_active, options",
+      )
+      .eq("id", id)
+      .single<ProductEditRow>();
+    product = retry.data;
+    productErr = retry.error;
+  }
 
-  if (!product) notFound();
+  if (productErr || !product) notFound();
 
   const { data: location } = await admin
     .from("locations")
@@ -108,6 +133,7 @@ export default async function AdminProductEditPage({ params }: { params: Params 
           category: product.category as Category,
           images: product.images ?? [],
           isActive: product.is_active,
+          translations: "translations" in product ? product.translations : undefined,
         }}
         locationId={location?.id ?? null}
         usesVariants={usesVariants}

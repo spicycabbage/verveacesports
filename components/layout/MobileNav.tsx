@@ -19,8 +19,9 @@ import { categoryLabelFromDict } from "@/lib/i18n/helpers";
 import { cn } from "@/lib/utils";
 import { SearchBar } from "./SearchBar";
 import { LanguageSelector } from "./LanguageSelector";
-import { MarketBadge } from "./MarketBadge";
 import type { NavCartFeature } from "./HeaderCategoryNav";
+import { VoltNav } from "./VoltNav";
+import { AdminUnfulfilledBadge } from "@/components/admin/AdminOrderAlerts";
 
 export function MobileNav({
   categories: categoriesProp,
@@ -74,6 +75,10 @@ export function MobileNav({
         <div className="flex flex-1 flex-col overflow-y-auto px-4 py-4">
           <SearchBar className="mb-4" />
           <nav className="flex flex-col gap-1">
+            {site.id === "volt-ca" ? (
+              <VoltNav stacked onNavigate={close} />
+            ) : (
+            <>
             <Link
               href="/products"
               onClick={close}
@@ -175,16 +180,15 @@ export function MobileNav({
             >
               {dict.nav.faq}
             </Link>
+            </>
+            )}
           </nav>
           <Separator className="my-4" />
           <div className="mb-4 px-1">
             <p className="mb-2 text-xs font-medium text-muted-foreground">
               {dict.nav.language}
             </p>
-            <div className="flex items-center gap-2">
-              <MarketBadge />
-              <LanguageSelector />
-            </div>
+            <LanguageSelector />
           </div>
           <div className="flex flex-col gap-1 text-sm">
             <Link
@@ -196,11 +200,12 @@ export function MobileNav({
             </Link>
             {isAdmin ? (
               <Link
-                href="/admin"
+                href="/admin/orders"
                 onClick={close}
-                className="rounded-md px-3 py-2 hover:bg-accent"
+                className="flex items-center justify-between rounded-md px-3 py-2 hover:bg-accent"
               >
-                {dict.nav.admin}
+                <span>{dict.nav.admin}</span>
+                <AdminUnfulfilledBadge />
               </Link>
             ) : (
               <>

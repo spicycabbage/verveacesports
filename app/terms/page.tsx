@@ -22,7 +22,7 @@ export default async function TermsPage() {
   const dict = getDictionary(parseLocaleCookie(cookieStore.get(LOCALE_COOKIE)?.value));
   const host = site.hosts[0] ?? "verveacesports.com";
   const terms = dict.legal.terms;
-  const isBleeq = site.id === "bleeq-ca";
+  const isCanadaOnly = site.id === "bleeq-ca" || site.id === "volt-ca";
   const vars = {
     name: site.name,
     host,
@@ -33,7 +33,7 @@ export default async function TermsPage() {
   // Site-conditional paragraph overrides, keyed by section index → body index.
   // Section order matches dict.legal.terms.sections: 1 = Products & pricing,
   // 3 = Shipping & returns, 7 = Governing law.
-  const overrides: Record<number, Record<number, string>> = isBleeq
+  const overrides: Record<number, Record<number, string>> = isCanadaOnly
     ? {
         1: { 0: terms.productsPricingBleeq },
         3: { 0: terms.shippingBodyBleeq },

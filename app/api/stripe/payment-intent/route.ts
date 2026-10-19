@@ -9,6 +9,8 @@ import { revalidateCatalogCache } from "@/lib/catalog/invalidate";
 import { getSiteFromRequest } from "@/lib/site/get-site";
 import { toMinorUnits } from "@/lib/utils/currency";
 import { clientIp, rateLimit } from "@/lib/utils/rate-limit";
+import { isValidOrderPhone, normalizeOrderPhone } from "@/lib/utils/phone";
+import { isMissingColumn } from "@/lib/supabase/order-row";
 
 const requestSchema = z.object({
   items: z
@@ -32,6 +34,12 @@ const requestSchema = z.object({
     city: z.string().min(1),
     state: z.string().min(1),
     postal_code: z.string().min(1),
+    phone: z
+      .string()
+      .trim()
+      .min(1)
+      .max(32)
+      .refine(isValidOrderPhone, "Enter a valid phone number"),
     country: z.enum(["US", "CA"]),
   }),
 });
@@ -106,6 +114,7 @@ export async function POST(req: NextRequest) {
   const normalizedShipping = {
     ...shippingAddress,
     state: normalizedRegion,
+    phone: normalizeOrderPhone(shippingAddress.phone),
   };
 
   if (quote.total < 0.5) {
@@ -115,30 +124,53 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  const { data: order, error: orderErr } = await admin
-    .from("orders")
-    .insert({
-      user_id: user.id,
-      site_id: site.id,
-      status: "pending",
-      financial_status: "pending",
-      fulfillment_status: "unfulfilled",
-      currency,
-      email: user.email ?? null,
-      subtotal: quote.subtotal,
-      tax: quote.tax,
-      tax_rate: quote.taxRate,
-      shipping: quote.shipping,
-      discount_code: quote.discountCode,
-      discount_total: quote.discountTotal,
-      points_redeemed: quote.redeemPoints,
-      points_value: quote.redeemValue,
-      total: quote.total,
-      country,
-      shipping_address: normalizedShipping,
+  const nameParts = normalizedShipping.full_name.trim().split(/\s+/).filter(Boolean);
+  const firstName = nameParts[0] ?? "";
+  const lastName = nameParts.slice(1).join(" ");
+  void admin
+    .from("profiles")
+    .update({
+      first_name: firstName || null,
+      last_name: lastName || null,
+      full_name: normalizedShipping.full_name,
+      country: normalizedShipping.country,
     })
+    .eq("id", user.id);
+
+  const orderRow = {
+    user_id: user.id,
+    site_id: site.id,
+    status: "pending" as const,
+    financial_status: "pending" as const,
+    fulfillment_status: "unfulfilled" as const,
+    currency,
+    email: user.email ?? null,
+    subtotal: quote.subtotal,
+    tax: quote.tax,
+    tax_rate: quote.taxRate,
+    shipping: quote.shipping,
+    discount_code: quote.discountCode,
+    discount_total: quote.discountTotal,
+    points_redeemed: quote.redeemPoints,
+    points_value: quote.redeemValue,
+    total: quote.total,
+    country,
+    shipping_address: normalizedShipping,
+    admin_note: `Online · ${site.shortName}`,
+  };
+  let { data: order, error: orderErr } = await admin
+    .from("orders")
+    .insert(orderRow)
     .select()
     .single();
+  if (orderErr && isMissingColumn(orderErr.message, "site_id")) {
+    const { site_id: _omit, ...withoutSite } = orderRow;
+    ({ data: order, error: orderErr } = await admin
+      .from("orders")
+      .insert(withoutSite)
+      .select()
+      .single());
+  }
   if (orderErr || !order) {
     return NextResponse.json({ error: "Failed to create order" }, { status: 500 });
   }
@@ -156,6 +188,7 @@ export async function POST(req: NextRequest) {
     currency,
     product_name: li.name,
     product_image: li.image,
+    variant_title: li.variantTitle,
   }));
   const { error: itemsErr } = await admin.from("order_items").insert(itemsToInsert);
   if (itemsErr) {

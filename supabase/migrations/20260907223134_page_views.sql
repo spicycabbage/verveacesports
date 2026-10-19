@@ -63,7 +63,7 @@ as $$
   ),
   daily as (
     select
-      to_char(date_trunc('day', created_at) at time zone 'UTC', 'YYYY-MM-DD') as day,
+      to_char(created_at at time zone 'America/Los_Angeles', 'YYYY-MM-DD') as day,
       count(*)::int as pageviews,
       count(distinct session_id)::int as visitors
     from filtered

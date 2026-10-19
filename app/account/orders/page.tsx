@@ -10,6 +10,7 @@ import { buttonVariants } from "@/components/ui/button";
 import { Package } from "lucide-react";
 import { LOCALE_COOKIE, parseLocaleCookie } from "@/lib/i18n/locale";
 import { getDictionary } from "@/lib/i18n/dictionary";
+import { formatOrderNumber } from "@/lib/orders/number";
 
 export async function generateMetadata() {
   const cookieStore = await cookies();
@@ -64,7 +65,7 @@ export default async function OrdersPage() {
             <div key={o.id} className="space-y-2 p-4">
               <div className="flex items-start justify-between gap-2">
                 <div>
-                  <p className="font-mono text-xs">#{o.id.slice(0, 8).toUpperCase()}</p>
+                  <p className="font-mono text-xs">{formatOrderNumber(o)}</p>
                   <p className="text-sm text-muted-foreground">{formatDateOnly(o.created_at)}</p>
                 </div>
                 <Badge variant={STATUS_VARIANTS[o.status]} className="shrink-0">
@@ -100,7 +101,7 @@ export default async function OrdersPage() {
               {orders.map((o) => (
                 <TableRow key={o.id}>
                   <TableCell className="font-mono text-xs">
-                    #{o.id.slice(0, 8).toUpperCase()}
+                    {formatOrderNumber(o)}
                   </TableCell>
                   <TableCell className="text-muted-foreground">
                     {formatDateOnly(o.created_at)}

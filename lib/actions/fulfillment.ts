@@ -4,6 +4,16 @@ import { z } from "zod";
 import { revalidatePath } from "next/cache";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { requireAdmin } from "@/lib/auth/admin";
+import { countUnfulfilledPaidOrders } from "@/lib/admin/order-alerts";
+import { sendExpoPushToAdmins } from "@/lib/admin/expo-push";
+import { sendWebPushToAdmins } from "@/lib/admin/web-push";
+import {
+  carrierLabel,
+  isShippingCarrierId,
+  trackingUrlFor,
+  type ShippingCarrierId,
+} from "@/lib/shipping/carriers";
+import { sendExistingShippedEmail } from "@/lib/orders/send-order-email";
 
 type ActionResult = { ok: true; fulfillmentId?: string } | { error: string };
 
@@ -13,6 +23,7 @@ const fulfillSchema = z.object({
   trackingCompany: z.string().trim().max(120).optional(),
   trackingNumber: z.string().trim().max(120).optional(),
   trackingUrl: z.string().url().max(500).optional(),
+  carrierId: z.string().optional(),
   // Omit to fulfill everything still outstanding.
   items: z
     .array(z.object({ orderItemId: z.string().uuid(), qty: z.coerce.number().int().positive() }))
@@ -62,15 +73,16 @@ export async function createFulfillment(
     locationId = loc?.id ?? null;
   }
 
+  const tracking = resolveTrackingInput(parsed.data);
   const { data: fulfillment, error: fErr } = await admin
     .from("fulfillments")
     .insert({
       order_id: parsed.data.orderId,
       location_id: locationId,
       status: "shipped",
-      tracking_company: parsed.data.trackingCompany ?? null,
-      tracking_number: parsed.data.trackingNumber ?? null,
-      tracking_url: parsed.data.trackingUrl ?? null,
+      tracking_company: tracking.company,
+      tracking_number: tracking.number,
+      tracking_url: tracking.url,
       shipped_at: new Date().toISOString(),
       actor: guard.userId,
     })
@@ -105,6 +117,213 @@ export async function createFulfillment(
     .eq("id", parsed.data.orderId);
 
   revalidatePath("/admin/orders");
+  revalidatePath(`/admin/orders/${parsed.data.orderId}`);
+  revalidatePath(`/account/orders/${parsed.data.orderId}`);
+
+  try {
+    const badgeCount = await countUnfulfilledPaidOrders(admin);
+    const push = {
+      title: "Order fulfilled",
+      body: "",
+      url: "/admin/orders",
+      badgeCount,
+      silent: true,
+    };
+    await Promise.all([sendWebPushToAdmins(admin, push), sendExpoPushToAdmins(admin, push)]);
+  } catch {
+    /* badge refresh is best-effort */
+  }
+
+  if (fullyFulfilled) await notifyShippedEmail(admin, parsed.data.orderId);
+
+  return { ok: true, fulfillmentId: fulfillment.id };
+}
+
+const trackingSchema = z.object({
+  fulfillmentId: z.string().uuid(),
+  carrierId: z.string().refine(isShippingCarrierId, "Pick a carrier"),
+  trackingNumber: z.string().trim().min(4).max(120),
+});
+
+export async function updateFulfillmentTracking(
+  input: z.infer<typeof trackingSchema>,
+): Promise<ActionResult> {
+  const parsed = trackingSchema.safeParse(input);
+  if (!parsed.success) return { error: parsed.error.issues[0]?.message ?? "Invalid tracking" };
+
+  const guard = await requireAdmin();
+  if (!guard.ok) return { error: guard.error };
+
+  const carrierId = parsed.data.carrierId as ShippingCarrierId;
+  const trackingNumber = parsed.data.trackingNumber;
+  const admin = createSupabaseAdminClient();
+  const { data: fulfillment, error: loadErr } = await admin
+    .from("fulfillments")
+    .select("id, order_id")
+    .eq("id", parsed.data.fulfillmentId)
+    .maybeSingle();
+  if (loadErr || !fulfillment) return { error: loadErr?.message ?? "Fulfillment not found" };
+
+  const { error } = await admin
+    .from("fulfillments")
+    .update({
+      tracking_company: carrierLabel(carrierId),
+      tracking_number: trackingNumber,
+      tracking_url: trackingUrlFor(carrierId, trackingNumber),
+    })
+    .eq("id", fulfillment.id);
+  if (error) return { error: error.message };
+
+  revalidatePath("/admin/orders");
+  revalidatePath(`/admin/orders/${fulfillment.order_id}`);
+  revalidatePath(`/account/orders/${fulfillment.order_id}`);
+  return { ok: true, fulfillmentId: fulfillment.id };
+}
+
+export async function deleteShipmentTracking(fulfillmentId: string): Promise<ActionResult> {
+  const parsed = z.string().uuid().safeParse(fulfillmentId);
+  if (!parsed.success) return { error: "Invalid tracking" };
+
+  const guard = await requireAdmin();
+  if (!guard.ok) return { error: guard.error };
+
+  const admin = createSupabaseAdminClient();
+  const { data: fulfillment, error: loadErr } = await admin
+    .from("fulfillments")
+    .select("id, order_id, tracking_company")
+    .eq("id", parsed.data)
+    .maybeSingle();
+  if (loadErr || !fulfillment) return { error: loadErr?.message ?? "Fulfillment not found" };
+  if (fulfillment.tracking_company === "In-store pickup") {
+    return { error: "In-store pickup cannot be deleted" };
+  }
+
+  const { count } = await admin
+    .from("fulfillment_line_items")
+    .select("id", { count: "exact", head: true })
+    .eq("fulfillment_id", fulfillment.id);
+
+  if ((count ?? 0) === 0) {
+    const { error } = await admin.from("fulfillments").delete().eq("id", fulfillment.id);
+    if (error) return { error: error.message };
+  } else {
+    const { error } = await admin
+      .from("fulfillments")
+      .update({
+        tracking_company: null,
+        tracking_number: null,
+        tracking_url: null,
+      })
+      .eq("id", fulfillment.id);
+    if (error) return { error: error.message };
+  }
+
+  revalidatePath("/admin/orders");
+  revalidatePath(`/admin/orders/${fulfillment.order_id}`);
+  revalidatePath(`/account/orders/${fulfillment.order_id}`);
+  return { ok: true, fulfillmentId: fulfillment.id };
+}
+
+const addShipmentSchema = z.object({
+  orderId: z.string().uuid(),
+  carrierId: z.string().refine(isShippingCarrierId, "Pick a carrier"),
+  trackingNumber: z.string().trim().min(4).max(120),
+});
+
+/** Extra package after the order is already fulfilled — no qty bump. */
+export async function addShipmentTracking(
+  input: z.infer<typeof addShipmentSchema>,
+): Promise<ActionResult> {
+  const parsed = addShipmentSchema.safeParse(input);
+  if (!parsed.success) return { error: parsed.error.issues[0]?.message ?? "Invalid tracking" };
+
+  const guard = await requireAdmin();
+  if (!guard.ok) return { error: guard.error };
+
+  const admin = createSupabaseAdminClient();
+  const { data: loc } = await admin.from("locations").select("id").eq("is_default", true).maybeSingle();
+
+  const carrierId = parsed.data.carrierId as ShippingCarrierId;
+  const trackingNumber = parsed.data.trackingNumber;
+  const { data: fulfillment, error } = await admin
+    .from("fulfillments")
+    .insert({
+      order_id: parsed.data.orderId,
+      location_id: loc?.id ?? null,
+      status: "shipped",
+      tracking_company: carrierLabel(carrierId),
+      tracking_number: trackingNumber,
+      tracking_url: trackingUrlFor(carrierId, trackingNumber),
+      shipped_at: new Date().toISOString(),
+      actor: guard.userId,
+    })
+    .select("id")
+    .single();
+  if (error || !fulfillment) return { error: error?.message ?? "Failed to add tracking" };
+
+  revalidatePath("/admin/orders");
+  revalidatePath(`/admin/orders/${parsed.data.orderId}`);
   revalidatePath(`/account/orders/${parsed.data.orderId}`);
   return { ok: true, fulfillmentId: fulfillment.id };
+}
+
+export async function resendShipmentEmail(orderId: string): Promise<ActionResult> {
+  const parsed = z.string().uuid().safeParse(orderId);
+  if (!parsed.success) return { error: "Invalid order" };
+
+  const guard = await requireAdmin();
+  if (!guard.ok) return { error: guard.error };
+
+  const admin = createSupabaseAdminClient();
+  const { data: rows, error } = await admin
+    .from("fulfillments")
+    .select("tracking_company, tracking_number")
+    .eq("order_id", parsed.data);
+  if (error) return { error: error.message };
+
+  const hasTracking = (rows ?? []).some(
+    (row) =>
+      typeof row.tracking_number === "string" &&
+      row.tracking_number.trim() &&
+      row.tracking_company !== "In-store pickup",
+  );
+  if (!hasTracking) return { error: "No tracking to send" };
+
+  const result = await sendExistingShippedEmail(admin, parsed.data);
+  if (!result.ok) return { error: result.error };
+  return { ok: true };
+}
+
+async function notifyShippedEmail(
+  admin: Parameters<typeof sendExistingShippedEmail>[0],
+  orderId: string,
+) {
+  try {
+    const result = await sendExistingShippedEmail(admin, orderId);
+    if (!result.ok) console.error("[fulfillment] shipped email failed", result.error);
+  } catch (err) {
+    console.error("[fulfillment] shipped email failed", err);
+  }
+}
+
+function resolveTrackingInput(input: {
+  carrierId?: string;
+  trackingCompany?: string;
+  trackingNumber?: string;
+  trackingUrl?: string;
+}): { company: string | null; number: string | null; url: string | null } {
+  const number = input.trackingNumber?.trim() || null;
+  const carrierId = input.carrierId && isShippingCarrierId(input.carrierId) ? input.carrierId : null;
+  if (carrierId && number) {
+    return {
+      company: carrierLabel(carrierId),
+      number,
+      url: input.trackingUrl ?? trackingUrlFor(carrierId, number),
+    };
+  }
+  return {
+    company: input.trackingCompany?.trim() || null,
+    number,
+    url: input.trackingUrl ?? null,
+  };
 }

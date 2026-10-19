@@ -1,5 +1,6 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
+import { authCookieOptions, SESSION_ONLY_COOKIE } from "@/lib/auth/cookies";
 
 /** @supabase/ssr stores the session as `sb-<ref>-auth-token` (optionally chunked `.0`, `.1`, …). */
 function hasSupabaseAuthCookie(request: NextRequest): boolean {
@@ -26,6 +27,7 @@ export async function updateSession(request: NextRequest) {
   request.headers.set("x-pathname", request.nextUrl.pathname);
 
   let response = NextResponse.next({ request });
+  const sessionOnly = request.cookies.get(SESSION_ONLY_COOKIE)?.value === "1";
 
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -39,7 +41,7 @@ export async function updateSession(request: NextRequest) {
           cookiesToSet.forEach(({ name, value }) => request.cookies.set(name, value));
           response = NextResponse.next({ request });
           cookiesToSet.forEach(({ name, value, options }) =>
-            response.cookies.set(name, value, options),
+            response.cookies.set(name, value, authCookieOptions(options, sessionOnly)),
           );
         },
       },

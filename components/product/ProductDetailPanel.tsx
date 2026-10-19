@@ -5,11 +5,13 @@ import { ShieldCheck, Sparkles, Truck } from "lucide-react";
 import { Gallery } from "@/components/product/Gallery";
 import { ProductBuyBox } from "@/components/product/ProductBuyBox";
 import { ReviewStars } from "@/components/product/ReviewStars";
+import { ProductDescription } from "@/components/product/ProductDescription";
 import { Separator } from "@/components/ui/separator";
 import { parseProductOptions } from "@/lib/catalog/product-options";
 import type { ProductReviewSummary } from "@/lib/reviews/summary";
 import { useSite } from "@/lib/site/SiteProvider";
-import { useDictionary, useT } from "@/lib/i18n/I18nProvider";
+import { useDictionary, useLocale, useT } from "@/lib/i18n/I18nProvider";
+import { localizeProduct } from "@/lib/i18n/catalog-copy";
 import type { Product } from "@/lib/supabase/types";
 import {
   buildOptionAxes,
@@ -37,6 +39,8 @@ export function ProductDetailPanel({
   const site = useSite();
   const dict = useDictionary();
   const t = useT();
+  const locale = useLocale();
+  const localized = localizeProduct(product, locale);
   const axes = useMemo(
     () => buildOptionAxes(variants, productOptions),
     [variants, productOptions],
@@ -72,7 +76,7 @@ export function ProductDetailPanel({
       <div className="min-w-0">
         <Gallery
           images={galleryImages}
-          alt={product.name}
+          alt={localized.name}
           activeIndex={activeIndex}
           onActiveIndexChange={setActiveIndex}
         />
@@ -83,7 +87,7 @@ export function ProductDetailPanel({
             {categoryLabel}
           </span>
           <h1 className="mt-1 break-words text-2xl font-bold tracking-tight sm:text-3xl">
-            {product.name}
+            {localized.name}
           </h1>
           {reviewSummary && reviewSummary.count > 0 ? (
             <a
@@ -106,14 +110,14 @@ export function ProductDetailPanel({
           onSelectionChange={setSelection}
         />
 
-        <p className="text-sm leading-relaxed text-muted-foreground">{product.description}</p>
+        <ProductDescription text={localized.description} />
 
         <Separator />
         <ul className="space-y-2 text-sm">
           <li className="flex items-start gap-2 text-muted-foreground">
             <Truck className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
             {t(
-              site.id === "bleeq-ca"
+              site.lockMarket === "CA"
                 ? "product.freeShippingCanada"
                 : "product.freeShippingUsaCa",
               { amount: site.freeShippingOver },

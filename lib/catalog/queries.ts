@@ -122,6 +122,31 @@ export async function getRelatedProducts(opts: {
   return attachDefaultVariantIds(supabase, (data ?? []) as Product[]);
 }
 
+/** Active storefront products for the given slugs, in the order requested. */
+export async function listStorefrontProductsBySlugs(opts: {
+  siteId: SiteId;
+  slugs: readonly string[];
+}): Promise<ProductWithDefaultVariant[]> {
+  "use cache";
+  cacheTag(CATALOG_TAG);
+  cacheLife(CATALOG_CACHE_LIFE);
+
+  if (opts.slugs.length === 0) return [];
+  const site = getSiteById(opts.siteId);
+  const supabase = createSupabasePublicClient();
+  const { data } = await applySiteCatalogFilter(
+    supabase
+      .from("products")
+      .select("*")
+      .eq("is_active", true)
+      .in("slug", [...opts.slugs]),
+    site,
+  );
+  const products = await attachDefaultVariantIds(supabase, (data ?? []) as Product[]);
+  const rank = new Map(opts.slugs.map((slug, i) => [slug, i]));
+  return products.sort((a, b) => (rank.get(a.slug) ?? 0) - (rank.get(b.slug) ?? 0));
+}
+
 export async function listSitemapProducts(
   siteId: SiteId,
 ): Promise<{ slug: string; created_at: string }[]> {
@@ -131,8 +156,9 @@ export async function listSitemapProducts(
 
   const site = getSiteById(siteId);
   const supabase = createSupabasePublicClient();
-  let q = supabase.from("products").select("slug, created_at").eq("is_active", true);
-  if (site.id !== "verveace") q = q.in("category", [...site.categories]);
-  const { data } = await q;
+  const { data } = await applySiteCatalogFilter(
+    supabase.from("products").select("slug, created_at").eq("is_active", true),
+    site,
+  );
   return (data ?? []) as { slug: string; created_at: string }[];
 }

@@ -80,9 +80,30 @@ export function GoogleSignInButton({
     if (!host) return;
 
     let cancelled = false;
+    let gsiApi: GsiId | null = null;
+    let lastWidth = 0;
+
+    const paint = (gsi: GsiId) => {
+      const el = hostRef.current;
+      if (cancelled || !el) return;
+      const width = Math.round(Math.min(400, Math.max(200, el.clientWidth)));
+      if (width === lastWidth) return;
+      lastWidth = width;
+      el.replaceChildren();
+      gsi.renderButton(el, {
+        type: "standard",
+        theme: "filled_black",
+        size: "large",
+        text: "continue_with",
+        width,
+        logo_alignment: "left",
+      });
+    };
+
     void loadGsi()
       .then((gsi) => {
         if (cancelled || !hostRef.current) return;
+        gsiApi = gsi;
         gsi.initialize({
           client_id: CLIENT_ID,
           ux_mode: "popup",
@@ -112,21 +133,20 @@ export function GoogleSignInButton({
               });
           },
         });
-        gsi.renderButton(host, {
-          type: "standard",
-          theme: "filled_black",
-          size: "large",
-          text: "continue_with",
-          width: Math.max(host.offsetWidth, 280),
-          logo_alignment: "left",
-        });
+        paint(gsi);
       })
       .catch((err) => {
         console.error(err);
       });
 
+    const ro = new ResizeObserver(() => {
+      if (gsiApi) paint(gsiApi);
+    });
+    ro.observe(host);
+
     return () => {
       cancelled = true;
+      ro.disconnect();
     };
   }, [nextPath]);
 
@@ -149,8 +169,11 @@ export function GoogleSignInButton({
   }
 
   return (
-    <div className="relative w-full">
-      <div ref={hostRef} className="flex min-h-10 w-full justify-center [&>div]:w-full" />
+    <div className="relative w-full min-w-0 max-w-full overflow-hidden">
+      <div
+        ref={hostRef}
+        className="flex min-h-10 w-full min-w-0 max-w-full justify-center overflow-hidden [&>div]:!w-full [&>div]:max-w-full [&_iframe]:max-w-full"
+      />
       {pending ? (
         <div className="absolute inset-0 rounded-md bg-background/60" aria-hidden />
       ) : null}

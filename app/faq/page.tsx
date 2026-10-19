@@ -4,7 +4,8 @@ import { FaqAccordion } from "@/components/faq/FaqAccordion";
 import { getSite } from "@/lib/site/get-site";
 import { LOCALE_COOKIE, parseLocaleCookie } from "@/lib/i18n/locale";
 import { getDictionary, interpolate } from "@/lib/i18n/dictionary";
-import { faqSectionsFromDict } from "@/lib/i18n/helpers";
+import { faqSectionsFromDict, siteDescription } from "@/lib/i18n/helpers";
+import { faqSectionsForSite } from "@/lib/content/faq";
 import { JsonLd } from "@/components/seo/JsonLd";
 
 export async function generateMetadata() {
@@ -13,9 +14,17 @@ export async function generateMetadata() {
   const dict = getDictionary(parseLocaleCookie(cookieStore.get(LOCALE_COOKIE)?.value));
   return {
     title:
-      site.id === "bleeq-ca" ? { absolute: "BleeqUp Canada FAQ" } : dict.faq.title,
+      site.id === "volt-ca"
+        ? "Q&A"
+        : site.id === "bleeq-ca"
+          ? { absolute: dict.faq.titleBleeq }
+          : dict.faq.title,
     description: interpolate(
-      site.id === "bleeq-ca" ? dict.faq.introBleeq : dict.faq.introVerveace,
+      site.id === "volt-ca"
+        ? siteDescription(dict, site.id)
+        : site.id === "bleeq-ca"
+          ? dict.faq.introBleeq
+          : dict.faq.introVerveace,
       { email: site.supportEmail },
     ),
     alternates: { canonical: "/faq" },
@@ -26,14 +35,24 @@ export default async function FaqPage() {
   const site = await getSite();
   const cookieStore = await cookies();
   const dict = getDictionary(parseLocaleCookie(cookieStore.get(LOCALE_COOKIE)?.value));
-  const sections = faqSectionsFromDict(dict, site.id, {
-    supportEmail: site.supportEmail,
-    freeShippingOver: site.freeShippingOver,
-  });
+  const sections =
+    site.id === "volt-ca"
+      ? faqSectionsForSite(site.id)
+      : faqSectionsFromDict(dict, site.id, {
+          supportEmail: site.supportEmail,
+          freeShippingOver: site.freeShippingOver,
+        });
   const intro = interpolate(
-    site.id === "bleeq-ca" ? dict.faq.introBleeq : dict.faq.introVerveace,
+    site.id === "volt-ca"
+      ? "Setup, battery, remote, and warranty answers for the Volt Caddy Pro-S."
+      : site.id === "bleeq-ca"
+        ? dict.faq.introBleeq
+        : dict.faq.introVerveace,
     { email: site.supportEmail },
   );
+  const faqTitle =
+    site.id === "volt-ca" ? "Q&A" : site.id === "bleeq-ca" ? dict.faq.titleBleeq : dict.faq.title;
+  const faqHeading = site.id === "volt-ca" ? "Questions & Answers" : faqTitle;
 
   const faqJsonLd = {
     "@context": "https://schema.org",
@@ -55,10 +74,10 @@ export default async function FaqPage() {
           {dict.faq.home}
         </Link>
         {" / "}
-        {dict.faq.title}
+        {faqTitle}
       </p>
       <h1 className="mt-4 text-2xl font-bold tracking-tight sm:text-3xl">
-        {site.id === "bleeq-ca" ? "BleeqUp Canada FAQ" : dict.faq.title}
+        {faqHeading}
       </h1>
       <p className="mt-3 text-sm leading-relaxed text-muted-foreground sm:text-base">
         {intro.split(site.supportEmail).map((part, i, arr) =>

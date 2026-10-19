@@ -2,6 +2,7 @@ import type Stripe from "stripe";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { StripeAccountCurrency } from "@/lib/constants";
 import { fulfillPosPickup } from "@/lib/pos/fulfill-pickup";
+import { notifyAdminsOfUnfulfilledOrder } from "@/lib/admin/order-alerts";
 import { sendExistingOrderEmail } from "@/lib/orders/send-order-email";
 import { getStripe } from "@/lib/stripe/server";
 import { syncBalanceTransactionForPaymentIntent } from "@/lib/stripe/reconcile";
@@ -97,6 +98,8 @@ export async function markOrderPaidFromPaymentIntent(
     if (pi.metadata.sales_channel === "pos") {
       await fulfillPosPickup(admin, orderId);
     }
+
+    await notifyAdminsOfUnfulfilledOrder(admin, orderId);
   }
 
   const charge =

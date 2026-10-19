@@ -5,6 +5,12 @@
       "has": [{ "type": "host", "value": "www.verveacesports.com" }],
       "destination": "https://verveacesports.com/:path*",
       "permanent": true
+    },
+    {
+      "source": "/:path*",
+      "has": [{ "type": "host", "value": "www.voltcaddy.ca" }],
+      "destination": "https://voltcaddy.ca/:path*",
+      "permanent": true
     }
   ]
 }

@@ -30,8 +30,8 @@ export default async function SignupPage() {
   const dict = getDictionary(parseLocaleCookie(c.get(LOCALE_COOKIE)?.value));
 
   return (
-    <div className="mx-auto max-w-md px-4 py-12">
-      <Card>
+    <div className="mx-auto min-w-0 max-w-md px-4 py-12">
+      <Card className="min-w-0 overflow-hidden">
         <CardHeader className="space-y-1">
           <CardTitle className="text-2xl">{dict.auth.createTitle}</CardTitle>
           <CardDescription>{dict.auth.createDesc}</CardDescription>

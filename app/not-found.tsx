@@ -1,6 +1,10 @@
 import Link from "next/link";
 import { buttonVariants } from "@/components/ui/button";
 
+export const metadata = {
+  robots: { index: false, follow: false },
+};
+
 export default function NotFound() {
   return (
     <div className="mx-auto max-w-md px-4 py-24 text-center">

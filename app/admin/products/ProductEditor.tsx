@@ -19,8 +19,31 @@ import {
 import { CATEGORIES, CATEGORY_LABELS, type Category } from "@/lib/constants";
 import { sizedImageUrl } from "@/lib/images/cdn";
 import { uploadProductImage } from "@/lib/actions/upload-image";
-import { ExternalLink, GripVertical, Trash2, Upload } from "lucide-react";
-import Link from "next/link";
+import { LOCALE_LIST, type Locale } from "@/lib/i18n/locale";
+import { getCatalogCopy } from "@/lib/i18n/catalog-copy";
+import {
+  compactProductTranslations,
+  parseProductTranslations,
+  type ProductTranslations,
+} from "@/lib/i18n/product-translations";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { GripVertical, Trash2, Upload } from "lucide-react";
+
+type TranslationLocale = Exclude<Locale, "en">;
+
+const TRANSLATION_LOCALES = LOCALE_LIST.filter(
+  (l): l is (typeof LOCALE_LIST)[number] & { code: TranslationLocale } => l.code !== "en",
+);
+
+function seedTranslations(slug: string, raw: unknown): ProductTranslations {
+  const parsed = parseProductTranslations(raw);
+  for (const loc of TRANSLATION_LOCALES) {
+    if (parsed[loc.code]?.name || parsed[loc.code]?.description) continue;
+    const copy = getCatalogCopy(slug, loc.code);
+    if (copy) parsed[loc.code] = { name: copy.name, description: copy.description };
+  }
+  return parsed;
+}
 
 type ProductDraft = {
   id: string;
@@ -30,6 +53,7 @@ type ProductDraft = {
   category: Category;
   images: string[];
   isActive: boolean;
+  translations?: unknown;
 };
 
 export type ProductEditorDraft = {
@@ -38,6 +62,7 @@ export type ProductEditorDraft = {
   category: Category;
   isActive: boolean;
   images: string[];
+  translations: ProductTranslations;
 };
 
 export type ProductEditorHandle = {
@@ -52,10 +77,12 @@ export const ProductEditor = forwardRef<
   const [uploading, setUploading] = useState(false);
   const [name, setName] = useState(product.name);
   const [description, setDescription] = useState(product.description);
+  const [translations, setTranslations] = useState<ProductTranslations>(() =>
+    seedTranslations(product.slug, product.translations),
+  );
   const [category, setCategory] = useState<Category>(product.category);
   const [isActive, setIsActive] = useState(product.isActive);
   const [images, setImages] = useState<string[]>(product.images);
-  const [newUrl, setNewUrl] = useState("");
 
   useImperativeHandle(
     ref,
@@ -67,11 +94,22 @@ export const ProductEditor = forwardRef<
           category,
           isActive,
           images,
+          translations: compactProductTranslations(translations),
         };
       },
     }),
-    [name, description, category, isActive, images],
+    [name, description, category, isActive, images, translations],
   );
+
+  function patchTranslation(
+    locale: TranslationLocale,
+    patch: { name?: string; description?: string },
+  ) {
+    setTranslations((prev) => ({
+      ...prev,
+      [locale]: { ...prev[locale], ...patch },
+    }));
+  }
 
   async function onUpload(file: File) {
     setUploading(true);
@@ -85,17 +123,6 @@ export const ProductEditor = forwardRef<
       setImages((prev) => [...prev, res.url]);
       toast.success("Image uploaded");
     }
-  }
-
-  function addUrl() {
-    const url = newUrl.trim();
-    if (!url) return;
-    if (!url.startsWith("http://") && !url.startsWith("https://")) {
-      toast.error("URL must start with http:// or https://");
-      return;
-    }
-    setImages((prev) => [...prev, url]);
-    setNewUrl("");
   }
 
   function removeImage(index: number) {
@@ -116,21 +143,58 @@ export const ProductEditor = forwardRef<
     <div className="grid items-start gap-6 lg:grid-cols-[1fr_320px]">
       <Card>
         <CardContent className="space-y-4 py-4">
-          <div className="space-y-1.5">
-            <Label htmlFor="name">Name</Label>
-            <Input id="name" value={name} onChange={(e) => setName(e.target.value)} />
-          </div>
-
-          <div className="space-y-1.5">
-            <Label htmlFor="description">Description</Label>
-            <Textarea
-              id="description"
-              rows={6}
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              className="resize-y"
-            />
-          </div>
+          <Tabs defaultValue="en">
+            <TabsList variant="line" className="flex h-auto w-full flex-wrap justify-start gap-1">
+              {LOCALE_LIST.map((loc) => (
+                <TabsTrigger key={loc.code} value={loc.code} className="flex-none px-2">
+                  {loc.label}
+                </TabsTrigger>
+              ))}
+            </TabsList>
+            <TabsContent value="en" className="mt-4 space-y-4">
+              <div className="space-y-1.5">
+                <Label htmlFor="name">Name</Label>
+                <Input id="name" value={name} onChange={(e) => setName(e.target.value)} />
+              </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="description">Description</Label>
+                <Textarea
+                  id="description"
+                  rows={6}
+                  value={description}
+                  onChange={(e) => setDescription(e.target.value)}
+                  className="resize-y"
+                />
+              </div>
+              <p className="text-xs text-muted-foreground">
+                English is the storefront fallback. Other tabs override name/description per language.
+              </p>
+            </TabsContent>
+            {TRANSLATION_LOCALES.map((loc) => (
+              <TabsContent key={loc.code} value={loc.code} className="mt-4 space-y-4">
+                <div className="space-y-1.5">
+                  <Label htmlFor={`name-${loc.code}`}>Name ({loc.label})</Label>
+                  <Input
+                    id={`name-${loc.code}`}
+                    value={translations[loc.code]?.name ?? ""}
+                    onChange={(e) => patchTranslation(loc.code, { name: e.target.value })}
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <Label htmlFor={`description-${loc.code}`}>Description ({loc.label})</Label>
+                  <Textarea
+                    id={`description-${loc.code}`}
+                    rows={6}
+                    value={translations[loc.code]?.description ?? ""}
+                    onChange={(e) =>
+                      patchTranslation(loc.code, { description: e.target.value })
+                    }
+                    className="resize-y"
+                  />
+                </div>
+              </TabsContent>
+            ))}
+          </Tabs>
 
           <div className="grid gap-4 sm:grid-cols-2">
             <div className="space-y-1.5">
@@ -161,13 +225,6 @@ export const ProductEditor = forwardRef<
           </div>
 
           {children}
-
-          <div className="border-t pt-4">
-            <Button variant="outline" render={<Link href={`/products/${product.slug}`} target="_blank" />}>
-              <ExternalLink className="h-4 w-4" />
-              View on store
-            </Button>
-          </div>
         </CardContent>
       </Card>
 
@@ -200,18 +257,6 @@ export const ProductEditor = forwardRef<
               <Upload className="h-4 w-4" />
               {uploading ? "Uploading…" : "Upload image"}
             </Button>
-
-            <div className="flex gap-2">
-              <Input
-                placeholder="https://…"
-                value={newUrl}
-                onChange={(e) => setNewUrl(e.target.value)}
-                onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), addUrl())}
-              />
-              <Button type="button" variant="outline" onClick={addUrl}>
-                Add
-              </Button>
-            </div>
 
             <ul className="space-y-2">
               {images.map((src, i) => (

@@ -25,7 +25,19 @@ export function FaqAccordion({ sections }: { sections: FaqSection[] }) {
                   </span>
                 </summary>
                 <div className="px-4 pb-4 text-sm leading-relaxed text-muted-foreground">
-                  {item.answer}
+                  <p>{item.answer}</p>
+                  {item.images?.map((image) => (
+                    <figure key={image.src} className="mt-3">
+                      <img
+                        src={image.src}
+                        alt={image.alt}
+                        className="h-auto max-w-full rounded-md"
+                      />
+                      {image.caption ? (
+                        <figcaption className="mt-1 text-xs">{image.caption}</figcaption>
+                      ) : null}
+                    </figure>
+                  ))}
                 </div>
               </details>
             ))}

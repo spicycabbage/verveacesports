@@ -2,6 +2,7 @@ import { getBrevoListId } from "@/lib/brevo/subscribe";
 import type { SiteId } from "@/lib/site/config";
 import { SITES } from "@/lib/site/config";
 import type { DateRange } from "@/lib/actions/finance";
+import { pacificDateKey } from "@/lib/utils/format";
 
 export type BrevoSmtpTotals = {
   requests: number;
@@ -53,10 +54,6 @@ export type BrevoAnalytics = {
 function asInt(value: unknown): number {
   const n = typeof value === "number" ? value : Number(value);
   return Number.isFinite(n) ? n : 0;
-}
-
-function ymd(iso: string): string {
-  return iso.slice(0, 10);
 }
 
 async function brevoGet<T>(path: string): Promise<{ ok: true; data: T } | { ok: false; error: string }> {
@@ -135,9 +132,9 @@ export async function getBrevoAnalytics(
   range: DateRange,
   siteId?: SiteId,
 ): Promise<BrevoAnalytics | { error: string }> {
-  const start = ymd(range.from);
-  const end = ymd(range.to);
-  const siteIds: SiteId[] = siteId ? [siteId] : ["verveace", "bleeq-ca"];
+  const start = pacificDateKey(range.from);
+  const end = pacificDateKey(range.to);
+  const siteIds: SiteId[] = siteId ? [siteId] : ["verveace", "bleeq-ca", "volt-ca"];
 
   const [agg, reports, campaigns, ...listResults] = await Promise.all([
     brevoGet<AggregatedReport>(

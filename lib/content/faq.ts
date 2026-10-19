@@ -1,8 +1,15 @@
 import { SITES, type SiteId } from "@/lib/site/config";
 
+export type FaqImage = {
+  src: string;
+  alt: string;
+  caption?: string;
+};
+
 export type FaqItem = {
   question: string;
   answer: string;
+  images?: FaqImage[];
 };
 
 export type FaqSection = {
@@ -69,7 +76,7 @@ export const FAQ_SECTIONS: FaqSection[] = [
       {
         question: "What do you sell?",
         answer:
-          "VerveaceSports is a multi-brand sporting goods store. We sell BleeqUp Ranger AI sports camera glasses and accessories, plus MGI and Motocaddy electric golf trolleys, caddies, and related golf gear. Browse AI Glasses, Wearables, Electric Carts, and Golf Gear on the Products page.",
+          "VerveaceSports is a multi-brand sporting goods store. We sell BleeqUp Rover and Ranger AI sports camera glasses and accessories, the Volt Caddy Pro-S remote electric golf push cart, plus MGI and Motocaddy electric golf trolleys, caddies, and related golf gear.",
       },
       {
         question: "Are you an authorized dealer?",
@@ -77,9 +84,9 @@ export const FAQ_SECTIONS: FaqSection[] = [
           "Yes. VerveaceSports is an authorized retailer for BleeqUp AI camera glasses and MGI & Motocaddy electric golf trolleys, caddies, and accessories. We are not the BleeqUp manufacturer website (bleequp.com).",
       },
       {
-        question: "What BleeqUp Ranger options do you offer?",
+        question: "What BleeqUp glasses do you offer?",
         answer:
-          "We carry Ranger with Standard Lens, Ranger with Lenses by Zeiss, and the Ranger Ultimate Bundle, plus accessories such as Power Plus, Bluetooth Controller, Magnetic Charging Wire, swappable lenses, and a Prescription service. Open each product page for current variants and pricing.",
+          "We carry BleeqUp Rover (ZEISS and Bundle, plus Rover Power Plus and Rover lenses) and BleeqUp Ranger (Standard Lens, Lenses by Zeiss, Ultimate Bundle) plus shared accessories such as Power Plus, Bluetooth Controller, Magnetic Charging Wire, swappable lenses, and a Prescription service. Open each product page for current variants and CAD pricing.",
       },
       {
         question: "Is this the same as BleeqUp Canada (ca.bleequp.com)?",
@@ -203,12 +210,12 @@ export const BLEEQ_CA_FAQ_SECTIONS: FaqSection[] = [
       {
         question: "What do you sell?",
         answer:
-          "This is a dedicated BleeqUp Canada storefront. We sell BleeqUp Ranger AI sports camera glasses and official accessories (Power Plus, Bluetooth controller, lenses, charging cable, prescription options, and related wearables). We do not sell golf carts or other brands on this site.",
+          "This is a dedicated BleeqUp Canada storefront. We sell BleeqUp Rover and Ranger AI sports camera glasses and official accessories (Power Plus, Rover Power Plus, Bluetooth controller, lenses, charging cable, prescription options, and related wearables). We do not sell golf carts or other brands on this site.",
       },
       {
-        question: "What BleeqUp Ranger options do you offer?",
+        question: "What BleeqUp glasses do you offer?",
         answer:
-          "We carry Ranger with Standard Lens, Ranger with Lenses by Zeiss, and the Ranger Ultimate Bundle, plus accessories such as Power Plus, Bluetooth Controller, Magnetic Charging Wire, swappable lenses, and a Prescription service. Open each product page for current CAD pricing and variants.",
+          "We carry BleeqUp Rover (ZEISS and Bundle, plus Rover Power Plus and Rover lenses) and BleeqUp Ranger (Standard Lens, Lenses by Zeiss, Ultimate Bundle) plus accessories such as Power Plus, Bluetooth Controller, Magnetic Charging Wire, swappable lenses, and a Prescription service. Open each product page for current CAD pricing and variants.",
       },
       {
         question: "Are you an authorized BleeqUp retailer?",
@@ -274,8 +281,122 @@ export const BLEEQ_CA_FAQ_SECTIONS: FaqSection[] = [
   },
 ];
 
+const VOLT_CA_FAQ_SECTIONS: FaqSection[] = [
+  {
+    title: "Questions & Answers",
+    items: [
+      {
+        question: "What is the alignment direction for the motor unit and pushcart?",
+        answer:
+          "When assembling the unit to the frame, the Volt logo must be facing upwards.",
+        images: [
+          {
+            src: "/volt/qa/alignment.jpg",
+            alt: "Motor unit mounted with the Volt logo facing up",
+          },
+        ],
+      },
+      {
+        question: "How long can the remote controller be used continuously?",
+        answer:
+          "The AAA version can be used for 5–10 games. The rechargeable lithium battery version can be used for about 40 games after a full charge.",
+      },
+      {
+        question: "How many games can the battery last after a full charge?",
+        answer:
+          "A full charge can cover three games on a regular course. Mountainous terrain and slope change that.",
+      },
+      {
+        question: "How long does the battery take to charge?",
+        answer: "About 3 to 3.5 hours for a full charge.",
+      },
+      {
+        question: "What is the remote control distance?",
+        answer:
+          "The safe remote-control distance is 60 yards. In open, obstacle-free terrain it can extend past 80 yards. Keep the cart in line of sight. If slope or interference drops the signal, the cart locks until the signal returns.",
+      },
+      {
+        question: "Can the clamps be adjusted for tightness?",
+        answer:
+          "Yes. Adjust them with a screwdriver while they are detached. Recheck tightness after several rounds so they do not loosen on a climb or after a bump.",
+      },
+      {
+        question: "Should I fold and store the frame without removing the support wheel?",
+        answer:
+          "No. Leaving the support wheel on can damage the wheel or press on non-metal parts.",
+        images: [
+          {
+            src: "/volt/qa/fold-support-wheel.png",
+            alt: "Fold the frame only after the support wheel is removed",
+          },
+        ],
+      },
+      {
+        question: "How do I power the remote controller on and off?",
+        answer:
+          "Press the power button twice to turn it on. Press and hold the power button for 10 seconds to turn it off.",
+      },
+      {
+        question: "How do I re-pair the remote after it loses connection?",
+        answer:
+          "Within ten seconds of turning the unit on, press and hold the M button and the square button together. A flashing light on the battery display means pairing succeeded.",
+        images: [
+          {
+            src: "/volt/qa/repair-remote.png",
+            alt: "Remote buttons used to re-pair: M and the square button",
+          },
+          {
+            src: "/volt/qa/battery-recommended.jpg",
+            alt: "Recommended remote-control battery",
+            caption: "Recommended battery for the remote.",
+          },
+          {
+            src: "/volt/qa/battery-not-recommended.png",
+            alt: "Battery that should not be used in the remote",
+            caption: "Do not use this battery in the remote.",
+          },
+        ],
+      },
+      {
+        question: "What does the lightning light on the motor unit mean?",
+        answer:
+          "It shows battery level. The reading can drop quickly on a steep climb or under load, then recover on flat ground. Consumption also rises as voltage falls.",
+      },
+      {
+        question: "What is the warranty period?",
+        answer: "The cart has a 2-year warranty. The battery has a 1-year warranty.",
+      },
+      {
+        question: "What slope can it climb?",
+        answer:
+          "Up to 30 degrees, using the two 180W motors.",
+      },
+      {
+        question: "Does the battery need charging during winter storage?",
+        answer:
+          "Store the battery at room temperature and charge it every three months. Lithium packs, remote or main battery, should be charged at least once every 90 days when they are not in use.",
+      },
+    ],
+  },
+];
+
 export function faqSectionsForSite(siteId: SiteId): FaqSection[] {
-  const sections = siteId === "bleeq-ca" ? BLEEQ_CA_FAQ_SECTIONS : FAQ_SECTIONS;
+  let sections: FaqSection[];
+  switch (siteId) {
+    case "bleeq-ca":
+      sections = BLEEQ_CA_FAQ_SECTIONS;
+      break;
+    case "volt-ca":
+      sections = VOLT_CA_FAQ_SECTIONS;
+      break;
+    case "verveace":
+      sections = FAQ_SECTIONS;
+      break;
+    default: {
+      const _exhaustive: never = siteId;
+      return _exhaustive;
+    }
+  }
   return sections.map((section) => ({
     ...section,
     items: section.items.map((item) => ({

@@ -51,6 +51,8 @@ export async function brandLogoIconResponse(
       return pngResponse(await readFile(verveaceIconPath(size, opts?.maskable)));
     case "bleeq-ca":
       return bleeqWordmarkIcon(size, opts);
+    case "volt-ca":
+      return voltWordmarkIcon(size, opts);
     default: {
       const _exhaustive: never = siteId;
       return _exhaustive;
@@ -84,6 +86,8 @@ export async function brandLogoImageResponse(
     }
     case "bleeq-ca":
       return bleeqWordmarkIcon(size);
+    case "volt-ca":
+      return voltWordmarkIcon(size);
     default: {
       const _exhaustive: never = siteId;
       return _exhaustive;
@@ -91,9 +95,16 @@ export async function brandLogoImageResponse(
   }
 }
 
-function bleeqWordmarkIcon(size: number, opts?: { maskable?: boolean }): ImageResponse {
-  const { backgroundColor } = sitePwaChrome("bleeq-ca");
-  const fontSize = Math.round(size * (opts?.maskable ? 0.16 : 0.2));
+async function voltWordmarkIcon(
+  size: number,
+  opts?: { maskable?: boolean },
+): Promise<ImageResponse> {
+  const { backgroundColor } = sitePwaChrome("volt-ca");
+  const png = await readFile(path.join(process.cwd(), "public", "volt-caddy-logo.png"));
+  const src = `data:image/png;base64,${png.toString("base64")}`;
+  const pad = opts?.maskable ? 0.18 : 0.08;
+  const imgW = Math.round(size * (1 - pad * 2));
+  const imgH = Math.round(imgW / 6.15);
   const image = new ImageResponse(
     (
       <div
@@ -106,18 +117,38 @@ function bleeqWordmarkIcon(size: number, opts?: { maskable?: boolean }): ImageRe
           background: backgroundColor,
         }}
       >
-        <div
-          style={{
-            display: "flex",
-            color: "#fafafa",
-            fontSize,
-            fontWeight: 700,
-            letterSpacing: "-0.04em",
-            whiteSpace: "nowrap",
-          }}
-        >
-          BleeqUp
-        </div>
+        <img src={src} width={imgW} height={imgH} alt="" />
+      </div>
+    ),
+    { width: size, height: size },
+  );
+  image.headers.set("Cache-Control", PNG_CACHE);
+  return image;
+}
+
+async function bleeqWordmarkIcon(
+  size: number,
+  opts?: { maskable?: boolean },
+): Promise<ImageResponse> {
+  const { backgroundColor } = sitePwaChrome("bleeq-ca");
+  const svg = await readFile(path.join(process.cwd(), "public", "bleeq-logo.svg"));
+  const src = `data:image/svg+xml;base64,${svg.toString("base64")}`;
+  const pad = opts?.maskable ? 0.2 : 0.1;
+  const imgW = Math.round(size * (1 - pad * 2));
+  const imgH = Math.round(imgW * (170 / 627));
+  const image = new ImageResponse(
+    (
+      <div
+        style={{
+          width: "100%",
+          height: "100%",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          background: backgroundColor,
+        }}
+      >
+        <img src={src} width={imgW} height={imgH} alt="" />
       </div>
     ),
     { width: size, height: size },

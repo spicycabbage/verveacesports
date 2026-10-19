@@ -1,9 +1,17 @@
+import Link from "next/link";
 import { cookies } from "next/headers";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { buttonVariants } from "@/components/ui/button";
+import {
+  Card,
+  CardAction,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Sparkles } from "lucide-react";
-import { ProfileForm } from "./ProfileForm";
-import { formatPoints } from "@/lib/utils/format";
+import { formatDateOnly, formatPoints } from "@/lib/utils/format";
 import { LOCALE_COOKIE, parseLocaleCookie } from "@/lib/i18n/locale";
 import { getDictionary, interpolate } from "@/lib/i18n/dictionary";
 
@@ -19,25 +27,21 @@ export default async function ProfilePage() {
 
   const { data: profile } = await supabase
     .from("profiles")
-    .select("full_name, first_name, last_name, email, country, loyalty_points, referral_code, created_at")
+    .select("full_name, first_name, last_name, email, loyalty_points, referral_code, created_at")
     .eq("id", user!.id)
     .single<{
       full_name: string | null;
       first_name: string | null;
       last_name: string | null;
       email: string;
-      country: "US" | "CA";
       loyalty_points: number;
       referral_code: string;
       created_at: string;
     }>();
 
-  const pf = (profile?.first_name ?? "").trim();
-  const pl = (profile?.last_name ?? "").trim();
-  const legacy = (profile?.full_name ?? "").trim();
-  const legacyParts = legacy ? legacy.split(/\s+/).filter(Boolean) : [];
-  const derivedFirst = pf || legacyParts[0] || "";
-  const derivedLast = pl || legacyParts.slice(1).join(" ") || "";
+  const name =
+    `${(profile?.first_name ?? "").trim()} ${(profile?.last_name ?? "").trim()}`.trim() ||
+    (profile?.full_name ?? "").trim();
 
   return (
     <div className="space-y-6">
@@ -66,10 +70,7 @@ export default async function ProfilePage() {
           <CardContent>
             <p className="text-3xl font-bold">
               {profile
-                ? new Date(profile.created_at).toLocaleDateString("en-US", {
-                    month: "short",
-                    year: "numeric",
-                  })
+                ? formatDateOnly(profile.created_at)
                 : "—"}
             </p>
             <p className="mt-1 text-xs text-muted-foreground">{profile?.email}</p>
@@ -81,15 +82,30 @@ export default async function ProfilePage() {
         <CardHeader>
           <CardTitle>{dict.account.profileTitle}</CardTitle>
           <CardDescription>{dict.account.profileDesc}</CardDescription>
+          <CardAction>
+            <Link
+              href="/account/settings"
+              className={buttonVariants({ variant: "outline", size: "sm" })}
+            >
+              {dict.account.editInSettings}
+            </Link>
+          </CardAction>
         </CardHeader>
         <CardContent>
-          <ProfileForm
-            email={profile?.email ?? ""}
-            firstName={derivedFirst}
-            lastName={derivedLast}
-            country={profile?.country ?? "US"}
-            referralCode={profile?.referral_code ?? ""}
-          />
+          <dl className="grid gap-4 text-sm sm:grid-cols-3">
+            <div className="min-w-0 space-y-1">
+              <dt className="text-muted-foreground">{dict.account.name}</dt>
+              <dd className="truncate font-medium">{name || "—"}</dd>
+            </div>
+            <div className="min-w-0 space-y-1">
+              <dt className="text-muted-foreground">{dict.account.email}</dt>
+              <dd className="truncate font-medium">{profile?.email ?? "—"}</dd>
+            </div>
+            <div className="min-w-0 space-y-1">
+              <dt className="text-muted-foreground">{dict.account.yourReferralCode}</dt>
+              <dd className="font-mono font-medium uppercase">{profile?.referral_code ?? "—"}</dd>
+            </div>
+          </dl>
         </CardContent>
       </Card>
     </div>

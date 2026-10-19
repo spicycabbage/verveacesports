@@ -3,12 +3,13 @@
 import { Button } from "@/components/ui/button";
 import { Plus, ShoppingBag } from "lucide-react";
 import { useCartStore } from "@/lib/store/cart";
-import { useDictionary, useT } from "@/lib/i18n/I18nProvider";
+import { useDictionary, useLocale, useT } from "@/lib/i18n/I18nProvider";
+import { catalogProductName } from "@/lib/i18n/catalog-copy";
 import type { Product } from "@/lib/supabase/types";
 import { toast } from "sonner";
 
 type Props = {
-  product: Pick<Product, "id" | "slug" | "name" | "images" | "stock">;
+  product: Pick<Product, "id" | "slug" | "name" | "images" | "stock" | "translations">;
   variantId: string;
   variantLabel?: string;
   priceUsd: number;
@@ -29,6 +30,8 @@ export function AddToCartButton({
   const { add, open } = useCartStore();
   const dict = useDictionary();
   const t = useT();
+  const locale = useLocale();
+  const name = catalogProductName(product.slug, locale, product.name, product.translations);
   const disabled = !variantId || product.stock === 0;
 
   function handleAdd() {
@@ -44,10 +47,11 @@ export function AddToCartButton({
         priceUsd,
         priceCad,
         stock: product.stock,
+        translations: product.translations,
       },
       qty,
     );
-    toast.success(t("product.addedToast", { name: product.name }), {
+    toast.success(t("product.addedToast", { name }), {
       action: { label: dict.product.viewCart, onClick: () => open() },
     });
   }

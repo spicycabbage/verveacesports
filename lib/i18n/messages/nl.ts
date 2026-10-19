@@ -16,6 +16,7 @@ export const nl: Dictionary = {
     profile: "Profiel",
     loyaltyPoints: "Loyaliteitspunten",
     referrals: "Doorverwijzingen",
+    liveAgent: "Live medewerker",
     admin: "Admin",
     pts: "{n} ptn",
     accountMenu: "Accountmenu",
@@ -40,7 +41,7 @@ export const nl: Dictionary = {
     warranty: "Garantie",
     privacy: "Privacy",
     terms: "Voorwaarden",
-    themePlayground: "Themaspeeltuin",
+    blog: "Blog",
     faq: "FAQ",
     copyright: "© {year} VerveaceSports. Alle rechten voorbehouden.",
   },
@@ -94,9 +95,20 @@ export const nl: Dictionary = {
     searching: "Zoeken:",
     clearSearch: "Zoekopdracht wissen",
     all: "Alles",
+    filterCategory: "Categorie",
     shopRanger: "Shop Ranger & Rover",
     rangerMeta:
       "{n} modellen beschikbaar · Gratis retour binnen 30 dagen · Verdien 1 loyaliteitspunt per dollar",
+    shopBleeqCanada: "Shop BleeqUp Canada",
+    shopRangerBleeq: "BleeqUp Rover & Ranger AI-sportbrillen",
+    rangerMetaDesc:
+      "Shop BleeqUp Rover- en Ranger-AI-sportbrillen in Canada. ZEISS, Standard en bundles — prijzen in CAD, 30 dagen gratis retour.",
+    aiGlassesMetaDesc:
+      "Shop BleeqUp Rover- en Ranger-AI-sportcamerabrillen. Bekijk featuredemo’s, atletenverhalen en creatorreviews. Erkende verkoper met verzending naar de VS en Canada.",
+    metaCloserBleeq:
+      "Erkende BleeqUp-verkoper voor Canada. Prijzen in CAD, 30 dagen gratis retour.",
+    metaCloserVerveace: "Erkende verkoper. Verzending naar de VS en Canada.",
+    metaCloserVolt: "Erkende Volt Caddy-verkoper in Canada. Prijzen in CAD, verzending binnen Canada.",
   },
 
   product: {
@@ -168,6 +180,8 @@ export const nl: Dictionary = {
     city: "Plaats",
     stateProvince: "Staat / provincie",
     postalCode: "Postcode",
+    phone: "Telefoon",
+    phoneInvalid: "Voer een geldig telefoonnummer in",
     country: "Land",
     unitedStates: "Verenigde Staten",
     canada: "Canada",
@@ -204,6 +218,10 @@ export const nl: Dictionary = {
     completeShipping: "Vul het verzendformulier volledig in.",
     couldNotUpdate: "Kon totalen niet bijwerken",
     promoRemoved: "Promo verwijderd",
+    checkPaymentDetails: "Controleer je betalingsgegevens",
+    paymentFailed: "Betaling mislukt",
+    payAgreeBefore: "Door te betalen ga je akkoord met onze",
+    securedByStripe: "Beveiligd door Stripe.",
     successConfirmed: "Bestelling bevestigd",
     thankYou: "Bedankt voor je bestelling!",
     viewOrder: "Bestelling bekijken",
@@ -257,6 +275,28 @@ export const nl: Dictionary = {
     status_shipped: "verzonden",
     status_delivered: "bezorgd",
     status_cancelled: "geannuleerd",
+    tracking: "Track & trace",
+    trackPackage: "Volg zending",
+    settings: "Instellingen",
+    editInSettings: "Bewerken in instellingen",
+    name: "Naam",
+    personalTitle: "Persoonlijke gegevens",
+    personalDesc: "Je naam en telefoonnummer zoals ze op bestellingen en bonnen staan.",
+    phone: "Telefoon",
+    addressTitle: "Standaardadres",
+    addressDesc: "Vult de checkout vooraf in en wordt gebruikt voor facturatie en verzending.",
+    addressLine1: "Adres",
+    addressLine2: "Appartement, suite, enz. (optioneel)",
+    city: "Stad",
+    stateProvince: "Provincie / Staat",
+    postalCode: "Postcode",
+    addressSaved: "Adres opgeslagen",
+    passwordTitle: "Wachtwoord",
+    passwordDescChange: "Wijzig het wachtwoord waarmee je inlogt.",
+    passwordDescSet: "Je bent ingelogd met Google. Stel een wachtwoord in om ook met je e-mail in te loggen.",
+    currentPassword: "Huidig wachtwoord",
+    changePassword: "Wachtwoord wijzigen",
+    setPassword: "Wachtwoord instellen",
   },
 
   auth: {
@@ -284,15 +324,31 @@ export const nl: Dictionary = {
     privacyPolicy: "Privacybeleid",
     signedIn: "Ingelogd",
     checkEmailConfirm: "Controleer je e-mail om je account te bevestigen.",
+    rememberMe: "Onthoud mij",
+    forgotPassword: "Wachtwoord vergeten?",
+    forgotTitle: "Wachtwoord opnieuw instellen",
+    forgotDesc: "Vul het e-mailadres van je account in en we sturen je een link om je wachtwoord opnieuw in te stellen.",
+    sendResetLink: "Link versturen",
+    resetLinkSent: "Als er een account met dit e-mailadres bestaat, is de link onderweg. Controleer je inbox.",
+    resetLinkExpired: "Deze link is ongeldig of verlopen. Vraag hieronder een nieuwe aan.",
+    backToSignIn: "Terug naar inloggen",
+    resetTitle: "Kies een nieuw wachtwoord",
+    resetDesc: "Vul een nieuw wachtwoord in voor je account.",
+    newPassword: "Nieuw wachtwoord",
+    confirmPassword: "Bevestig nieuw wachtwoord",
+    passwordsDontMatch: "Wachtwoorden komen niet overeen",
+    updatePassword: "Wachtwoord bijwerken",
+    passwordUpdated: "Wachtwoord bijgewerkt",
   },
 
   faq: {
     title: "Veelgestelde vragen",
+    titleBleeq: "BleeqUp Canada FAQ",
     home: "Home",
     introVerveace:
       "Snelle antwoorden over verzending, retour, BleeqUp-, MGI- & Motocaddy-producten, loyaliteitspunten en afrekenen. Kun je niet vinden wat je zoekt? Mail {email}.",
     introBleeq:
-      "Snelle antwoorden over Canadese verzending, CAD-prijzen, retour, BleeqUp Ranger-brillen, loyaliteit en afrekenen. Kun je niet vinden wat je zoekt? Mail {email}.",
+      "Snelle antwoorden over Canadese verzending, CAD-prijzen, retour, BleeqUp Rover- en Ranger-AI-sportbrillen, loyaliteit en afrekenen. Kun je niet vinden wat je zoekt? Mail {email}.",
     emailSupport: "Mail {email} voor meer hulp.",
     sections: {
       ordersShipping: {
@@ -337,8 +393,20 @@ export const nl: Dictionary = {
         title: "Producten & prijzen",
         items: [
           {
+            q: "Wat verkopen jullie?",
+            a: "VerveaceSports is een sportwinkel met meerdere merken. We verkopen BleeqUp Rover- en Ranger-AI-sportcamerabrillen en accessoires, plus elektrische golftrolleys, caddies en golfgear van MGI en Motocaddy. Bekijk AI-brillen, Wearables, Elektrische carts en Golfgear op de productpagina.",
+          },
+          {
             q: "Zijn jullie een erkende dealer?",
-            a: "Ja. VerveaceSports is een erkende verkoper van BleeqUp AI-camerabrillen en elektrische golftrolleys, caddies en accessoires van MGI & Motocaddy.",
+            a: "Ja. VerveaceSports is een erkende verkoper van BleeqUp AI-camerabrillen en elektrische golftrolleys, caddies en accessoires van MGI & Motocaddy. We zijn niet de BleeqUp-fabrikantwebsite (bleequp.com).",
+          },
+          {
+            q: "Welke BleeqUp-brillen bieden jullie aan?",
+            a: "We hebben BleeqUp Rover (ZEISS en Bundle, plus Rover Power Plus en Rover-lenzen) en BleeqUp Ranger (Standaardlens, Lenzen van Zeiss, Ultimate Bundle) plus gedeelde accessoires zoals Power Plus, Bluetooth-controller, magnetische oplaadkabel, verwisselbare lenzen en een sterkte-service. Open elke productpagina voor actuele varianten en CAD-prijzen.",
+          },
+          {
+            q: "Is dit hetzelfde als BleeqUp Canada (ca.bleequp.com)?",
+            a: "Nee. VerveaceSports.com is onze multi-merk winkel voor de VS en Canada (BleeqUp + MGI + Motocaddy). BleeqUp Canada op ca.bleequp.com is een aparte, alleen-Canada BleeqUp-winkel met CAD-prijzen. Bestellingen en accounts zijn gescheiden tussen de twee sites.",
           },
           {
             q: "Waarom zijn prijzen in CAD?",
@@ -437,11 +505,19 @@ export const nl: Dictionary = {
         items: [
           {
             q: "Wat verkopen jullie?",
-            a: "Dit is een speciale BleeqUp Canada-winkel. We verkopen BleeqUp Ranger AI-sportcamerabrillen en officiële accessoires (Power Plus, Bluetooth-controller, lenzen, oplaadkabel, opties op sterkte en gerelateerde wearables). We verkopen op deze site geen golftrolleys of andere merken.",
+            a: "Dit is een speciale BleeqUp Canada-winkel. We verkopen BleeqUp Rover- en Ranger-AI-sportcamerabrillen en officiële accessoires (Power Plus, Rover Power Plus, Bluetooth-controller, lenzen, oplaadkabel, opties op sterkte en gerelateerde wearables). We verkopen op deze site geen golftrolleys of andere merken.",
+          },
+          {
+            q: "Welke BleeqUp-brillen bieden jullie aan?",
+            a: "We hebben BleeqUp Rover (ZEISS en Bundle, plus Rover Power Plus en Rover-lenzen) en BleeqUp Ranger (Standaardlens, Lenzen van Zeiss, Ultimate Bundle) plus Power Plus, Bluetooth-controller, magnetische oplaadkabel, verwisselbare lenzen en een sterkte-service. Open elke productpagina voor actuele CAD-prijzen en varianten.",
           },
           {
             q: "Zijn jullie een erkende BleeqUp-verkoper?",
             a: "Ja. Deze site wordt geëxploiteerd als een erkende BleeqUp-verkoper voor de Canadese markt. Het is niet de officiële BleeqUp-fabrikantwebsite (bleequp.com).",
+          },
+          {
+            q: "Is dit hetzelfde als VerveaceSports.com?",
+            a: "Nee. ca.bleequp.com is BleeqUp Canada — alleen BleeqUp-producten, CAD, verzending binnen Canada. VerveaceSports.com is een aparte multi-merk winkel (BleeqUp + MGI + Motocaddy) die naar de VS en Canada verzendt. Bestellingen en accounts zijn gescheiden.",
           },
           {
             q: "Waarom zijn prijzen in CAD?",
@@ -659,7 +735,20 @@ export const nl: Dictionary = {
       errorProduct: "Selecteer een product",
       errorGeneric: "Er ging iets mis. Probeer opnieuw.",
       errorConn: "Verzenden mislukt. Controleer je verbinding en probeer opnieuw.",
+      otherGolf: "Overig (MGI / Motocaddy / golfuitrusting)",
     },
+  },
+
+  site: {
+    verveaceTagline: "Premium sportartikelen",
+    verveaceDescription:
+      "Erkende verkoper van BleeqUp AI-sportcamerabrillen en elektrische golftrolleys, caddies en uitrusting van MGI & Motocaddy.",
+    bleeqTagline: "Rover & Ranger AI-sportbrillen",
+    bleeqDescription:
+      "Koop BleeqUp Rover- en Ranger-AI-sportbrillen in Canada. Officiële erkende verkoper — prijzen in CAD en 30 dagen gratis retour.",
+    voltTagline: "Elektrische golftrolley met afstandsbediening",
+    voltDescription:
+      "Koop de Volt Caddy Pro-S elektrische golftrolley met afstandsbediening in Canada. Prijzen in CAD en 30 dagen gratis retour.",
   },
 
   newsletter: {
@@ -744,11 +833,14 @@ export const nl: Dictionary = {
       heroKicker: "{shortName} · Canada · CAD",
       shopNow: "Shop nu",
       compareModels: "Modellen vergelijken",
-      chooseTitle: "Kies je Ranger",
-      chooseSubtitle: "Standard, Zeiss of Ultimate Bundle — één klik naar het product.",
+      chooseTitle: "Shop BleeqUp Rover",
+      chooseSubtitle: "Rover ZEISS en de Rover-bundel — 3K60 HDR, kantelcamera, AI-sportassistent.",
+      remainingRangerTitle: "Ranger",
+      remainingRangerSubtitle:
+        "Standard, ZEISS en de Ultimate Bundle — 3K-opname, open-ear audio en UV-bescherming.",
       viewAll: "Bekijk alles →",
       featuresKicker: "Productfuncties",
-      featuresTitle: "Zie wat Ranger kan",
+      featuresTitle: "Zie wat BleeqUp kan",
       watchMore: "Bekijk meer op de shoppagina",
       testimonialsKicker: "Klanten zeggen",
       testimonialsTitle: "Gemaakt voor hoe jij beweegt",
@@ -759,7 +851,25 @@ export const nl: Dictionary = {
       ctaTitle: "Klaar voor je volgende rit?",
       ctaSubtitle:
         "Erkende BleeqUp-verkoper voor Canada. Gratis retour binnen 30 dagen. Verdien loyaliteitspunten bij elke bestelling.",
-      shopRanger: "Shop Ranger",
+      shopRanger: "Shop Rover",
+      heroSubcopy:
+        "Shop BleeqUp AI-sportcamerabrillen in Canada. Handsfree POV-camera, open-ear audio en UV-bescherming — prijzen in CAD, verzending landelijk.",
+      heroAlt: "BleeqUp Rover AI-sportbril",
+    },
+    showcase: {
+      authorizedRetailer: "Erkende BleeqUp-verkoper",
+      shopModels: "Shop Ranger- & Rover-modellen",
+      featuresDesc:
+        "Elke clip hieronder komt van de officiële BleeqUp-site — stabilisatie, AI-montage, gezichtsveld en meer.",
+      realAthletes: "Echte atleten",
+      testimonialsDesc:
+        "Creators en atleten met Ranger in het veld — first-person POV van de officiële BleeqUp-community.",
+      trustedByCreators: "Vertrouwd door creators",
+      independentReviews: "Onafhankelijke reviews",
+      creatorsDesc: "YouTube-creators testen de 4-in-1 Ranger in de praktijk.",
+      gettingStarted: "Aan de slag",
+      questionsFaq: "Vragen? Zie onze",
+      orEmail: "of mail",
     },
   },
 
@@ -777,5 +887,13 @@ export const nl: Dictionary = {
     save: "Opslaan",
     close: "Sluiten",
     error: "Er ging iets mis.",
+    offlineTitle: "Je bent offline",
+    offlineBody:
+      "Maak opnieuw verbinding om {name} te bekijken. Prijzen en afrekenen vereisen een actieve verbinding.",
+    tryAgain: "Opnieuw proberen",
+    cadPrices: "Alle prijzen zijn in Canadese dollars",
+    viewImage: "Bekijk afbeelding {n} van {total}",
+    scrollThumbsLeft: "Miniaturen naar links scrollen",
+    scrollThumbsRight: "Miniaturen naar rechts scrollen",
   },
 };

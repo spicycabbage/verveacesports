@@ -1,7 +1,9 @@
+import { enumerateStoreDates, pacificDateKey } from "@/lib/utils/format";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import type { DateRange } from "@/lib/actions/finance";
 import type { SiteId } from "@/lib/site/config";
 import type { SalesChannel } from "@/lib/supabase/types";
+import { MIN_REPORTED_ORDER_TOTAL } from "@/lib/orders/reported";
 
 const PAID_STATUSES = ["paid", "partially_refunded", "refunded"] as const;
 const PAGE = 1000;
@@ -84,18 +86,6 @@ function asNum(value: number | string | null | undefined): number {
   return Number.isFinite(n) ? n : 0;
 }
 
-function enumerateDates(from: string, to: string): string[] {
-  const dates: string[] = [];
-  const cursor = new Date(from);
-  cursor.setUTCHours(0, 0, 0, 0);
-  const end = new Date(to);
-  end.setUTCHours(0, 0, 0, 0);
-  while (cursor <= end) {
-    dates.push(cursor.toISOString().slice(0, 10));
-    cursor.setUTCDate(cursor.getUTCDate() + 1);
-  }
-  return dates;
-}
 
 async function fetchPaidOrders(
   range: DateRange,
@@ -116,6 +106,7 @@ async function fetchPaidOrders(
     let filtered = query
       .eq("currency", "CAD")
       .in("financial_status", [...PAID_STATUSES])
+      .gte("total", MIN_REPORTED_ORDER_TOTAL)
       .gte("paid_at", range.from)
       .lte("paid_at", range.to)
       .order("paid_at", { ascending: true })
@@ -163,7 +154,7 @@ function rollupOrders(orders: OrderRow[]): Omit<StoreAnalytics, "products" | "ch
   for (const order of orders) {
     const kept = Math.max(0, asNum(order.total) - asNum(order.refunded_total));
     revenue += kept;
-    const day = (order.paid_at ?? "").slice(0, 10);
+    const day = order.paid_at ? pacificDateKey(order.paid_at) : "";
     if (day) {
       const existing = dailyMap.get(day) ?? { day, revenue: 0, orders: 0 };
       existing.revenue = round2(existing.revenue + kept);
@@ -177,7 +168,7 @@ function rollupOrders(orders: OrderRow[]): Omit<StoreAnalytics, "products" | "ch
     ch.revenue = round2(ch.revenue + kept);
     channelMap.set(channel, ch);
 
-    if (order.site_id === "verveace" || order.site_id === "bleeq-ca") {
+    if (order.site_id === "verveace" || order.site_id === "bleeq-ca" || order.site_id === "volt-ca") {
       const site = siteMap.get(order.site_id) ?? { siteId: order.site_id, orders: 0, revenue: 0 };
       site.orders += 1;
       site.revenue = round2(site.revenue + kept);
@@ -233,7 +224,7 @@ function totalsFromOrders(orders: OrderRow[]): StoreTotals {
 
 function fillDaily(range: DateRange, points: StoreDaily[]): StoreDaily[] {
   const byDay = new Map(points.map((p) => [p.day, p]));
-  return enumerateDates(range.from, range.to).map(
+  return enumerateStoreDates(range.from, range.to).map(
     (day) => byDay.get(day) ?? { day, revenue: 0, orders: 0 },
   );
 }

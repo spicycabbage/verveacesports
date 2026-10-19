@@ -29,7 +29,9 @@ import { toMinorUnits } from "@/lib/utils/currency";
 import { toast } from "sonner";
 import { PaymentForm } from "./PaymentForm";
 import { useSite } from "@/lib/site/SiteProvider";
-import { useDictionary, useT } from "@/lib/i18n/I18nProvider";
+import { useDictionary, useLocale, useT } from "@/lib/i18n/I18nProvider";
+import { catalogProductName, localizeOptionLabel } from "@/lib/i18n/catalog-copy";
+import { isValidOrderPhone } from "@/lib/utils/phone";
 
 type ShippingForm = {
   first_name: string;
@@ -39,6 +41,7 @@ type ShippingForm = {
   city: string;
   state: string;
   postal_code: string;
+  phone: string;
   country: "US" | "CA";
 };
 
@@ -79,16 +82,29 @@ export function CheckoutClient({
   defaultMarket,
   defaultFirstName,
   defaultLastName,
+  defaultLine1 = "",
+  defaultLine2 = "",
+  defaultCity = "",
+  defaultState = "",
+  defaultPostal = "",
+  defaultPhone = "",
   loyaltyPoints,
 }: {
   defaultMarket: CountryCode;
   defaultFirstName: string;
   defaultLastName: string;
+  defaultLine1?: string;
+  defaultLine2?: string;
+  defaultCity?: string;
+  defaultState?: string;
+  defaultPostal?: string;
+  defaultPhone?: string;
   loyaltyPoints: number;
 }) {
   const site = useSite();
   const dict = useDictionary();
   const t = useT();
+  const locale = useLocale();
   const { items } = useCartStore();
   const promoCode = useCartStore((s) => s.promoCode);
   const setPromoCode = useCartStore((s) => s.setPromoCode);
@@ -102,11 +118,12 @@ export function CheckoutClient({
   const [shipping, setShipping] = useState<ShippingForm>({
     first_name: defaultFirstName,
     last_name: defaultLastName,
-    line1: "",
-    line2: "",
-    city: "",
-    state: "",
-    postal_code: "",
+    line1: defaultLine1,
+    line2: defaultLine2,
+    city: defaultCity,
+    state: defaultState,
+    postal_code: defaultPostal,
+    phone: defaultPhone,
     country: defaultMarket,
   });
 
@@ -252,7 +269,8 @@ export function CheckoutClient({
       shipping.line1.trim() &&
       shipping.city.trim() &&
       shipping.state.trim() &&
-      shipping.postal_code.trim()
+      shipping.postal_code.trim() &&
+      isValidOrderPhone(shipping.phone)
     );
   }
 
@@ -277,6 +295,7 @@ export function CheckoutClient({
           city: shipping.city,
           state: shipping.state,
           postal_code: shipping.postal_code,
+          phone: shipping.phone.trim(),
           country: shipping.country,
         },
       }),
@@ -396,6 +415,21 @@ export function CheckoutClient({
                   value={shipping.postal_code}
                   onChange={(e) => setShipping({ ...shipping, postal_code: e.target.value })}
                 />
+              </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="phone">{dict.checkout.phone}</Label>
+                <Input
+                  id="phone"
+                  type="tel"
+                  autoComplete="tel"
+                  inputMode="tel"
+                  required
+                  value={shipping.phone}
+                  onChange={(e) => setShipping({ ...shipping, phone: e.target.value })}
+                />
+                {shipping.phone.trim() && !isValidOrderPhone(shipping.phone) && (
+                  <p className="text-xs text-destructive">{dict.checkout.phoneInvalid}</p>
+                )}
               </div>
               <div className="space-y-1.5">
                 <Label htmlFor="shipping_country">{dict.checkout.country}</Label>
@@ -561,9 +595,9 @@ export function CheckoutClient({
               return (
                 <li key={cartLineKey(i)} className="flex justify-between gap-2">
                   <span className="text-muted-foreground">
-                    {i.name}
+                    {catalogProductName(i.slug, locale, i.name, i.translations)}
                     {i.variantLabel !== "Default" && (
-                      <span className="text-xs"> · {i.variantLabel}</span>
+                      <span className="text-xs"> · {localizeOptionLabel(i.variantLabel, locale)}</span>
                     )}{" "}
                     <span className="text-xs">×{i.qty}</span>
                   </span>

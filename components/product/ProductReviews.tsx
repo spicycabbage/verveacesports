@@ -13,6 +13,7 @@ import { ReviewStars } from "@/components/product/ReviewStars";
 import { cn } from "@/lib/utils";
 import { useDictionary } from "@/lib/i18n/I18nProvider";
 import { submitProductReview } from "@/lib/actions/reviews";
+import { formatDateOnly } from "@/lib/utils/format";
 import type { ProductReview, ProductReviewSummary } from "@/lib/reviews/summary";
 
 type Eligibility = {
@@ -184,11 +185,7 @@ export function ProductReviews({
               ) : null}
               <p className="mt-1 text-sm leading-relaxed text-muted-foreground">{review.body}</p>
               <p className="mt-2 text-xs text-muted-foreground">
-                {new Date(review.created_at).toLocaleDateString(undefined, {
-                  year: "numeric",
-                  month: "short",
-                  day: "numeric",
-                })}
+                {formatDateOnly(review.created_at)}
               </p>
             </li>
           ))}

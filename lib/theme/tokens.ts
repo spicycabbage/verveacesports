@@ -1,3 +1,4 @@
+import type { SiteId } from "@/lib/site/config";
 import { mix, readableOn } from "./color";
 
 export type ThemeMode = "light" | "dark";
@@ -96,6 +97,41 @@ export const DEFAULT_THEMES: Record<ThemeMode, ThemeColors> = {
   light: LIGHT_THEME,
   dark: DARK_THEME,
 };
+
+/** Volt Caddy.ca — warm paper, brown type, their orange (#ff7f2d). Applied as light. */
+export const VOLT_SURFACE = "#f6efe6";
+export const VOLT_BRAND = "#ff7f2d";
+export const VOLT_THEME: ThemeColors = buildPalette("light", VOLT_SURFACE, VOLT_BRAND);
+
+export function siteDefaultThemes(siteId: SiteId): Record<ThemeMode, ThemeColors> {
+  switch (siteId) {
+    case "volt-ca":
+      return { light: VOLT_THEME, dark: VOLT_THEME };
+    case "bleeq-ca":
+    case "verveace":
+      return DEFAULT_THEMES;
+    default: {
+      const _exhaustive: never = siteId;
+      return _exhaustive;
+    }
+  }
+}
+
+/** Inline custom properties so the first paint matches the storefront palette. */
+export function themeCssVars(colors: ThemeColors): Record<string, string> {
+  const style: Record<string, string> = {};
+  for (const key of THEME_TOKEN_KEYS) {
+    style[`--${key}`] = colors[key];
+    style[`--color-${key}`] = colors[key];
+  }
+  style["--ring"] = colors.primary;
+  style["--color-ring"] = colors.primary;
+  style["--popover"] = colors.card;
+  style["--color-popover"] = colors.card;
+  style["--popover-foreground"] = colors["card-foreground"];
+  style["--color-popover-foreground"] = colors["card-foreground"];
+  return style;
+}
 
 // Backwards-compatible default used by SSR fallbacks.
 export const DEFAULT_THEME = DARK_THEME;

@@ -21,10 +21,11 @@ import {
 } from "@/lib/theme/apply";
 import {
   buildPalette,
-  DEFAULT_THEMES,
+  siteDefaultThemes,
   type ThemeColors,
   type ThemeMode,
 } from "@/lib/theme/tokens";
+import type { SiteId } from "@/lib/site/config";
 import { readableOn } from "@/lib/theme/color";
 
 type ThemeContextValue = {
@@ -41,23 +42,31 @@ const ThemeContext = createContext<ThemeContextValue | null>(null);
 // localStorage is the source of truth (see lib/theme/apply.ts). The server and
 // hydration renders see `null` → defaults, matching the inline theme-init
 // script in app/layout.tsx that already styled the document before paint.
-export function ThemeProvider({ children }: { children: ReactNode }) {
+export function ThemeProvider({
+  siteId,
+  children,
+}: {
+  siteId: SiteId;
+  children: ReactNode;
+}) {
   const stored = useSyncExternalStore(
     subscribeStoredTheme,
     getStoredThemeSnapshot,
     getServerThemeSnapshot,
   );
 
-  const mode = "dark" as const;
-  const palettes = useMemo<Record<ThemeMode, ThemeColors>>(
-    () => (stored ? { light: stored.light, dark: stored.dark } : DEFAULT_THEMES),
-    [stored],
-  );
+  const lockedLight = siteId === "volt-ca";
+  const defaults = useMemo(() => siteDefaultThemes(siteId), [siteId]);
+  const mode: ThemeMode = lockedLight ? "light" : "dark";
+  const palettes = useMemo<Record<ThemeMode, ThemeColors>>(() => {
+    if (lockedLight) return defaults;
+    return stored ? { light: stored.light, dark: stored.dark } : defaults;
+  }, [defaults, lockedLight, stored]);
 
   // Sync the document with the current theme (DOM side effect only).
   useEffect(() => {
-    applyTheme(palettes.dark, "dark");
-  }, [palettes]);
+    applyTheme(lockedLight ? palettes.light : palettes.dark, mode);
+  }, [lockedLight, mode, palettes]);
 
   const persist = useCallback((nextPalettes: Record<ThemeMode, ThemeColors>) => {
     saveTheme({ mode: "dark", light: nextPalettes.light, dark: nextPalettes.dark });
@@ -100,13 +109,13 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
   const value = useMemo<ThemeContextValue>(
     () => ({
       mode,
-      colors: palettes.dark,
+      colors: lockedLight ? palettes.light : palettes.dark,
       setBrand,
       setBackground,
       resetMode,
       copyCss,
     }),
-    [mode, palettes, setBrand, setBackground, resetMode, copyCss],
+    [lockedLight, mode, palettes, setBrand, setBackground, resetMode, copyCss],
   );
 
   return <ThemeContext.Provider value={value}>{children}</ThemeContext.Provider>;

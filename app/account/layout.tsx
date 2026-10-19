@@ -1,9 +1,9 @@
-import Link from "next/link";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { getSessionProfile, getSessionUser } from "@/lib/auth/session";
 import { LOCALE_COOKIE, parseLocaleCookie } from "@/lib/i18n/locale";
 import { getDictionary } from "@/lib/i18n/dictionary";
+import { AccountNav } from "./AccountNav";
 
 export const metadata = {
   robots: { index: false, follow: false },
@@ -28,6 +28,7 @@ export default async function AccountLayout({
     { href: "/account/orders", label: dict.account.orders },
     { href: "/account/loyalty", label: dict.account.loyalty },
     { href: "/account/referrals", label: dict.account.referrals },
+    { href: "/account/settings", label: dict.account.settings },
   ] as const;
 
   return (
@@ -37,17 +38,7 @@ export default async function AccountLayout({
           <h2 className="mb-2 px-1 text-xs font-semibold uppercase tracking-wider text-muted-foreground md:px-2">
             {dict.account.title}
           </h2>
-          <nav className="flex w-full items-stretch gap-0.5 md:flex-col md:gap-1">
-            {NAV.map((item) => (
-              <Link
-                key={item.href}
-                href={item.href}
-                className="min-w-0 flex-1 rounded-md px-1 py-2 text-center text-xs font-medium hover:bg-accent sm:text-sm md:flex-none md:px-3 md:text-left md:text-sm"
-              >
-                {item.label}
-              </Link>
-            ))}
-          </nav>
+          <AccountNav items={NAV} liveAgentLabel={dict.nav.liveAgent} />
         </div>
       </aside>
       <section className="min-w-0">{children}</section>

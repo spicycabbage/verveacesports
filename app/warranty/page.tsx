@@ -18,8 +18,11 @@ export async function generateMetadata() {
 
 export default async function WarrantyPage() {
   const site = await getSite();
-  const policy = getWarrantyPolicy(site);
-  const products = warrantyProductOptions(site);
+  const cookieStore = await cookies();
+  const locale = parseLocaleCookie(cookieStore.get(LOCALE_COOKIE)?.value);
+  const dict = getDictionary(locale);
+  const policy = getWarrantyPolicy(site, locale);
+  const products = warrantyProductOptions(site, locale, dict.legal.warranty.otherGolf);
 
   return (
     <WarrantyTabs policy={policy} products={products} supportEmail={site.supportEmail} />

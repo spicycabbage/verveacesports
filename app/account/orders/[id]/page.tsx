@@ -15,6 +15,10 @@ import { GST_NUMBER } from "@/lib/tax/label";
 import type { OrderStatus } from "@/lib/supabase/types";
 import { ArrowLeft } from "lucide-react";
 import { buttonVariants } from "@/components/ui/button";
+import { formatOrderNumber } from "@/lib/orders/number";
+import { orderVariantLabel } from "@/lib/orders/variant-label";
+import { TrackingLink } from "@/components/orders/TrackingLink";
+import type { Fulfillment } from "@/lib/supabase/types";
 
 const STATUS_VARIANTS: Record<OrderStatus, "default" | "secondary" | "outline" | "destructive"> = {
   pending: "secondary",
@@ -45,10 +49,18 @@ export default async function OrderDetailPage({ params }: { params: Params }) {
     .single();
   if (!order) notFound();
 
-  const { data: items } = await supabase
-    .from("order_items")
-    .select("*")
-    .eq("order_id", id);
+  const [{ data: items }, { data: fulfillmentsData }] = await Promise.all([
+    supabase.from("order_items").select("*").eq("order_id", id),
+    supabase
+      .from("fulfillments")
+      .select("id, tracking_company, tracking_number, tracking_url")
+      .eq("order_id", id)
+      .order("created_at"),
+  ]);
+  const shipments = ((fulfillmentsData ?? []) as Pick<
+    Fulfillment,
+    "id" | "tracking_company" | "tracking_number" | "tracking_url"
+  >[]).filter((f) => f.tracking_number);
 
   const currency = "CAD" as const;
 
@@ -65,7 +77,7 @@ export default async function OrderDetailPage({ params }: { params: Params }) {
           <div className="flex flex-wrap items-start justify-between gap-2">
             <div>
               <h1 className="text-xl font-bold tracking-tight">
-                Order #{order.id.slice(0, 8).toUpperCase()}
+                Order {formatOrderNumber(order)}
               </h1>
               <p className="text-sm text-muted-foreground">{formatDate(order.created_at)}</p>
             </div>
@@ -90,6 +102,9 @@ export default async function OrderDetailPage({ params }: { params: Params }) {
                 </div>
                 <div className="flex-1 text-sm">
                   <p className="font-medium">{it.product_name}</p>
+                  {orderVariantLabel(it.variant_title) ? (
+                    <p>{orderVariantLabel(it.variant_title)}</p>
+                  ) : null}
                   <p className="text-muted-foreground">
                     Qty {it.qty} · {formatPrice(Number(it.unit_price), currency)} each
                   </p>
@@ -124,6 +139,25 @@ export default async function OrderDetailPage({ params }: { params: Params }) {
             />
             <p className="pt-2 text-xs text-muted-foreground">GST/HST {GST_NUMBER}</p>
           </div>
+          {shipments.length > 0 ? (
+            <>
+              <Separator />
+              <div className="text-sm">
+                <h3 className="mb-1 font-semibold">{dict.account.tracking}</h3>
+                <ul className="space-y-1 text-muted-foreground">
+                  {shipments.map((f) => (
+                    <li key={f.id}>
+                      <TrackingLink
+                        company={f.tracking_company}
+                        trackingNumber={f.tracking_number}
+                        trackingUrl={f.tracking_url}
+                      />
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </>
+          ) : null}
           {order.shipping_address && (
             <>
               <Separator />
@@ -157,6 +191,7 @@ function ShippingAddress({ address }: { address: Record<string, unknown> }) {
     state?: string;
     postal_code?: string;
     country?: string;
+    phone?: string;
   };
   return (
     <p className="text-muted-foreground">
@@ -168,6 +203,12 @@ function ShippingAddress({ address }: { address: Record<string, unknown> }) {
       {a.city}, {a.state} {a.postal_code}
       <br />
       {countryName(a.country)}
+      {a.phone ? (
+        <>
+          <br />
+          {a.phone}
+        </>
+      ) : null}
     </p>
   );
 }

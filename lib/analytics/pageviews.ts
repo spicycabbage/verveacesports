@@ -1,11 +1,20 @@
+import { classifyUserAgent } from "@/lib/bots/crawlers";
+import { pacificDateKey } from "@/lib/utils/format";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import type { SiteId } from "@/lib/site/config";
 import type { DateRange } from "@/lib/actions/finance";
 
 export type TrafficDaily = { day: string; pageviews: number; visitors: number };
 export type TrafficPath = { path: string; pageviews: number; visitors: number };
-export type TrafficReferrer = { host: string; pageviews: number };
+export type TrafficReferrer = { host: string; pageviews: number; visitors: number };
 export type TrafficCountry = { country: string; pageviews: number; visitors: number };
+export type TrafficProperty = {
+  siteId: SiteId;
+  pageviews: number;
+  visitors: number;
+  topReferrer: string;
+  topReferrerVisitors: number;
+};
 
 export type TrafficRollup = {
   pageviews: number;
@@ -14,6 +23,7 @@ export type TrafficRollup = {
   paths: TrafficPath[];
   referrers: TrafficReferrer[];
   countries: TrafficCountry[];
+  properties: TrafficProperty[];
   notice?: string;
 };
 
@@ -24,6 +34,7 @@ const EMPTY_ROLLUP: TrafficRollup = {
   paths: [],
   referrers: [],
   countries: [],
+  properties: [],
 };
 
 const SKIP_PREFIXES = [
@@ -42,6 +53,7 @@ const SKIP_PREFIXES = [
 const BOT_UA = /bot|crawl|spider|slurp|facebookexternalhit|preview|lighthouse/i;
 
 export function isBotUserAgent(ua: string | null): boolean {
+  if (classifyUserAgent(ua) !== "visitor") return true;
   return Boolean(ua && BOT_UA.test(ua));
 }
 
@@ -105,6 +117,7 @@ export async function insertPageView(input: {
 }
 
 type PageViewRow = {
+  site_id: string;
   path: string;
   session_id: string;
   referrer_host: string | null;
@@ -112,16 +125,28 @@ type PageViewRow = {
   created_at: string;
 };
 
+function isKnownSite(value: string): value is SiteId {
+  return value === "verveace" || value === "bleeq-ca" || value === "volt-ca";
+}
+
 function rollupRows(rows: PageViewRow[]): TrafficRollup {
   const dailyMap = new Map<string, TrafficDaily & { sessions: Set<string> }>();
   const pathMap = new Map<string, TrafficPath & { sessions: Set<string> }>();
-  const refMap = new Map<string, TrafficReferrer>();
+  const refMap = new Map<string, TrafficReferrer & { sessions: Set<string> }>();
   const countryMap = new Map<string, TrafficCountry & { sessions: Set<string> }>();
+  const propertyMap = new Map<
+    SiteId,
+    {
+      pageviews: number;
+      sessions: Set<string>;
+      refs: Map<string, Set<string>>;
+    }
+  >();
   const visitorSessions = new Set<string>();
 
   for (const row of rows) {
     visitorSessions.add(row.session_id);
-    const day = row.created_at.slice(0, 10);
+    const day = pacificDateKey(row.created_at);
     const daily = dailyMap.get(day) ?? {
       day,
       pageviews: 0,
@@ -145,9 +170,25 @@ function rollupRows(rows: PageViewRow[]): TrafficRollup {
     pathMap.set(row.path, path);
 
     const host = row.referrer_host || "(direct)";
-    const ref = refMap.get(host) ?? { host, pageviews: 0 };
+    const ref = refMap.get(host) ?? { host, pageviews: 0, visitors: 0, sessions: new Set<string>() };
     ref.pageviews += 1;
+    ref.sessions.add(row.session_id);
+    ref.visitors = ref.sessions.size;
     refMap.set(host, ref);
+
+    if (isKnownSite(row.site_id)) {
+      const property = propertyMap.get(row.site_id) ?? {
+        pageviews: 0,
+        sessions: new Set<string>(),
+        refs: new Map<string, Set<string>>(),
+      };
+      property.pageviews += 1;
+      property.sessions.add(row.session_id);
+      const refSessions = property.refs.get(host) ?? new Set<string>();
+      refSessions.add(row.session_id);
+      property.refs.set(host, refSessions);
+      propertyMap.set(row.site_id, property);
+    }
 
     const country = row.country || "—";
     const c = countryMap.get(country) ?? {
@@ -172,7 +213,24 @@ function rollupRows(rows: PageViewRow[]): TrafficRollup {
       .map(({ sessions: _s, ...point }) => point)
       .sort((a, b) => b.pageviews - a.pageviews)
       .slice(0, 15),
-    referrers: [...refMap.values()].sort((a, b) => b.pageviews - a.pageviews).slice(0, 10),
+    referrers: [...refMap.values()]
+      .map(({ sessions: _s, ...point }) => point)
+      .sort((a, b) => b.visitors - a.visitors || b.pageviews - a.pageviews)
+      .slice(0, 10),
+    properties: [...propertyMap.entries()]
+      .map(([siteId, property]) => {
+        const top = [...property.refs.entries()].sort(
+          (a, b) => b[1].size - a[1].size,
+        )[0];
+        return {
+          siteId,
+          pageviews: property.pageviews,
+          visitors: property.sessions.size,
+          topReferrer: top?.[0] ?? "(direct)",
+          topReferrerVisitors: top?.[1].size ?? 0,
+        };
+      })
+      .sort((a, b) => b.visitors - a.visitors || b.pageviews - a.pageviews),
     countries: [...countryMap.values()]
       .map(({ sessions: _s, ...point }) => point)
       .sort((a, b) => b.pageviews - a.pageviews)
@@ -191,7 +249,7 @@ export async function getTrafficRollup(
   for (;;) {
     let query = admin
       .from("page_views")
-      .select("path, session_id, referrer_host, country, created_at")
+      .select("site_id, path, session_id, referrer_host, country, created_at")
       .gte("created_at", range.from)
       .lte("created_at", range.to)
       .order("created_at", { ascending: true })

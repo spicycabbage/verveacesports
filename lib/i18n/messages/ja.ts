@@ -16,6 +16,7 @@ export const ja: Dictionary = {
     profile: "プロフィール",
     loyaltyPoints: "ロイヤルティポイント",
     referrals: "友だち紹介",
+    liveAgent: "オペレーター",
     admin: "管理",
     pts: "{n} pt",
     accountMenu: "アカウントメニュー",
@@ -40,7 +41,7 @@ export const ja: Dictionary = {
     warranty: "保証",
     privacy: "プライバシー",
     terms: "規約",
-    themePlayground: "テーマ・プレイグラウンド",
+    blog: "ブログ",
     faq: "よくある質問",
     copyright: "© {year} VerveaceSports. All rights reserved.",
   },
@@ -94,9 +95,20 @@ export const ja: Dictionary = {
     searching: "検索中：",
     clearSearch: "検索をクリア",
     all: "すべて",
+    filterCategory: "カテゴリー",
     shopRanger: "RangerとRoverを購入",
     rangerMeta:
       "{n}モデル販売中 · 30日以内の返品無料 · 1ドルごとに1ロイヤルティポイント獲得",
+    shopBleeqCanada: "BleeqUp Canadaを購入",
+    shopRangerBleeq: "BleeqUp Rover & Ranger AIスポーツグラス",
+    rangerMetaDesc:
+      "カナダでBleeqUp RoverおよびRanger AIスポーツグラスを購入。ZEISS、Standard、バンドル — CAD価格、30日以内の返品無料。",
+    aiGlassesMetaDesc:
+      "BleeqUp RoverおよびRanger AIスポーツカメラグラスを購入。機能デモ、アスリートの声、クリエイターレビューをご覧ください。正規販売店、アメリカ・カナダへ発送。",
+    metaCloserBleeq:
+      "カナダ向けBleeqUp正規販売店。CAD価格、30日以内の返品無料。",
+    metaCloserVerveace: "正規販売店。アメリカおよびカナダへ発送。",
+    metaCloserVolt: "カナダのVolt Caddy正規販売店。CAD価格、カナダ国内配送。",
   },
 
   product: {
@@ -168,6 +180,8 @@ export const ja: Dictionary = {
     city: "市区町村",
     stateProvince: "州・地域",
     postalCode: "郵便番号",
+    phone: "電話番号",
+    phoneInvalid: "有効な電話番号を入力してください",
     country: "国",
     unitedStates: "アメリカ合衆国",
     canada: "カナダ",
@@ -203,6 +217,10 @@ export const ja: Dictionary = {
     completeShipping: "配送フォームを入力してください。",
     couldNotUpdate: "合計を更新できませんでした",
     promoRemoved: "プロモコードを削除しました",
+    checkPaymentDetails: "お支払い情報をご確認ください",
+    paymentFailed: "お支払いに失敗しました",
+    payAgreeBefore: "お支払いを完了すると、当社の",
+    securedByStripe: "Stripeにより保護されています。",
     successConfirmed: "注文が確定しました",
     thankYou: "ご注文ありがとうございます！",
     viewOrder: "注文を見る",
@@ -255,6 +273,28 @@ export const ja: Dictionary = {
     status_shipped: "発送済み",
     status_delivered: "配達済み",
     status_cancelled: "キャンセル済み",
+    tracking: "追跡",
+    trackPackage: "荷物を追跡",
+    settings: "設定",
+    editInSettings: "設定で編集",
+    name: "名前",
+    personalTitle: "個人情報",
+    personalDesc: "注文や領収書に表示される氏名と電話番号です。",
+    phone: "電話番号",
+    addressTitle: "既定の住所",
+    addressDesc: "チェックアウトに自動入力され、請求と配送に使用されます。",
+    addressLine1: "住所",
+    addressLine2: "建物名・部屋番号など（任意）",
+    city: "市区町村",
+    stateProvince: "州 / 県",
+    postalCode: "郵便番号",
+    addressSaved: "住所を保存しました",
+    passwordTitle: "パスワード",
+    passwordDescChange: "ログインに使用するパスワードを変更します。",
+    passwordDescSet: "Google でログインしています。メールでもログインできるようパスワードを設定してください。",
+    currentPassword: "現在のパスワード",
+    changePassword: "パスワードを変更",
+    setPassword: "パスワードを設定",
   },
 
   auth: {
@@ -282,15 +322,31 @@ export const ja: Dictionary = {
     privacyPolicy: "プライバシーポリシー",
     signedIn: "ログインしました",
     checkEmailConfirm: "アカウントを確認するためにメールをご確認ください。",
+    rememberMe: "ログイン状態を保持",
+    forgotPassword: "パスワードをお忘れですか？",
+    forgotTitle: "パスワードの再設定",
+    forgotDesc: "アカウントのメールアドレスを入力すると、パスワード再設定用のリンクをお送りします。",
+    sendResetLink: "リンクを送信",
+    resetLinkSent: "このメールアドレスのアカウントが存在する場合、再設定リンクを送信しました。受信トレイをご確認ください。",
+    resetLinkExpired: "このリンクは無効か期限切れです。下から新しいリンクをリクエストしてください。",
+    backToSignIn: "ログインに戻る",
+    resetTitle: "新しいパスワードを設定",
+    resetDesc: "アカウントの新しいパスワードを入力してください。",
+    newPassword: "新しいパスワード",
+    confirmPassword: "新しいパスワード（確認）",
+    passwordsDontMatch: "パスワードが一致しません",
+    updatePassword: "パスワードを更新",
+    passwordUpdated: "パスワードを更新しました",
   },
 
   faq: {
     title: "よくある質問",
+    titleBleeq: "BleeqUp Canada よくある質問",
     home: "ホーム",
     introVerveace:
       "配送、返品、BleeqUp・MGI・Motocaddy製品、ロイヤルティポイント、お会計に関する簡単な回答です。お探しの情報が見つかりませんか？{email}までメールでお問い合わせください。",
     introBleeq:
-      "カナダ国内配送、CAD価格、返品、BleeqUp Rangerグラス、ロイヤルティ、お会計に関する簡単な回答です。お探しの情報が見つかりませんか？{email}までメールでお問い合わせください。",
+      "カナダ国内配送、CAD価格、返品、BleeqUp Rover / Ranger AIスポーツグラス、ロイヤルティ、お会計に関する簡単な回答です。お探しの情報が見つかりませんか？{email}までメールでお問い合わせください。",
     emailSupport: "詳しくは{email}までメールでお問い合わせください。",
     sections: {
       ordersShipping: {
@@ -335,8 +391,20 @@ export const ja: Dictionary = {
         title: "商品と価格",
         items: [
           {
+            q: "何を販売していますか？",
+            a: "VerveaceSportsはマルチブランドのスポーツ用品店です。BleeqUp Rover / Ranger AIスポーツカメラグラスとアクセサリーに加え、MGIおよびMotocaddyの電動ゴルフカート、キャディ、ゴルフギアを扱っています。商品ページでAIグラス、ウェアラブル、電動カート、ゴルフギアをご覧ください。",
+          },
+          {
             q: "正規販売店ですか？",
-            a: "はい。VerveaceSportsは、BleeqUp AIカメラグラスおよびMGI・Motocaddyの電動ゴルフカート、キャディ、アクセサリーの正規販売店です。",
+            a: "はい。VerveaceSportsは、BleeqUp AIカメラグラスおよびMGI・Motocaddyの電動ゴルフカート、キャディ、アクセサリーの正規販売店です。BleeqUpメーカーサイト（bleequp.com）ではありません。",
+          },
+          {
+            q: "どのBleeqUpグラスを扱っていますか？",
+            a: "BleeqUp Rover（ZEISSおよびバンドル、Rover Power PlusとRoverレンズ）とBleeqUp Ranger（スタンダードレンズ、Zeissレンズ、アルティメットバンドル）、さらにPower Plus、Bluetoothコントローラー、マグネット充電ケーブル、交換レンズ、度付きサービスなどの共通アクセサリーを扱っています。現行バリエーションとCAD価格は各商品ページをご確認ください。",
+          },
+          {
+            q: "BleeqUp Canada（ca.bleequp.com）と同じですか？",
+            a: "いいえ。VerveaceSports.comは米国・カナダ向けのマルチブランド店（BleeqUp + MGI + Motocaddy）です。ca.bleequp.comのBleeqUp Canadaは、CAD価格のカナダ専用BleeqUpストアです。注文とアカウントは両サイトで別管理です。",
           },
           {
             q: "なぜ価格がCADなのですか？",
@@ -435,11 +503,19 @@ export const ja: Dictionary = {
         items: [
           {
             q: "何を販売していますか？",
-            a: "こちらはBleeqUpカナダ専用ストアです。BleeqUp Ranger AIスポーツカメラグラスと公式アクセサリー（Power Plus、Bluetoothコントローラー、レンズ、充電ケーブル、度付きオプション、関連ウェアラブル）を販売しています。このサイトではゴルフカートやその他ブランドは扱っていません。",
+            a: "こちらはBleeqUpカナダ専用ストアです。BleeqUp Rover / Ranger AIスポーツカメラグラスと公式アクセサリー（Power Plus、Rover Power Plus、Bluetoothコントローラー、レンズ、充電ケーブル、度付きオプション、関連ウェアラブル）を販売しています。このサイトではゴルフカートやその他ブランドは扱っていません。",
+          },
+          {
+            q: "どのBleeqUpグラスを扱っていますか？",
+            a: "BleeqUp Rover（ZEISSおよびバンドル、Rover Power PlusとRoverレンズ）とBleeqUp Ranger（スタンダードレンズ、Zeissレンズ、アルティメットバンドル）、さらにPower Plus、Bluetoothコントローラー、マグネット充電ケーブル、交換レンズ、度付きサービスを扱っています。現行のCAD価格とバリエーションは各商品ページをご確認ください。",
           },
           {
             q: "BleeqUpの正規販売店ですか？",
             a: "はい。このサイトはカナダ市場向けのBleeqUp正規販売店として運営されています。BleeqUp公式メーカーサイト（bleequp.com）ではありません。",
+          },
+          {
+            q: "VerveaceSports.comと同じですか？",
+            a: "いいえ。ca.bleequp.comはBleeqUp Canadaです。BleeqUp製品のみ、CAD、カナダ国内配送。VerveaceSports.comは別のマルチブランド店（BleeqUp + MGI + Motocaddy）で、米国とカナダへ発送します。注文とアカウントは別管理です。",
           },
           {
             q: "なぜ価格がCADなのですか？",
@@ -655,7 +731,20 @@ export const ja: Dictionary = {
       errorProduct: "製品を選択してください",
       errorGeneric: "問題が発生しました。もう一度お試しください。",
       errorConn: "送信できませんでした。接続を確認して再試行してください。",
+      otherGolf: "その他（MGI / Motocaddy / ゴルフ用品）",
     },
+  },
+
+  site: {
+    verveaceTagline: "プレミアムスポーツ用品",
+    verveaceDescription:
+      "BleeqUp AIスポーツカメラグラスおよびMGI・Motocaddyの電動ゴルフトロリー、キャディ、ギアの正規販売店。",
+    bleeqTagline: "Rover & Ranger AIスポーツグラス",
+    bleeqDescription:
+      "カナダでBleeqUp RoverおよびRanger AIスポーツグラスを購入。公式正規販売店 — CAD価格、30日以内の返品無料。",
+    voltTagline: "電動リモコンゴルフカート",
+    voltDescription:
+      "カナダでVolt Caddy Pro-Sの電動リモコンゴルフプッシュカートを購入。CAD価格、30日間返品無料。",
   },
 
   newsletter: {
@@ -740,11 +829,13 @@ export const ja: Dictionary = {
       heroKicker: "{shortName} · カナダ · CAD",
       shopNow: "今すぐ購入",
       compareModels: "モデルを比較",
-      chooseTitle: "あなたのRangerを選ぶ",
-      chooseSubtitle: "Standard、Zeiss、Ultimate Bundle — ワンクリックで商品ページへ。",
+      chooseTitle: "BleeqUp Roverを購入",
+      chooseSubtitle: "Rover ZEISSとRoverバンドル — 3K60 HDR、チルトカメラ、AIスポーツアシスタント。",
+      remainingRangerTitle: "Ranger",
+      remainingRangerSubtitle: "Standard、ZEISS、Ultimate Bundle — 3K撮影、オープンイヤーオーディオ、UVカット。",
       viewAll: "すべて見る →",
       featuresKicker: "製品の特長",
-      featuresTitle: "Rangerでできること",
+      featuresTitle: "BleeqUpでできること",
       watchMore: "ショップページでもっと見る",
       testimonialsKicker: "お客様の声",
       testimonialsTitle: "あなたの動きのために",
@@ -755,7 +846,25 @@ export const ja: Dictionary = {
       ctaTitle: "次のライドの準備はできましたか？",
       ctaSubtitle:
         "カナダ向けBleeqUp正規販売店。30日以内の返品無料。ご注文ごとにロイヤルティポイントを獲得。",
-      shopRanger: "Rangerを購入",
+      shopRanger: "Roverを購入",
+      heroSubcopy:
+        "カナダでBleeqUp AIスポーツカメラグラスを購入。ハンズフリーPOVカメラ、オープンイヤーオーディオ、UVカット — CAD価格、カナダ全国へ発送。",
+      heroAlt: "BleeqUp Rover AIスポーツグラス",
+    },
+    showcase: {
+      authorizedRetailer: "BleeqUp正規販売店",
+      shopModels: "RangerとRoverモデルを購入",
+      featuresDesc:
+        "以下のクリップはすべて公式BleeqUpサイトのものです — 手ブレ補正、AI編集、画角など。",
+      realAthletes: "本物のアスリート",
+      testimonialsDesc:
+        "現場でRangerを着用するクリエイターとアスリート — 公式BleeqUpコミュニティの一人称POV。",
+      trustedByCreators: "クリエイターに支持されています",
+      independentReviews: "独立系レビュー",
+      creatorsDesc: "YouTubeクリエイターが4-in-1 Rangerを実戦で検証。",
+      gettingStarted: "はじめに",
+      questionsFaq: "ご質問ですか？当社の",
+      orEmail: "またはメール",
     },
   },
 
@@ -773,5 +882,13 @@ export const ja: Dictionary = {
     save: "保存",
     close: "閉じる",
     error: "エラーが発生しました。",
+    offlineTitle: "オフラインです",
+    offlineBody:
+      "{name}を閲覧するには再接続してください。価格とお会計にはインターネット接続が必要です。",
+    tryAgain: "再試行",
+    cadPrices: "すべての価格はカナダドル表示です",
+    viewImage: "画像 {n} / {total} を表示",
+    scrollThumbsLeft: "サムネイルを左にスクロール",
+    scrollThumbsRight: "サムネイルを右にスクロール",
   },
 };

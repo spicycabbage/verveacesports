@@ -13,6 +13,7 @@ import {
   extractLatestUserQuestion,
   logChatQuestion,
 } from "@/lib/chat/log-question";
+import { detectCustomerLocale } from "@/lib/chat/reply-language";
 import { MARKET_COOKIE, parseMarketCookie } from "@/lib/geo/market";
 import { LOCALE_COOKIE, parseLocaleCookie } from "@/lib/i18n/locale";
 import { getSiteFromRequest } from "@/lib/site/get-site";
@@ -85,6 +86,7 @@ export async function POST(req: NextRequest) {
   const currency = "CAD" as const;
 
   const question = extractLatestUserQuestion(messages);
+  const customerLocale = detectCustomerLocale(question ?? "", locale);
   if (question) {
     let userId: string | null = null;
     try {
@@ -109,8 +111,10 @@ export async function POST(req: NextRequest) {
 
   const result = streamText({
     model: xai("grok-4.20-reasoning"),
-    system: buildChatSystemPrompt({
+    system: await buildChatSystemPrompt({
       locale,
+      customerLocale,
+      latestMessage: question,
       currency,
       country,
       siteId: site.id,

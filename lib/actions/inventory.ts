@@ -5,6 +5,7 @@ import { revalidatePath } from "next/cache";
 import { updateCatalogCache } from "@/lib/catalog/invalidate";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { requireAdmin } from "@/lib/auth/admin";
+import { submitProductToIndexNow } from "@/lib/site/indexnow";
 
 type ActionResult = { ok: true } | { error: string };
 
@@ -167,14 +168,17 @@ export async function updateVariantPrice(input: z.infer<typeof priceSchema>): Pr
   if (parsed.data.costCad !== undefined) update.cost_cad = parsed.data.costCad;
   if (parsed.data.isActive !== undefined) update.is_active = parsed.data.isActive;
 
-  const { error } = await admin
+  const { data: variant, error } = await admin
     .from("product_variants")
     .update(update)
-    .eq("id", parsed.data.variantId);
+    .eq("id", parsed.data.variantId)
+    .select("products(slug)")
+    .maybeSingle<{ products: { slug: string } | null }>();
   if (error) return { error: error.message };
 
   updateCatalogCache();
   revalidatePath("/admin/products");
   revalidatePath("/products");
+  if (variant?.products?.slug) submitProductToIndexNow(variant.products.slug);
   return { ok: true };
 }

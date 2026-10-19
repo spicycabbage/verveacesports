@@ -1,9 +1,10 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { LOYALTY, normalizeTaxRegion } from "@/lib/constants";
 import { normalizeVariantPrices } from "@/lib/catalog/pricing";
-import { siteAllowsCategory, type SiteConfig } from "@/lib/site/config";
+import { siteAllowsProduct, type SiteConfig } from "@/lib/site/config";
 import { buildTaxLines, type TaxLine } from "@/lib/tax/label";
 import { parsePosManualDiscount } from "@/lib/pos/manual-discount";
+import { orderVariantLabel } from "@/lib/orders/variant-label";
 
 export type QuoteItem = {
   productId: string;
@@ -55,6 +56,8 @@ export type QuoteLineItem = {
   unitCostUsd: number | null;
   unitCostCad: number | null;
   name: string;
+  /** Variant title snapshot (null for "Default" / custom lines). */
+  variantTitle: string | null;
   sku: string | null;
   image: string | null;
 };
@@ -194,7 +197,12 @@ export async function computeCheckoutQuote(
     if (v.product_id !== it.productId) {
       throw new QuoteError("Variant does not belong to product", 400);
     }
-    if (!siteAllowsCategory(site, v.products.category)) {
+    if (
+      !siteAllowsProduct(site, {
+        category: v.products.category,
+        slug: v.products.slug,
+      })
+    ) {
       throw new QuoteError("Product not available on this storefront", 400);
     }
     const prices = normalizeVariantPrices(v);
@@ -211,6 +219,7 @@ export async function computeCheckoutQuote(
       unitCostUsd: v.cost_usd == null ? null : Number(v.cost_usd),
       unitCostCad: v.cost_cad == null ? null : Number(v.cost_cad),
       name: v.products.name,
+      variantTitle: orderVariantLabel(v.title),
       sku: v.sku,
       image: v.products.images?.[0] ?? null,
     });
@@ -238,6 +247,7 @@ export async function computeCheckoutQuote(
       unitCostUsd: null,
       unitCostCad: null,
       name: label,
+      variantTitle: null,
       sku: "POS-CUSTOM",
       image: null,
     });
@@ -296,13 +306,7 @@ export async function computeCheckoutQuote(
     redeemValue = round2(redeemPoints / LOYALTY.POINTS_PER_DOLLAR_REDEEM);
   }
 
-  const { data: taxRate } = await admin.rpc("tax_rate_for", {
-    p_country: country,
-    p_region: taxRegion,
-  });
-  const rate = Number(taxRate) || 0;
-  const taxableBase = Math.max(0, round2(discountedSubtotal - redeemValue));
-  const tax = round2(taxableBase * rate);
+  const merchandiseBase = Math.max(0, round2(discountedSubtotal - redeemValue));
 
   const { data: rates } = await admin
     .from("shipping_rates")
@@ -325,7 +329,15 @@ export async function computeCheckoutQuote(
     shipping = freeOver != null && discountedSubtotal >= freeOver ? 0 : base;
   }
 
-  const total = Math.max(0, round2(taxableBase + tax + shipping));
+  const { data: taxRate } = await admin.rpc("tax_rate_for", {
+    p_country: country,
+    p_region: taxRegion,
+  });
+  const rate = Number(taxRate) || 0;
+  const taxableBase = Math.max(0, round2(merchandiseBase + shipping));
+  const tax = round2(taxableBase * rate);
+
+  const total = Math.max(0, round2(merchandiseBase + tax + shipping));
 
   return {
     lineItems,

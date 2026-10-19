@@ -49,7 +49,7 @@ export default async function FinancePage({ searchParams }: { searchParams: Sear
           <h1 className="text-2xl font-bold tracking-tight">Finance</h1>
           <p className="text-sm text-muted-foreground">
             Paid orders from {formatDateOnly(range.from)} to {formatDateOnly(range.to)}. Totals in
-            CAD.
+            CAD. Test orders under $4 are excluded.
           </p>
         </div>
         <div className="flex flex-wrap gap-2">

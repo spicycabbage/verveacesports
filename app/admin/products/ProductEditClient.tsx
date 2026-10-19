@@ -20,6 +20,7 @@ type ProductDraft = {
   category: Category;
   images: string[];
   isActive: boolean;
+  translations?: unknown;
 };
 
 type Props = {
@@ -116,6 +117,7 @@ export function ProductEditClient({
         productId: product.id,
         name: catalog.name,
         description: catalog.description,
+        translations: catalog.translations,
         category: catalog.category,
         isActive: catalog.isActive,
         images: catalog.images,

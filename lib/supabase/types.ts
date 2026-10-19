@@ -53,7 +53,7 @@ export type Profile = {
   referred_by: string | null;
   loyalty_points: number;
   is_admin: boolean;
-  site_id: "verveace" | "bleeq-ca";
+  site_id: "verveace" | "bleeq-ca" | "volt-ca";
   created_at: string;
 };
 
@@ -68,6 +68,8 @@ export type Product = {
   name: string;
   description: string;
   category: string;
+  /** bleequp | mgi | motocaddy | volt-caddy. Absent until 0046 is applied. */
+  brand?: string | null;
   price_usd: number;
   price_cad: number;
   images: string[];
@@ -76,6 +78,8 @@ export type Product = {
   options: ProductOption[];
   has_variants: boolean;
   created_at: string;
+  /** `{ fr: { name, description }, ... }` — absent until 0041 is applied. */
+  translations?: Record<string, { name?: string; description?: string }> | null;
 };
 
 export type ProductReview = {
@@ -183,14 +187,17 @@ export type OrderItem = {
   currency: string;
   product_name: string;
   product_image: string | null;
+  /** Variant picked at checkout, e.g. "Black Frame - Silver ZEISS Lens / No extra lens". */
+  variant_title?: string | null;
 };
 
 export type SalesChannel = "online" | "pos";
 
 export type Order = {
   id: string;
+  order_number: number;
   user_id: string | null;
-  site_id: "verveace" | "bleeq-ca";
+  site_id: "verveace" | "bleeq-ca" | "volt-ca";
   status: OrderStatus;
   financial_status: FinancialStatus;
   fulfillment_status: OrderFulfillmentStatus;
@@ -298,6 +305,8 @@ export type ShippingAddress = {
   state: string;
   postal_code: string;
   country: "US" | "CA";
+  /** Required on storefront checkout; optional on POS pickup / legacy orders. */
+  phone?: string;
 };
 
 export type LoyaltyTransaction = {
@@ -355,13 +364,44 @@ export type StripePayout = {
 
 export type ChatQuestion = {
   id: string;
-  site_id: "verveace" | "bleeq-ca";
+  site_id: "verveace" | "bleeq-ca" | "volt-ca";
   question: string;
   locale: string | null;
   country: "US" | "CA" | null;
   currency: "USD" | "CAD" | null;
   user_id: string | null;
   message_count: number | null;
+  created_at: string;
+};
+
+export type LiveChatStatus = "requested" | "active" | "closed";
+
+export type LiveChatRow = {
+  id: string;
+  site_id: "verveace" | "bleeq-ca" | "volt-ca";
+  status: LiveChatStatus;
+  customer_user_id: string | null;
+  customer_email: string | null;
+  customer_name: string | null;
+  accepted_by: string | null;
+  accepted_by_email: string | null;
+  accepted_by_name: string | null;
+  accepted_at: string | null;
+  closed_by: string | null;
+  closed_at: string | null;
+  last_message_at: string;
+  last_message_preview: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
+export type LiveChatMessageRow = {
+  id: string;
+  chat_id: string;
+  sender_role: "customer" | "admin" | "system";
+  sender_user_id: string | null;
+  sender_email: string | null;
+  body: string;
   created_at: string;
 };
 

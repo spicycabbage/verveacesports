@@ -2,7 +2,7 @@ import { CATEGORIES, type Category, type CountryCode } from "@/lib/constants";
 
 export const SITE_COOKIE = "verveacesports_site";
 
-export type SiteId = "verveace" | "bleeq-ca";
+export type SiteId = "verveace" | "bleeq-ca" | "volt-ca";
 
 export type NavProductLink = {
   slug: string;
@@ -30,35 +30,30 @@ export type SiteConfig = {
   newsletterDismissedKey: string;
   rangerProducts: readonly NavProductLink[];
   accessoryProducts: readonly NavProductLink[];
+  /**
+   * Storefront catalog brand. Null sells every brand in `categories`.
+   * A set brand only sells products whose slug starts with `${brand}-`
+   * (or whose `products.brand` matches).
+   */
+  brand: string | null;
 };
 
-const RANGER_IMG =
-  "https://cdn.shopify.com/s/files/1/0674/8527/0213/files/BleeqUp_Ranger_Black_Standard_Lens.jpg?v=1781082522";
-const ZEISS_IMG =
-  "https://cdn.shopify.com/s/files/1/0674/8527/0213/files/BleeqUp_Ranger_Black_Standard_Lens.jpg?v=1781082522";
-const BUNDLE_IMG =
-  "https://cdn.shopify.com/s/files/1/0674/8527/0213/files/BleeqUp_Ranger_Black_Standard_Lens.jpg?v=1781082522";
-const ROVER_IMG =
-  "https://cdn.shopify.com/s/files/1/0674/8527/0213/files/4feb7c0139c4d61e49e5d93a29c4093d.png?v=1788523792";
-const ROVER_BUNDLE_IMG =
-  "https://cdn.shopify.com/s/files/1/0674/8527/0213/files/rover-bundle-kit-black-gold-zeiss.png?v=1788522779";
-const ROVER_LENS_IMG =
-  "https://cdn.shopify.com/s/files/1/0674/8527/0213/files/rover-lens-zeiss.webp?v=1788538089";
-const ROVER_POWER_IMG =
-  "https://cdn.shopify.com/s/files/1/0674/8527/0213/files/rover-power-plus.png?v=1788509881";
+function catalogNav(slug: string): string {
+  return `/catalog/nav/${slug}.webp`;
+}
 
 const ROVER_LINEUP: readonly NavProductLink[] = [
   {
     slug: "bleequp-rover-ai-sports-glasses",
     label: "Rover — ZEISS",
     shortLabel: "Rover ZEISS",
-    image: ROVER_IMG,
+    image: catalogNav("bleequp-rover-ai-sports-glasses"),
   },
   {
     slug: "bleequp-rover-ai-sports-glasses-bundle",
     label: "Rover — Bundle",
     shortLabel: "Rover Bundle",
-    image: ROVER_BUNDLE_IMG,
+    image: catalogNav("bleequp-rover-ai-sports-glasses-bundle"),
   },
 ];
 
@@ -67,19 +62,19 @@ const RANGER_LINEUP: readonly NavProductLink[] = [
     slug: "bleequp-ranger-standard-lens",
     label: "Ranger — Standard Lens",
     shortLabel: "Standard Lens",
-    image: RANGER_IMG,
+    image: catalogNav("bleequp-ranger-standard-lens"),
   },
   {
     slug: "bleequp-ranger-zeiss-lens",
     label: "Ranger — Lenses by Zeiss",
     shortLabel: "Zeiss Lens",
-    image: ZEISS_IMG,
+    image: catalogNav("bleequp-ranger-zeiss-lens"),
   },
   {
     slug: "bleequp-ranger-ultimate-bundle",
     label: "Ranger — Ultimate Bundle",
     shortLabel: "Ultimate Bundle",
-    image: BUNDLE_IMG,
+    image: catalogNav("bleequp-ranger-ultimate-bundle"),
   },
 ];
 
@@ -88,25 +83,25 @@ const ROVER_ACCESSORIES: readonly NavProductLink[] = [
     slug: "bleequp-rover-power-plus",
     label: "Rover Power Plus",
     shortLabel: "Rover Power Plus",
-    image: ROVER_POWER_IMG,
+    image: catalogNav("bleequp-rover-power-plus"),
   },
   {
     slug: "bleequp-rover-zeiss-lens",
     label: "Rover ZEISS Lens",
     shortLabel: "Rover ZEISS Lens",
-    image: ROVER_LENS_IMG,
+    image: catalogNav("bleequp-rover-zeiss-lens"),
   },
   {
     slug: "bleequp-rover-photochromic-lens",
     label: "Rover Photochromic Lens",
     shortLabel: "Rover Photochromic",
-    image: "https://cdn.shopify.com/s/files/1/0674/8527/0213/files/rover-lens-photochromic.webp?v=1788538095",
+    image: catalogNav("bleequp-rover-photochromic-lens"),
   },
   {
     slug: "bleequp-rover-polarized-lens",
     label: "Rover Polarized Lens",
     shortLabel: "Rover Polarized",
-    image: "https://cdn.shopify.com/s/files/1/0674/8527/0213/files/rover-lens-polarized.webp?v=1788538103",
+    image: catalogNav("bleequp-rover-polarized-lens"),
   },
 ];
 
@@ -123,7 +118,7 @@ export const SITES: Record<SiteId, SiteConfig> = {
     shortName: "VerveAce",
     tagline: "Premium Sporting Goods",
     description:
-      "Authorized retailer for BleeqUp AI sports camera glasses and MGI & Motocaddy electric golf trolleys, caddies, and gear.",
+      "Authorized retailer for BleeqUp AI sports camera glasses, Volt Caddy remote electric golf push carts, and MGI & Motocaddy electric golf trolleys, caddies, and gear.",
     supportEmail: "info@verveacesports.com",
     freeShippingOver: 500,
     categories: CATEGORIES,
@@ -134,6 +129,7 @@ export const SITES: Record<SiteId, SiteConfig> = {
     newsletterSubscribedKey: "verveacesports_newsletter_subscribed_v1",
     // Bumped to v3 so the closeable expo popup re-shows after the mobile close-button fix.
     newsletterDismissedKey: "verveacesports_newsletter_dismissed_v3",
+    brand: null,
     rangerProducts: [...ROVER_LINEUP, ...RANGER_LINEUP],
     accessoryProducts: [
       ...ROVER_ACCESSORIES,
@@ -141,7 +137,7 @@ export const SITES: Record<SiteId, SiteConfig> = {
         slug: "bleequp-power-plus",
         label: "Power Plus",
         shortLabel: "Power Plus",
-        image: "",
+        image: catalogNav("bleequp-power-plus"),
       },
       {
         slug: "bleequp-bluetooth-controller",
@@ -175,10 +171,10 @@ export const SITES: Record<SiteId, SiteConfig> = {
     hosts: ["ca.bleequp.com"],
     name: "BleeqUp Canada",
     shortName: "BleeqUp",
-    tagline: "Rover & Ranger AI Sports Glasses",
+    tagline: "Rover AI Sports Glasses",
     description:
-      "Buy BleeqUp Rover and Ranger AI sports glasses in Canada. Official authorized retailer — CAD pricing and free 30-day returns.",
-    supportEmail: "info@bleequp.ca",
+      "Buy BleeqUp Rover AI sports glasses in Canada. Official authorized retailer — CAD pricing and free 30-day returns.",
+    supportEmail: "info@verveacesports.com",
     freeShippingOver: 500,
     categories: ["ai-glasses", "wearables"],
     lockMarket: "CA",
@@ -188,6 +184,7 @@ export const SITES: Record<SiteId, SiteConfig> = {
     newsletterSubscribedKey: "bleeq_ca_newsletter_subscribed_v1",
     // Bumped to v3 so the closeable expo popup re-shows after the mobile close-button fix.
     newsletterDismissedKey: "bleeq_ca_newsletter_dismissed_v3",
+    brand: null,
     rangerProducts: [...ROVER_LINEUP, ...RANGER_LINEUP],
     accessoryProducts: [
       ...ROVER_ACCESSORIES,
@@ -195,7 +192,7 @@ export const SITES: Record<SiteId, SiteConfig> = {
         slug: "bleequp-power-plus",
         label: "Power Plus",
         shortLabel: "Power Plus",
-        image: "",
+        image: catalogNav("bleequp-power-plus"),
       },
       {
         slug: "bleequp-bluetooth-controller",
@@ -223,6 +220,34 @@ export const SITES: Record<SiteId, SiteConfig> = {
       },
     ],
   },
+  "volt-ca": {
+    id: "volt-ca",
+    hosts: ["voltcaddy.ca", "www.voltcaddy.ca"],
+    name: "Volt Caddy",
+    shortName: "Volt",
+    tagline: "Electric Remote Golf Push Cart",
+    description:
+      "Buy the Volt Caddy Pro-S remote electric golf push cart in Canada. CAD pricing and free 30-day returns.",
+    supportEmail: "info@voltcaddy.com",
+    freeShippingOver: 500,
+    categories: ["electric-carts"],
+    lockMarket: "CA",
+    storagePrefix: "volt_ca",
+    cartStorageKey: "volt_ca_cart_v1",
+    themeStorageKey: "volt_ca_theme_v1",
+    newsletterSubscribedKey: "volt_ca_newsletter_subscribed_v1",
+    newsletterDismissedKey: "volt_ca_newsletter_dismissed_v1",
+    brand: "volt-caddy",
+    rangerProducts: [
+      {
+        slug: "volt-caddy-pro-s",
+        label: "Pro-S Remote Pushcart",
+        shortLabel: "Pro-S",
+        image: "/catalog/volt/pro-s-01-sq.webp",
+      },
+    ],
+    accessoryProducts: [],
+  },
 } as const;
 
 function hostsFromEnv(envValue: string | undefined): string[] {
@@ -242,6 +267,55 @@ export function bleeqCaHosts(): string[] {
   return configured;
 }
 
+/** Extra Volt Caddy hosts from Vercel env (comma-separated). */
+export function voltCaHosts(): string[] {
+  const configured = [...SITES["volt-ca"].hosts];
+  for (const h of hostsFromEnv(process.env.VOLT_CA_HOSTS)) {
+    if (!configured.includes(h)) configured.push(h);
+  }
+  return configured;
+}
+
+/** Admin property column / filters — not customer-facing storefront name. */
+export function adminPropertyLabel(siteId: SiteId): string {
+  switch (siteId) {
+    case "verveace":
+      return SITES.verveace.name;
+    case "bleeq-ca":
+      return "BleeqUp";
+    case "volt-ca":
+      return "Volt Caddy";
+    default: {
+      const _exhaustive: never = siteId;
+      return _exhaustive;
+    }
+  }
+}
+
+export function isSiteId(value: string | null | undefined): value is SiteId {
+  return value === "verveace" || value === "bleeq-ca" || value === "volt-ca";
+}
+
+/** Admin list filters. `null` is the all-storefronts option. */
+export function adminSiteFilters(): { id: SiteId | null; label: string }[] {
+  return [
+    { id: null, label: "All" },
+    ...(Object.keys(SITES) as SiteId[]).map((id) => ({
+      id,
+      label: adminPropertyLabel(id),
+    })),
+  ];
+}
+
+export function siteAllowsProduct(
+  site: SiteConfig,
+  product: { category: string; slug: string; brand?: string | null },
+): boolean {
+  if (!siteAllowsCategory(site, product.category)) return false;
+  if (!site.brand) return true;
+  return product.brand === site.brand || product.slug.startsWith(`${site.brand}-`);
+}
+
 export function siteAllowsCategory(site: SiteConfig, category: string): boolean {
   return (site.categories as readonly string[]).includes(category);
 }
@@ -258,26 +332,26 @@ export function resolveSiteIdFromHost(hostname: string): SiteId | null {
   const host = hostname.toLowerCase().split(":")[0] ?? hostname;
 
   if (bleeqCaHosts().includes(host)) return "bleeq-ca";
+  if (voltCaHosts().includes(host)) return "volt-ca";
 
   for (const site of Object.values(SITES)) {
-    if (site.id === "bleeq-ca") continue;
+    if (site.id === "bleeq-ca" || site.id === "volt-ca") continue;
     if (site.hosts.includes(host)) return site.id;
   }
   return null;
 }
 
 /**
- * Host wins in production (one deploy → verveacesports.com + ca.bleequp.com).
- * SITE_ID overrides only for localhost / *.vercel.app so you can preview Bleeq
- * before the domain is attached — do NOT set SITE_ID on Production.
+ * Host wins in production (one deploy → verveacesports.com + ca.bleequp.com + voltcaddy.ca).
+ * SITE_ID overrides only for localhost / *.vercel.app so you can preview a
+ * storefront before the domain is attached — do NOT set SITE_ID on Production.
  */
 export function resolveSiteId(opts: {
   hostname?: string | null;
   envSiteId?: string | null;
 }): SiteId {
   const env = opts.envSiteId?.trim().toLowerCase();
-  const envSite: SiteId | null =
-    env === "bleeq-ca" || env === "verveace" ? env : null;
+  const envSite: SiteId | null = isSiteId(env) ? env : null;
 
   const host = opts.hostname?.toLowerCase().split(":")[0] ?? null;
 

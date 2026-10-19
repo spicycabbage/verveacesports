@@ -1,74 +1,76 @@
 import Link from "next/link";
-import Image, { getImageProps } from "next/image";
+import Image from "next/image";
 import { cookies } from "next/headers";
 import { ArrowRight } from "lucide-react";
 import { buttonVariants } from "@/components/ui/button";
 import { LOCALE_COOKIE, parseLocaleCookie } from "@/lib/i18n/locale";
 import { getDictionary, interpolate } from "@/lib/i18n/dictionary";
-import { ProductGrid } from "@/components/product/ProductGrid";
-import { NativeVideoPlayer } from "@/components/product/ai-glasses/NativeVideoPlayer";
 import {
-  BLEEQUUP_FEATURE_VIDEOS,
-  BLEEQUUP_HERO,
-  BLEEQUUP_PROMOS,
-  BLEEQUUP_TESTIMONIALS,
-} from "@/lib/content/bleequp-ai-glasses";
+  catalogNavLabel,
+  catalogShortLabel,
+} from "@/lib/i18n/catalog-copy";
+import { roverCopy } from "@/lib/i18n/rover-copy";
+import { ProductGrid } from "@/components/product/ProductGrid";
+import { RoverHomeSection } from "@/components/product/rover/RoverHomeSection";
+import { RoverArtImage } from "@/components/product/rover/RoverArtImage";
+import { DeferredHeroVideo } from "@/components/bleeq/DeferredHeroVideo";
+import {
+  isRoverGlassesSlug,
+  ROVER_MEDIA,
+  ROVER_PILLAR_ORDER,
+  ROVER_PRIMARY_SLUG,
+} from "@/lib/content/bleequp-rover";
 import type { SiteConfig } from "@/lib/site/config";
 import type { ProductWithDefaultVariant } from "@/lib/catalog/variants";
-import { sizedImageUrl } from "@/lib/images/cdn";
 import { cn } from "@/lib/utils";
-import bleeqHeroMobile from "@/public/bleeq-hero-mobile.webp";
-import { DeferredHeroVideo } from "@/components/bleeq/DeferredHeroVideo";
 
-const HERO_BREAKPOINT = "(min-width: 640px)"; // Tailwind `sm`
+const ROVER_HREF = `/products/${ROVER_PRIMARY_SLUG}`;
 
-function BleeqHeroPicture() {
-  const common = {
-    alt: "BleeqUp Ranger AI Sports Glasses",
-    fill: true,
-    sizes: "100vw",
-    quality: 75,
-    priority: true,
-    fetchPriority: "high" as const,
-    decoding: "sync" as const,
-  };
-  const {
-    props: { srcSet: mobileSrcSet },
-  } = getImageProps({ ...common, src: bleeqHeroMobile });
-  const {
-    props: { srcSet: desktopSrcSet, ...desktopRest },
-  } = getImageProps({ ...common, src: sizedImageUrl(BLEEQUUP_HERO.poster, 1600) });
-
+function GlassesCard({
+  href,
+  image,
+  kicker,
+  title,
+  shopLabel,
+  priority = false,
+}: {
+  href: string;
+  image: string;
+  kicker: string;
+  title: string;
+  shopLabel: string;
+  priority?: boolean;
+}) {
   return (
-    <picture>
-      <source media={HERO_BREAKPOINT} srcSet={desktopSrcSet} sizes="100vw" />
-      <source srcSet={mobileSrcSet} sizes="100vw" />
-      <img
-        {...desktopRest}
-        alt={common.alt}
-        className="object-cover object-[center_20%] opacity-80 sm:object-center"
-      />
-    </picture>
+    <Link
+      href={href}
+      className="group overflow-hidden rounded-2xl border bg-card transition hover:border-foreground/30"
+    >
+      <div className="relative aspect-[4/3] bg-muted">
+        {image ? (
+          <Image
+            src={image}
+            alt={title}
+            fill
+            priority={priority}
+            fetchPriority={priority ? "high" : "auto"}
+            className="object-cover transition duration-500 group-hover:scale-105"
+            sizes="(max-width: 640px) 100vw, 50vw"
+          />
+        ) : null}
+      </div>
+      <div className="p-4">
+        <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+          {kicker}
+        </p>
+        <h3 className="mt-1 text-lg font-semibold tracking-tight">{title}</h3>
+        <span className="mt-3 inline-flex items-center text-sm font-medium text-primary">
+          {shopLabel} <ArrowRight className="ml-1 h-3.5 w-3.5" />
+        </span>
+      </div>
+    </Link>
   );
 }
-
-const AS_SEEN_IN = [
-  {
-    outlet: "WIRED",
-    quote:
-      "The arms of the glasses have speakers so you can play music, and they sounded pretty good in brief demo in a very loud space.",
-  },
-  {
-    outlet: "Lifehacker",
-    quote:
-      "BleeqUp Ranger sport glasses pack a 1080p/3K camera, open-ear audio, and turn-by-turn navigation into a stylish pair of cycling shades.",
-  },
-  {
-    outlet: "Notebookcheck",
-    quote:
-      "At under 50g, the Ranger is light enough that you stop noticing it after a few minutes. The camera shoots up to 3K at 60fps.",
-  },
-] as const;
 
 export async function BleeqHome({
   site,
@@ -80,23 +82,30 @@ export async function BleeqHome({
   accessories: ProductWithDefaultVariant[];
 }) {
   const cookieStore = await cookies();
-  const dict = getDictionary(parseLocaleCookie(cookieStore.get(LOCALE_COOKIE)?.value));
+  const locale = parseLocaleCookie(cookieStore.get(LOCALE_COOKIE)?.value);
+  const dict = getDictionary(locale);
   const home = dict.bleeq.home;
-  const featurePreview = BLEEQUUP_FEATURE_VIDEOS.slice(0, 4);
+  const rover = roverCopy(locale);
+  const roverModels = site.rangerProducts.filter((p) => isRoverGlassesSlug(p.slug));
+  const leftoverRanger = site.rangerProducts.filter((p) => !isRoverGlassesSlug(p.slug));
+  const promoChips = ROVER_PILLAR_ORDER.slice(0, 4).map((key) => rover.pillars.items[key].title);
 
   return (
     <div>
-      {/* Full-bleed hero */}
       <section className="relative min-h-[70vh] overflow-hidden border-b bg-black text-white sm:min-h-[78vh]">
         <div className="absolute inset-0">
-          {/* Art-directed hero: one <picture> so a phone never downloads the
-              1600px desktop poster (and vice versa). Two `priority` <Image>s
-              hidden via CSS still both preload. */}
-          <BleeqHeroPicture />
+          <RoverArtImage
+            image={ROVER_MEDIA.hero}
+            alt={home.heroAlt}
+            className="absolute inset-0 sm:hidden"
+            imgClassName="opacity-80"
+            priority
+          />
           <DeferredHeroVideo
-            src={BLEEQUUP_HERO.mp4}
-            title={BLEEQUUP_HERO.title}
-            className="absolute inset-0 hidden h-full w-full object-cover opacity-70 sm:block"
+            src={ROVER_MEDIA.statement.mp4}
+            poster={ROVER_MEDIA.statement.poster}
+            title={rover.hero.headline}
+            className="absolute inset-0 hidden h-full w-full object-cover sm:block"
           />
           <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-black/20" />
         </div>
@@ -105,22 +114,18 @@ export async function BleeqHome({
             {interpolate(home.heroKicker, { shortName: site.shortName })}
           </p>
           <h1 className="mt-3 max-w-3xl text-4xl font-bold tracking-tight sm:text-5xl md:text-6xl">
-            {site.name}
+            {rover.hero.headline}
           </h1>
-          <p className="mt-3 max-w-xl text-base text-white/80 sm:text-lg">
-            Shop BleeqUp AI sports camera glasses in Canada. Hands-free POV
-            camera, open-ear audio, and UV protection — CAD pricing, ships
-            nationwide.
-          </p>
+          <p className="mt-3 max-w-xl text-base text-white/80 sm:text-lg">{home.heroSubcopy}</p>
           <div className="mt-6 flex flex-wrap gap-3">
             <Link
-              href="/products?category=ai-glasses"
+              href={ROVER_HREF}
               className={cn(
                 buttonVariants({ size: "lg" }),
                 "bg-primary text-primary-foreground hover:bg-primary/90",
               )}
             >
-              {home.shopNow}
+              {home.shopRanger}
             </Link>
             <Link
               href="#models"
@@ -133,19 +138,18 @@ export async function BleeqHome({
             </Link>
           </div>
           <div className="mt-8 flex flex-wrap gap-2">
-            {BLEEQUUP_PROMOS.map((p) => (
+            {promoChips.map((label) => (
               <span
-                key={p.label}
+                key={label}
                 className="rounded-full border border-white/20 bg-white/10 px-3 py-1 text-xs backdrop-blur"
               >
-                {p.label}
+                {label}
               </span>
             ))}
           </div>
         </div>
       </section>
 
-      {/* Model row */}
       <section id="models" className="scroll-mt-24 border-b">
         <div className="mx-auto max-w-7xl px-4 py-14 sm:py-16">
           <div className="mb-8 flex flex-wrap items-end justify-between gap-3">
@@ -160,137 +164,53 @@ export async function BleeqHome({
               {home.viewAll}
             </Link>
           </div>
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {site.rangerProducts.map((p) => {
+          <div className="grid gap-4 sm:grid-cols-2">
+            {roverModels.map((p, i) => {
               const live = rangerProducts.find((r) => r.slug === p.slug);
-              const img = live?.images?.[0] || p.image;
+              const navLabel = catalogNavLabel(p.slug, locale, p.label);
               return (
-                <Link
+                <GlassesCard
                   key={p.slug}
                   href={`/products/${p.slug}`}
-                  className="group overflow-hidden rounded-2xl border bg-card transition hover:border-foreground/30"
-                >
-                  <div className="relative aspect-[4/3] bg-muted">
-                    {img ? (
-                      <Image
-                        src={sizedImageUrl(img, 900)}
-                        alt={p.label}
-                        fill
-                        className="object-cover transition duration-500 group-hover:scale-105"
-                        sizes="(max-width: 640px) 100vw, 33vw"
-                      />
-                    ) : null}
-                  </div>
-                  <div className="p-4">
-                    <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                      {p.label.split("—")[0]?.trim() || "BleeqUp"}
-                    </p>
-                    <h3 className="mt-1 text-lg font-semibold tracking-tight">{p.shortLabel}</h3>
-                    <span className="mt-3 inline-flex items-center text-sm font-medium text-primary">
-                      {home.shopNow} <ArrowRight className="ml-1 h-3.5 w-3.5" />
-                    </span>
-                  </div>
-                </Link>
+                  image={live?.images?.[0] || p.image}
+                  kicker={navLabel.split("—")[0]?.trim() || "BleeqUp"}
+                  title={catalogShortLabel(p.slug, locale, p.shortLabel)}
+                  shopLabel={home.shopNow}
+                  priority={i < 2}
+                />
               );
             })}
           </div>
+
+          {leftoverRanger.length > 0 && (
+            <div className="mt-14">
+              <h3 className="text-lg font-semibold tracking-tight sm:text-xl">
+                {home.remainingRangerTitle}
+              </h3>
+              <p className="mt-1 text-sm text-muted-foreground">{home.remainingRangerSubtitle}</p>
+              <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                {leftoverRanger.map((p) => {
+                  const live = rangerProducts.find((r) => r.slug === p.slug);
+                  const navLabel = catalogNavLabel(p.slug, locale, p.label);
+                  return (
+                    <GlassesCard
+                      key={p.slug}
+                      href={`/products/${p.slug}`}
+                      image={live?.images?.[0] || p.image}
+                      kicker={navLabel.split("—")[0]?.trim() || "BleeqUp"}
+                      title={catalogShortLabel(p.slug, locale, p.shortLabel)}
+                      shopLabel={home.shopNow}
+                    />
+                  );
+                })}
+              </div>
+            </div>
+          )}
         </div>
       </section>
 
-      {/* Feature video strip */}
-      <section className="border-b bg-muted/20">
-        <div className="mx-auto max-w-7xl px-4 py-14 sm:py-16">
-          <div className="mx-auto mb-10 max-w-2xl text-center">
-            <p className="text-xs font-semibold uppercase tracking-widest text-primary">
-              {home.featuresKicker}
-            </p>
-            <h2 className="mt-2 text-2xl font-bold tracking-tight sm:text-3xl">
-              {home.featuresTitle}
-            </h2>
-          </div>
-          <div className="grid gap-8 sm:grid-cols-2">
-            {featurePreview.map((video) => (
-              <article key={video.id} className="space-y-3">
-                <NativeVideoPlayer
-                  src={video.mp4}
-                  poster={video.poster}
-                  title={video.title}
-                  posterWidth={640}
-                />
-                <h3 className="text-lg font-semibold tracking-tight">{video.title}</h3>
-                {video.description && (
-                  <p className="text-sm text-muted-foreground">{video.description}</p>
-                )}
-              </article>
-            ))}
-          </div>
-          <div className="mt-8 text-center">
-            <Link
-              href="/products?category=ai-glasses"
-              className={buttonVariants({ variant: "outline" })}
-            >
-              {home.watchMore}
-            </Link>
-          </div>
-        </div>
-      </section>
+      <RoverHomeSection copy={rover} />
 
-      {/* Testimonials */}
-      <section className="border-b">
-        <div className="mx-auto max-w-7xl px-4 py-14 sm:py-16">
-          <div className="mx-auto mb-10 max-w-2xl text-center">
-            <p className="text-xs font-semibold uppercase tracking-widest text-primary">
-              {home.testimonialsKicker}
-            </p>
-            <h2 className="mt-2 text-2xl font-bold tracking-tight sm:text-3xl">
-              {home.testimonialsTitle}
-            </h2>
-          </div>
-          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-            {BLEEQUUP_TESTIMONIALS.slice(0, 6).map((video) => (
-              <article key={video.id} className="flex flex-col gap-3">
-                <NativeVideoPlayer
-                  src={video.mp4}
-                  poster={video.poster}
-                  title={video.title}
-                  posterWidth={640}
-                />
-                <div>
-                  <h3 className="font-semibold">@{video.title}</h3>
-                  {video.description && (
-                    <p className="mt-1 text-sm leading-relaxed text-muted-foreground">
-                      &ldquo;{video.description}&rdquo;
-                    </p>
-                  )}
-                </div>
-              </article>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* As seen in */}
-      <section className="border-b bg-muted/20">
-        <div className="mx-auto max-w-7xl px-4 py-14 sm:py-16">
-          <h2 className="mb-8 text-center text-2xl font-bold tracking-tight sm:text-3xl">
-            {home.asSeenIn}
-          </h2>
-          <div className="grid gap-6 md:grid-cols-3">
-            {AS_SEEN_IN.map((item) => (
-              <blockquote key={item.outlet} className="rounded-2xl border bg-card p-6">
-                <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                  {item.outlet}
-                </p>
-                <p className="mt-3 text-sm leading-relaxed text-foreground/90">
-                  &ldquo;{item.quote}&rdquo;
-                </p>
-              </blockquote>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Accessories */}
       <section className="border-b">
         <div className="mx-auto max-w-7xl px-4 py-14 sm:py-16">
           <div className="mb-8 flex flex-wrap items-end justify-between gap-3">
@@ -315,7 +235,7 @@ export async function BleeqHome({
                   href={`/products/${p.slug}`}
                   className="rounded-xl border px-4 py-3 text-sm font-medium hover:bg-accent"
                 >
-                  {p.label}
+                  {catalogNavLabel(p.slug, locale, p.label)}
                 </Link>
               ))}
             </div>
@@ -323,17 +243,13 @@ export async function BleeqHome({
         </div>
       </section>
 
-      {/* CTA */}
       <section>
         <div className="mx-auto max-w-7xl px-4 py-16 text-center sm:py-20">
           <h2 className="text-2xl font-bold tracking-tight sm:text-3xl">{home.ctaTitle}</h2>
           <p className="mx-auto mt-2 max-w-lg text-sm text-muted-foreground sm:text-base">
             {home.ctaSubtitle}
           </p>
-          <Link
-            href="/products?category=ai-glasses"
-            className={cn(buttonVariants({ size: "lg" }), "mt-6")}
-          >
+          <Link href={ROVER_HREF} className={cn(buttonVariants({ size: "lg" }), "mt-6")}>
             {home.shopRanger} <ArrowRight className="ml-1.5 h-4 w-4" />
           </Link>
         </div>

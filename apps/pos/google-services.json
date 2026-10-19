@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "340680956410",
+    "project_id": "verveacesports-50674",
+    "storage_bucket": "verveacesports-50674.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:340680956410:android:f502033dccf212a0326c43",
+        "android_client_info": {
+          "package_name": "com.verveacesports.pos"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAL_YKVKGOHNbevc-xVS76tc8w4lZuhiYg"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

@@ -36,3 +36,12 @@ export function localeLabel(locale: Locale): string {
 export function localeHtmlLang(locale: Locale): string {
   return LOCALES[locale].htmlLang;
 }
+
+/** Keep <html lang> in sync and block Chrome/Edge auto-translate (we ship our own i18n). */
+export function applyDocumentLocale(locale: Locale) {
+  if (typeof document === "undefined") return;
+  const el = document.documentElement;
+  el.lang = localeHtmlLang(locale);
+  el.setAttribute("translate", "no");
+  el.classList.add("notranslate");
+}

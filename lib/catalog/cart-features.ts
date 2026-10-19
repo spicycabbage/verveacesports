@@ -16,8 +16,14 @@ export type CartFeatureFlags = {
   gps: boolean;
 };
 
-/** Slug → feature flags from the MGI / Motocaddy comparison matrix. */
+/** Slug → feature flags from the MGI / Motocaddy / Volt Caddy comparison matrix. */
 export const CART_FEATURES_BY_SLUG: Record<string, CartFeatureFlags> = {
+  "volt-caddy-pro-s": {
+    followMe: false,
+    remote: true,
+    noRemote: false,
+    gps: false,
+  },
   "mgi-ai-navigator-halo-halo-eye-bundle": {
     followMe: true,
     remote: true,

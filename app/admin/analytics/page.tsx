@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Suspense } from "react";
+import { Suspense, type ReactNode } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Table,
@@ -32,10 +32,16 @@ import { EmailChart, SalesChart, TrafficChart } from "./AnalyticsCharts";
 
 export const metadata = { title: "Admin · Analytics" };
 
-type SearchParams = Promise<{ from?: string; to?: string; site?: string }>;
+type SearchParams = Promise<{ from?: string; to?: string; site?: string; tab?: string }>;
+
+type AnalyticsTab = "sales" | "traffic";
+
+function analyticsTab(value: string | undefined): AnalyticsTab {
+  return value === "traffic" ? "traffic" : "sales";
+}
 
 function isSiteId(value: string | undefined): value is SiteId {
-  return value === "verveace" || value === "bleeq-ca";
+  return value === "verveace" || value === "bleeq-ca" || value === "volt-ca";
 }
 
 function countryLabel(code: string): string {
@@ -45,6 +51,21 @@ function countryLabel(code: string): string {
     return name ?? code;
   } catch {
     return code;
+  }
+}
+
+function propertyLabel(siteId: SiteId): string {
+  switch (siteId) {
+    case "verveace":
+      return "Verveace";
+    case "bleeq-ca":
+      return "BleeqUp";
+    case "volt-ca":
+      return "Volt Caddy";
+    default: {
+      const _exhaustive: never = siteId;
+      return _exhaustive;
+    }
   }
 }
 
@@ -70,20 +91,24 @@ export default async function AdminAnalyticsPage({
   const sp = await searchParams;
   const range = parseRange(sp);
   const site = isSiteId(sp.site) ? sp.site : undefined;
+  const tab = analyticsTab(sp.tab);
 
   const [traffic, email, signups, storeResult] = await Promise.all([
     getTrafficRollup(range, site),
-    getBrevoAnalytics(range, site),
-    getNewsletterSignupCounts(range, site),
-    getStoreAnalytics(range, site),
+    tab === "traffic" ? getBrevoAnalytics(range, site) : Promise.resolve(null),
+    tab === "traffic"
+      ? getNewsletterSignupCounts(range, site)
+      : Promise.resolve({ inRange: 0, total: 0 }),
+    tab === "sales" ? getStoreAnalytics(range, site) : Promise.resolve(null),
   ]);
 
   const trafficError = "error" in traffic ? traffic.error : null;
-  const emailError = "error" in email ? email.error : null;
-  const storeError = "error" in storeResult ? storeResult.error : null;
+  const emailError = email && "error" in email ? email.error : null;
+  const storeError = storeResult && "error" in storeResult ? storeResult.error : null;
   const rollup: TrafficRollup | null = "error" in traffic ? null : traffic;
-  const brevo: BrevoAnalytics | null = "error" in email ? null : email;
-  const store: StoreAnalytics = "error" in storeResult ? EMPTY_STORE : storeResult;
+  const brevo: BrevoAnalytics | null = !email || "error" in email ? null : email;
+  const store: StoreAnalytics =
+    !storeResult || "error" in storeResult ? EMPTY_STORE : storeResult;
   const conversion =
     rollup && rollup.visitors > 0
       ? `${((store.current.orderCount / rollup.visitors) * 100).toFixed(1)}%`
@@ -93,19 +118,14 @@ export default async function AdminAnalyticsPage({
     <div className="space-y-6">
       <div>
         <h1 className="text-2xl font-bold tracking-tight">Analytics</h1>
-        <p className="text-sm text-muted-foreground">
-          Paid sales, storefront traffic, and Brevo email from {formatDateOnly(range.from)} to{" "}
-          {formatDateOnly(range.to)}
-          {site ? ` · ${SITES[site].name}` : ""}. Totals in CAD.
-        </p>
       </div>
 
       <Suspense fallback={<div className="h-20 animate-pulse rounded-lg bg-muted" />}>
         <AnalyticsToolbar from={range.from} to={range.to} />
       </Suspense>
 
+      {tab === "sales" ? (
       <section className="space-y-4">
-        <h2 className="text-lg font-semibold tracking-tight">Sales</h2>
         {storeError ? (
           <Card>
             <CardContent className="py-8 text-center text-sm text-destructive">
@@ -141,55 +161,25 @@ export default async function AdminAnalyticsPage({
               />
             </div>
             <SalesChart points={store.daily} />
-            <div className="grid gap-6 lg:grid-cols-2">
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-base">Top products</CardTitle>
-                  <CardDescription>Units kept after refunds.</CardDescription>
-                </CardHeader>
-                <CardContent className="p-0">
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>Product</TableHead>
-                        <TableHead className="text-right">Units</TableHead>
-                        <TableHead className="text-right">Revenue</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {store.products.length === 0 ? (
-                        <TableRow>
-                          <TableCell colSpan={3} className="py-8 text-center text-muted-foreground">
-                            No paid line items in this range.
-                          </TableCell>
-                        </TableRow>
-                      ) : (
-                        store.products.map((p) => (
-                          <TableRow key={p.productId || p.name}>
-                            <TableCell className="font-medium">
-                              {p.productId ? (
-                                <Link
-                                  href={`/admin/products/${p.productId}`}
-                                  className="hover:underline"
-                                >
-                                  {p.name}
-                                </Link>
-                              ) : (
-                                p.name
-                              )}
-                            </TableCell>
-                            <TableCell className="text-right tabular-nums">{p.units}</TableCell>
-                            <TableCell className="text-right tabular-nums">
-                              {formatPrice(p.revenue)}
-                            </TableCell>
-                          </TableRow>
-                        ))
-                      )}
-                    </TableBody>
-                  </Table>
-                </CardContent>
-              </Card>
-              <Card>
+            <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_22rem]">
+              <BreakdownTable
+                title="Top products"
+                description="Units kept after refunds."
+                empty="No paid line items in this range."
+                headers={["Product", "Units", "Revenue"]}
+                rows={store.products.map((p) => [
+                  p.productId ? (
+                    <Link key={p.productId} href={`/admin/products/${p.productId}`} className="break-words hover:underline">
+                      {p.name}
+                    </Link>
+                  ) : (
+                    p.name
+                  ),
+                  String(p.units),
+                  formatPrice(p.revenue),
+                ])}
+              />
+              <Card className="min-w-0">
                 <CardHeader>
                   <CardTitle className="text-base">Channels</CardTitle>
                   <CardDescription>
@@ -241,14 +231,12 @@ export default async function AdminAnalyticsPage({
           </>
         )}
       </section>
-
+      ) : (
+      <>
       <section className="space-y-4">
-        <div>
-          <h2 className="text-lg font-semibold tracking-tight">Website traffic</h2>
-          {rollup?.notice ? (
-            <p className="text-sm text-muted-foreground">{rollup.notice}</p>
-          ) : null}
-        </div>
+        {rollup?.notice ? (
+          <p className="text-sm text-muted-foreground">{rollup.notice}</p>
+        ) : null}
         {trafficError ? (
           <Card>
             <CardContent className="py-8 text-center text-sm text-destructive">
@@ -272,7 +260,18 @@ export default async function AdminAnalyticsPage({
             {rollup?.notice ? null : (
               <>
                 <TrafficChart points={rollup?.daily ?? []} />
-                <div className="grid gap-6 lg:grid-cols-2">
+                <BreakdownTable
+                  title="Properties"
+                  empty="No pageviews in this range yet."
+                  headers={["Property", "Visitors", "Views", "Top source"]}
+                  rows={(rollup?.properties ?? []).map((p) => [
+                    propertyLabel(p.siteId),
+                    String(p.visitors),
+                    String(p.pageviews),
+                    `${p.topReferrer} · ${p.topReferrerVisitors}`,
+                  ])}
+                />
+                <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_22rem]">
                   <BreakdownTable
                     title="Top pages"
                     empty="No pageviews in this range yet."
@@ -286,8 +285,12 @@ export default async function AdminAnalyticsPage({
                   <BreakdownTable
                     title="Referrers"
                     empty="No referrers yet."
-                    headers={["Source", "Views"]}
-                    rows={(rollup?.referrers ?? []).map((r) => [r.host, String(r.pageviews)])}
+                    headers={["Source", "Visitors", "Views"]}
+                    rows={(rollup?.referrers ?? []).map((r) => [
+                      r.host,
+                      String(r.visitors),
+                      String(r.pageviews),
+                    ])}
                   />
                 </div>
                 <BreakdownTable
@@ -426,6 +429,8 @@ export default async function AdminAnalyticsPage({
           </>
         )}
       </section>
+      </>
+      )}
     </div>
   );
 }
@@ -454,54 +459,57 @@ function KpiCard({
 
 function BreakdownTable({
   title,
+  description,
   empty,
   headers,
   rows,
 }: {
   title: string;
+  description?: string;
   empty: string;
   headers: string[];
-  rows: string[][];
+  rows: ReactNode[][];
 }) {
+  const columns =
+    headers.length <= 1 ? "minmax(0,1fr)" : `minmax(0,1fr) repeat(${headers.length - 1}, max-content)`;
+
   return (
-    <Card>
+    <Card className="min-w-0 overflow-hidden">
       <CardHeader>
         <CardTitle className="text-base">{title}</CardTitle>
+        {description ? <CardDescription>{description}</CardDescription> : null}
       </CardHeader>
       <CardContent className="p-0">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              {headers.map((h, i) => (
-                <TableHead key={h} className={i > 0 ? "text-right" : undefined}>
-                  {h}
-                </TableHead>
-              ))}
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {rows.length === 0 ? (
-              <TableRow>
-                <TableCell colSpan={headers.length} className="py-8 text-center text-muted-foreground">
-                  {empty}
-                </TableCell>
-              </TableRow>
-            ) : (
-              rows.map((row) => (
-                <TableRow key={row.join("|")}>
-                  {row.map((cell, i) => (
-                    <TableCell
-                      key={`${row[0]}-${headers[i]}`}
-                      className={i > 0 ? "text-right tabular-nums" : "font-medium"}
-                    >
-                      {cell}
-                    </TableCell>
-                  ))}
-                </TableRow>
-              ))
+        {rows.length === 0 ? (
+          <p className="px-4 py-8 text-center text-sm text-muted-foreground">{empty}</p>
+        ) : (
+          <div className="grid gap-x-4 text-sm" style={{ gridTemplateColumns: columns }}>
+            {headers.map((header, i) => (
+              <div
+                key={header}
+                className={`border-b py-2 font-medium text-muted-foreground ${
+                  i === 0 ? "min-w-0 pl-4" : "text-right whitespace-nowrap"
+                } ${i === headers.length - 1 ? "pr-4" : ""}`}
+              >
+                {header}
+              </div>
+            ))}
+            {rows.map((row, rowIndex) =>
+              row.map((cell, i) => (
+                <div
+                  key={`${rowIndex}-${i}`}
+                  className={`py-2 ${rowIndex === rows.length - 1 ? "" : "border-b"} ${
+                    i === 0
+                      ? "min-w-0 pl-4 font-medium break-words"
+                      : "text-right tabular-nums whitespace-nowrap"
+                  } ${i === headers.length - 1 ? "pr-4" : ""}`}
+                >
+                  {cell}
+                </div>
+              )),
             )}
-          </TableBody>
-        </Table>
+          </div>
+        )}
       </CardContent>
     </Card>
   );

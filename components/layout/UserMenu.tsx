@@ -6,16 +6,19 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuGroup,
+  DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuLinkItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { LayoutDashboard, LogOut, Sparkles, User as UserIcon } from "lucide-react";
+import { Headset, LayoutDashboard, LogOut, Sparkles, User as UserIcon } from "lucide-react";
+import { useChatStore } from "@/lib/store/chat";
 import { SIGN_OUT_PATH } from "@/lib/constants";
 import { formatPoints } from "@/lib/utils/format";
 import { useDictionary, useT } from "@/lib/i18n/I18nProvider";
+import { useUnfulfilledOrderCount } from "@/components/admin/AdminOrderAlerts";
 
 type Props = {
   user: { email: string; fullName: string | null } | null;
@@ -26,6 +29,8 @@ type Props = {
 export function UserMenu({ user, loyaltyPoints, isAdmin = false }: Props) {
   const dict = useDictionary();
   const t = useT();
+  const unfulfilled = useUnfulfilledOrderCount();
+  const openLiveAgent = useChatStore((s) => s.openLiveAgent);
 
   if (!user) {
     return (
@@ -65,11 +70,18 @@ export function UserMenu({ user, loyaltyPoints, isAdmin = false }: Props) {
           })}
           aria-label={dict.nav.accountMenu}
         >
-          <Avatar className="size-10 sm:size-10">
-            <AvatarFallback className="bg-primary text-sm font-semibold text-primary-foreground sm:text-xs">
-              {initials}
-            </AvatarFallback>
-          </Avatar>
+          <span className="relative">
+            <Avatar className="size-10 sm:size-10">
+              <AvatarFallback className="bg-primary text-sm font-semibold text-primary-foreground sm:text-xs">
+                {initials}
+              </AvatarFallback>
+            </Avatar>
+            {isAdmin && unfulfilled > 0 ? (
+              <span className="absolute -right-0.5 -top-0.5 inline-flex h-4 min-w-4 items-center justify-center rounded-full bg-red-600 px-1 text-[10px] font-bold leading-none text-white">
+                {unfulfilled > 99 ? "99+" : unfulfilled}
+              </span>
+            ) : null}
+          </span>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end" className="w-56">
           <DropdownMenuGroup>
@@ -95,6 +107,15 @@ export function UserMenu({ user, loyaltyPoints, isAdmin = false }: Props) {
                 <DropdownMenuLinkItem href="/account/referrals">
                   {dict.nav.referrals}
                 </DropdownMenuLinkItem>
+                <DropdownMenuLinkItem href="/account/settings">
+                  {dict.account.settings}
+                </DropdownMenuLinkItem>
+                <DropdownMenuItem
+                  className="cursor-pointer"
+                  onClick={() => openLiveAgent()}
+                >
+                  <Headset className="h-4 w-4" /> {dict.nav.liveAgent}
+                </DropdownMenuItem>
               </>
             )}
           </DropdownMenuGroup>

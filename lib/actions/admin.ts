@@ -6,6 +6,7 @@ import { requireAdmin } from "@/lib/auth/admin";
 import { getSessionUser } from "@/lib/auth/session";
 import { revalidatePath } from "next/cache";
 import { updateCatalogCache } from "@/lib/catalog/invalidate";
+import { submitProductToIndexNow } from "@/lib/site/indexnow";
 
 const statusSchema = z.object({
   orderId: z.string().uuid(),
@@ -41,6 +42,7 @@ export async function updateProductInventory(input: z.infer<typeof inventorySche
   revalidatePath("/products");
   revalidatePath(`/products/${parsed.data.slug}`);
   revalidatePath("/");
+  submitProductToIndexNow(parsed.data.slug);
   return { ok: true };
 }
 

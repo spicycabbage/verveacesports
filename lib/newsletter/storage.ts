@@ -1,6 +1,6 @@
 "use client";
 
-import { SITE_COOKIE, SITES, type SiteId } from "@/lib/site/config";
+import { isSiteId, SITE_COOKIE, SITES, type SiteId } from "@/lib/site/config";
 
 function readSiteIdFromCookie(): SiteId {
   if (typeof document === "undefined") return "verveace";
@@ -8,7 +8,7 @@ function readSiteIdFromCookie(): SiteId {
     new RegExp(`(?:^|; )${SITE_COOKIE.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}=([^;]*)`),
   );
   const id = match?.[1];
-  if (id === "bleeq-ca" || id === "verveace") return id;
+  if (isSiteId(id)) return id;
   return "verveace";
 }
 

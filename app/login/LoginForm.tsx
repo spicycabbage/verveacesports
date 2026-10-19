@@ -1,6 +1,8 @@
 "use client";
 
+import Link from "next/link";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
@@ -8,11 +10,12 @@ import { GoogleSignInButton } from "@/components/auth/GoogleSignInButton";
 import { signInWithPassword } from "@/lib/actions/auth";
 import { useDictionary } from "@/lib/i18n/I18nProvider";
 import { Loader2 } from "lucide-react";
-import { useTransition } from "react";
+import { useState, useTransition } from "react";
 import { toast } from "sonner";
 
 export function LoginForm({ nextPath = "/account" }: { nextPath?: string }) {
   const [pending, start] = useTransition();
+  const [remember, setRemember] = useState(true);
   const dict = useDictionary();
 
   return (
@@ -35,6 +38,7 @@ export function LoginForm({ nextPath = "/account" }: { nextPath?: string }) {
             const res = await signInWithPassword({
               email: String(fd.get("email")),
               password: String(fd.get("password")),
+              remember,
               next: nextPath,
             });
             if (res?.error) toast.error(res.error);
@@ -59,6 +63,18 @@ export function LoginForm({ nextPath = "/account" }: { nextPath?: string }) {
             required
             autoComplete="current-password"
           />
+        </div>
+        <div className="flex items-center justify-between gap-3">
+          <Label className="cursor-pointer font-normal">
+            <Checkbox checked={remember} onCheckedChange={setRemember} />
+            {dict.auth.rememberMe}
+          </Label>
+          <Link
+            href="/forgot-password"
+            className="text-sm font-medium text-primary hover:underline"
+          >
+            {dict.auth.forgotPassword}
+          </Link>
         </div>
         <Button type="submit" className="w-full" disabled={pending}>
           {pending ? <Loader2 className="h-4 w-4 animate-spin" /> : dict.auth.signIn}

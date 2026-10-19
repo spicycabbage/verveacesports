@@ -33,8 +33,7 @@ export function NativeVideoPlayer({
     const video = videoRef.current;
     if (!video) return;
     if (video.paused) {
-      void video.play();
-      setPlaying(true);
+      void video.play().then(() => setPlaying(true)).catch(() => setPlaying(false));
     } else {
       video.pause();
       setPlaying(false);
@@ -52,7 +51,7 @@ export function NativeVideoPlayer({
   return (
     <div
       className={cn(
-        "group relative aspect-video overflow-hidden rounded-xl bg-black",
+        "group relative aspect-video w-full min-w-0 max-w-full overflow-hidden rounded-xl bg-black",
         className,
       )}
     >
@@ -67,7 +66,7 @@ export function NativeVideoPlayer({
         // Galleries render many of these; without autoplay the poster is enough
         // until the user hits play — don't fetch moov atoms for every MP4.
         preload={autoPlay ? "metadata" : "none"}
-        className="h-full w-full object-cover"
+        className="absolute inset-0 h-full w-full max-w-full object-cover"
         aria-label={title}
         onPlay={() => setPlaying(true)}
         onPause={() => setPlaying(false)}

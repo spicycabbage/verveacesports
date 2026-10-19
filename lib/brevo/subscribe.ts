@@ -1,3 +1,5 @@
+import type { SiteId } from "@/lib/site/config";
+
 const BREVO_CONTACTS_URL = "https://api.brevo.com/v3/contacts";
 
 export type BrevoSubscribeResult =
@@ -6,7 +8,7 @@ export type BrevoSubscribeResult =
 
 export type BrevoSubscribeOptions = {
   /** Storefront that collected the email — picks the Brevo list. */
-  siteId: "verveace" | "bleeq-ca";
+  siteId: SiteId;
   /** UI / flow surface, e.g. popup | account-signup */
   source?: string;
   firstName?: string;
@@ -20,16 +22,54 @@ function parseListId(raw: string | undefined): number | null {
 }
 
 /**
- * Two-list model:
+ * One Brevo list per storefront. No fallback between lists.
  * - verveace → BREVO_LIST_ID
  * - bleeq-ca → BREVO_LIST_ID_BLEEQ_CA
- * No fallback between lists (keeps segments clean).
+ * - volt-ca → BREVO_LIST_ID_VOLT_CA
  */
-export function getBrevoListId(siteId: BrevoSubscribeOptions["siteId"]): number | null {
-  if (siteId === "bleeq-ca") {
-    return parseListId(process.env.BREVO_LIST_ID_BLEEQ_CA);
+export function getBrevoListId(siteId: SiteId): number | null {
+  switch (siteId) {
+    case "bleeq-ca":
+      return parseListId(process.env.BREVO_LIST_ID_BLEEQ_CA);
+    case "volt-ca":
+      return parseListId(process.env.BREVO_LIST_ID_VOLT_CA);
+    case "verveace":
+      return parseListId(process.env.BREVO_LIST_ID);
+    default: {
+      const _exhaustive: never = siteId;
+      return _exhaustive;
+    }
   }
-  return parseListId(process.env.BREVO_LIST_ID);
+}
+
+function storefrontLabel(siteId: SiteId): string {
+  switch (siteId) {
+    case "bleeq-ca":
+      return "BleeqUp Canada";
+    case "volt-ca":
+      return "Volt Caddy";
+    case "verveace":
+      return "VerveaceSports";
+    default: {
+      const _exhaustive: never = siteId;
+      return _exhaustive;
+    }
+  }
+}
+
+function missingListError(siteId: SiteId): string {
+  switch (siteId) {
+    case "bleeq-ca":
+      return "Newsletter is not configured (set BREVO_LIST_ID_BLEEQ_CA)";
+    case "volt-ca":
+      return "Newsletter is not configured (set BREVO_LIST_ID_VOLT_CA)";
+    case "verveace":
+      return "Newsletter is not configured (set BREVO_LIST_ID)";
+    default: {
+      const _exhaustive: never = siteId;
+      return _exhaustive;
+    }
+  }
 }
 
 export function isBrevoConfigured(siteId: BrevoSubscribeOptions["siteId"] = "verveace"): boolean {
@@ -46,16 +86,13 @@ export async function subscribeToBrevoList(
   if (!apiKey || listId === null) {
     return {
       ok: false,
-      error:
-        options.siteId === "bleeq-ca"
-          ? "Newsletter is not configured (set BREVO_LIST_ID_BLEEQ_CA)"
-          : "Newsletter is not configured (set BREVO_LIST_ID)",
+      error: missingListError(options.siteId),
     };
   }
 
   const attributes: Record<string, string> = {
     SITE_ID: options.siteId,
-    STOREFRONT: options.siteId === "bleeq-ca" ? "BleeqUp Canada" : "VerveaceSports",
+    STOREFRONT: storefrontLabel(options.siteId),
     SOURCE: options.source?.slice(0, 64) || "popup",
   };
   if (options.firstName?.trim()) attributes.FIRSTNAME = options.firstName.trim().slice(0, 80);

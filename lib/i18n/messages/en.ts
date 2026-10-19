@@ -16,6 +16,7 @@ export const en: Dictionary = {
     profile: "Profile",
     loyaltyPoints: "Loyalty Points",
     referrals: "Referrals",
+    liveAgent: "Live Agent",
     admin: "Admin",
     pts: "{n} pts",
     accountMenu: "Account menu",
@@ -40,7 +41,7 @@ export const en: Dictionary = {
     warranty: "Warranty",
     privacy: "Privacy",
     terms: "Terms",
-    themePlayground: "Theme playground",
+    blog: "Blog",
     faq: "FAQ",
     copyright: "© {year} VerveaceSports. All rights reserved.",
   },
@@ -94,9 +95,19 @@ export const en: Dictionary = {
     searching: "Searching:",
     clearSearch: "Clear search",
     all: "All",
-    shopRanger: "Shop Ranger & Rover",
+    filterCategory: "Category",
+    shopRanger: "Shop Rover",
     rangerMeta:
       "{n} models available · Free returns within 30 days · Earn 1 loyalty point per dollar",
+    shopBleeqCanada: "Shop BleeqUp Canada",
+    shopRangerBleeq: "BleeqUp Rover AI Sports Glasses",
+    rangerMetaDesc:
+      "Shop BleeqUp Rover AI sports glasses in Canada. ZEISS lenses and bundles — CAD pricing, free 30-day returns.",
+    aiGlassesMetaDesc:
+      "Shop BleeqUp Rover AI sports camera glasses. Watch feature demos, athlete testimonials, and creator reviews. Authorized retailer with shipping to USA & Canada.",
+    metaCloserBleeq: "Authorized BleeqUp retailer for Canada. CAD pricing, free 30-day returns.",
+    metaCloserVerveace: "Authorized retailer. Ships to the USA and Canada.",
+    metaCloserVolt: "Authorized Volt Caddy retailer in Canada. CAD pricing, ships within Canada.",
   },
 
   product: {
@@ -168,6 +179,8 @@ export const en: Dictionary = {
     city: "City",
     stateProvince: "State / Province",
     postalCode: "Postal code",
+    phone: "Phone",
+    phoneInvalid: "Enter a valid phone number",
     country: "Country",
     unitedStates: "United States",
     canada: "Canada",
@@ -203,6 +216,10 @@ export const en: Dictionary = {
     completeShipping: "Please complete the shipping form.",
     couldNotUpdate: "Could not update totals",
     promoRemoved: "Promo removed",
+    checkPaymentDetails: "Check your payment details",
+    paymentFailed: "Payment failed",
+    payAgreeBefore: "By completing payment you agree to our",
+    securedByStripe: "Secured by Stripe.",
     successConfirmed: "Order confirmed",
     thankYou: "Thank you for your order!",
     viewOrder: "View order",
@@ -255,6 +272,28 @@ export const en: Dictionary = {
     status_shipped: "shipped",
     status_delivered: "delivered",
     status_cancelled: "cancelled",
+    tracking: "Tracking",
+    trackPackage: "Track package",
+    settings: "Settings",
+    editInSettings: "Edit in Settings",
+    name: "Name",
+    personalTitle: "Personal details",
+    personalDesc: "Your name and phone as they appear on orders and receipts.",
+    phone: "Phone",
+    addressTitle: "Default address",
+    addressDesc: "Pre-fills checkout and is used for billing and shipping.",
+    addressLine1: "Address",
+    addressLine2: "Apartment, suite, etc. (optional)",
+    city: "City",
+    stateProvince: "Province / State",
+    postalCode: "Postal code",
+    addressSaved: "Address saved",
+    passwordTitle: "Password",
+    passwordDescChange: "Change the password you use to sign in.",
+    passwordDescSet: "You signed in with Google. Set a password to also sign in with your email.",
+    currentPassword: "Current password",
+    changePassword: "Change password",
+    setPassword: "Set password",
   },
 
   auth: {
@@ -282,15 +321,31 @@ export const en: Dictionary = {
     privacyPolicy: "Privacy Policy",
     signedIn: "Signed in",
     checkEmailConfirm: "Check your email to confirm your account.",
+    rememberMe: "Remember me",
+    forgotPassword: "Forgot password?",
+    forgotTitle: "Reset your password",
+    forgotDesc: "Enter your account email and we'll send you a link to reset your password.",
+    sendResetLink: "Send reset link",
+    resetLinkSent: "If an account exists for that email, a reset link is on its way. Check your inbox.",
+    resetLinkExpired: "That reset link is invalid or has expired. Request a new one below.",
+    backToSignIn: "Back to sign in",
+    resetTitle: "Choose a new password",
+    resetDesc: "Enter a new password for your account.",
+    newPassword: "New password",
+    confirmPassword: "Confirm new password",
+    passwordsDontMatch: "Passwords don't match",
+    updatePassword: "Update password",
+    passwordUpdated: "Password updated",
   },
 
   faq: {
     title: "Frequently asked questions",
+    titleBleeq: "BleeqUp Canada FAQ",
     home: "Home",
     introVerveace:
       "Quick answers about shipping, returns, BleeqUp, MGI & Motocaddy products, loyalty points, and checkout. Can't find what you need? Email {email}.",
     introBleeq:
-      "FAQ for BleeqUp Canada — shipping, CAD pricing, returns, BleeqUp Ranger AI sports glasses, loyalty, and checkout. Can't find what you need? Email {email}.",
+      "FAQ for BleeqUp Canada — shipping, CAD pricing, returns, BleeqUp Rover and Ranger AI sports glasses, loyalty, and checkout. Can't find what you need? Email {email}.",
     emailSupport: "Email {email} for more help.",
     sections: {
       ordersShipping: {
@@ -335,8 +390,20 @@ export const en: Dictionary = {
         title: "Products & pricing",
         items: [
           {
+            q: "What do you sell?",
+            a: "VerveaceSports is a multi-brand sporting goods store. We sell BleeqUp Rover and Ranger AI sports camera glasses and accessories, the Volt Caddy Pro-S remote electric golf push cart, plus MGI and Motocaddy electric golf trolleys, caddies, and related golf gear.",
+          },
+          {
             q: "Are you an authorized dealer?",
-            a: "Yes. VerveaceSports is an authorized retailer for BleeqUp AI camera glasses and MGI & Motocaddy electric golf trolleys, caddies, and accessories.",
+            a: "Yes. VerveaceSports is an authorized retailer for BleeqUp AI camera glasses and MGI & Motocaddy electric golf trolleys, caddies, and accessories. We are not the BleeqUp manufacturer website (bleequp.com).",
+          },
+          {
+            q: "What BleeqUp glasses do you offer?",
+            a: "We carry BleeqUp Rover (ZEISS and Bundle, plus Rover Power Plus and Rover lenses) and BleeqUp Ranger (Standard Lens, Lenses by Zeiss, Ultimate Bundle) plus shared accessories such as Power Plus, Bluetooth Controller, Magnetic Charging Wire, swappable lenses, and a Prescription service. Open each product page for current variants and CAD pricing.",
+          },
+          {
+            q: "Is this the same as BleeqUp Canada (ca.bleequp.com)?",
+            a: "No. VerveaceSports.com is our multi-brand USA & Canada store (BleeqUp + MGI + Motocaddy). BleeqUp Canada at ca.bleequp.com is a separate Canada-only BleeqUp storefront with CAD pricing. Orders and accounts are separate between the two sites.",
           },
           {
             q: "Why are prices in CAD?",
@@ -435,11 +502,19 @@ export const en: Dictionary = {
         items: [
           {
             q: "What do you sell?",
-            a: "This is a dedicated BleeqUp Canada storefront. We sell BleeqUp Ranger AI sports camera glasses and official accessories (Power Plus, Bluetooth controller, lenses, charging cable, prescription options, and related wearables). We do not sell golf carts or other brands on this site.",
+            a: "This is a dedicated BleeqUp Canada storefront. We sell BleeqUp Rover and Ranger AI sports camera glasses and official accessories (Power Plus, Rover Power Plus, Bluetooth controller, lenses, charging cable, prescription options, and related wearables). We do not sell Volt Caddy, golf carts, or other brands on this site.",
+          },
+          {
+            q: "What BleeqUp glasses do you offer?",
+            a: "We carry BleeqUp Rover (ZEISS and Bundle, plus Rover Power Plus and Rover lenses) and BleeqUp Ranger (Standard Lens, Lenses by Zeiss, Ultimate Bundle) plus accessories such as Power Plus, Bluetooth Controller, Magnetic Charging Wire, swappable lenses, and a Prescription service. Open each product page for current CAD pricing and variants.",
           },
           {
             q: "Are you an authorized BleeqUp retailer?",
             a: "Yes. This site is operated as an authorized BleeqUp retailer for the Canadian market. It is not the official BleeqUp manufacturer website (bleequp.com).",
+          },
+          {
+            q: "Is this the same as VerveaceSports.com?",
+            a: "No. ca.bleequp.com is BleeqUp Canada — BleeqUp products only, CAD, ships within Canada. VerveaceSports.com is a separate multi-brand store (BleeqUp + MGI + Motocaddy) that ships to the USA and Canada. Orders and accounts are separate.",
           },
           {
             q: "Why are prices in CAD?",
@@ -655,7 +730,20 @@ export const en: Dictionary = {
       errorProduct: "Select a product",
       errorGeneric: "Something went wrong. Try again.",
       errorConn: "Could not submit. Check your connection and try again.",
+      otherGolf: "Other (MGI / Motocaddy / golf gear)",
     },
+  },
+
+  site: {
+    verveaceTagline: "Premium Sporting Goods",
+    verveaceDescription:
+      "Authorized retailer for BleeqUp AI sports camera glasses, Volt Caddy remote electric golf push carts, and MGI & Motocaddy electric golf trolleys, caddies, and gear.",
+    bleeqTagline: "Rover AI Sports Glasses",
+    bleeqDescription:
+      "Buy BleeqUp Rover AI sports glasses in Canada. Official authorized retailer — CAD pricing and free 30-day returns.",
+    voltTagline: "Electric Remote Golf Push Cart",
+    voltDescription:
+      "Buy the Volt Caddy Pro-S remote electric golf push cart in Canada. CAD pricing and free 30-day returns.",
   },
 
   newsletter: {
@@ -729,8 +817,8 @@ export const en: Dictionary = {
     },
     footer: {
       blurb:
-        "Authorized BleeqUp Canada retailer. Buy Rover & Ranger AI sports glasses — CAD pricing, ships nationwide.",
-      shopRanger: "Shop glasses",
+        "Authorized BleeqUp Canada retailer. Buy Rover AI sports glasses — CAD pricing, ships nationwide.",
+      shopRanger: "Shop Rover",
       allModels: "All models",
       accessories: "Accessories",
       support: "Support",
@@ -741,9 +829,12 @@ export const en: Dictionary = {
       heroKicker: "{shortName} · Canada · CAD",
       shopNow: "Shop now",
       compareModels: "Compare models",
-      chooseTitle: "Shop BleeqUp Rover & Ranger",
+      chooseTitle: "Shop BleeqUp Rover",
       chooseSubtitle:
-        "Rover ZEISS, Ranger Standard / ZEISS, and bundles — AI sports camera glasses for cycling, running, and outdoor sports.",
+        "Rover ZEISS and the Rover bundle — 3K60 HDR, tilt camera, and AI sports assistant.",
+      remainingRangerTitle: "Ranger",
+      remainingRangerSubtitle:
+        "Standard, ZEISS, and the Ultimate Bundle — 3K capture, open-ear audio, and UV protection.",
       viewAll: "View all →",
       featuresKicker: "Product features",
       featuresTitle: "See what BleeqUp can do",
@@ -756,8 +847,26 @@ export const en: Dictionary = {
       shopAccessories: "Shop accessories →",
       ctaTitle: "Ready for your next ride?",
       ctaSubtitle:
-        "Buy BleeqUp Rover & Ranger AI sports glasses in Canada. Authorized retailer, CAD pricing, free returns within 30 days.",
-      shopRanger: "Shop glasses",
+        "Buy BleeqUp Rover AI sports glasses in Canada. Authorized retailer, CAD pricing, free returns within 30 days.",
+      shopRanger: "Shop Rover",
+      heroSubcopy:
+        "Shop BleeqUp AI sports camera glasses in Canada. Hands-free POV camera, open-ear audio, and UV protection — CAD pricing, ships nationwide.",
+      heroAlt: "BleeqUp Rover AI Sports Glasses",
+    },
+    showcase: {
+      authorizedRetailer: "Authorized BleeqUp retailer",
+      shopModels: "Shop Rover models",
+      featuresDesc:
+        "Every clip below comes from the official BleeqUp site — stabilization, AI editing, FOV, and more.",
+      realAthletes: "Real athletes",
+      testimonialsDesc:
+        "Creators and athletes wearing Ranger in the field — first-person POV from the official BleeqUp community.",
+      trustedByCreators: "Trusted by creators",
+      independentReviews: "Independent reviews",
+      creatorsDesc: "YouTube creators putting the 4-in-1 Ranger through real-world tests.",
+      gettingStarted: "Getting started",
+      questionsFaq: "Questions? See our",
+      orEmail: "or email",
     },
   },
 
@@ -775,5 +884,12 @@ export const en: Dictionary = {
     save: "Save",
     close: "Close",
     error: "Something went wrong.",
+    offlineTitle: "You're offline",
+    offlineBody: "Reconnect to browse {name}. Prices and checkout need a live connection.",
+    tryAgain: "Try again",
+    cadPrices: "All prices are in Canadian dollars",
+    viewImage: "View image {n} of {total}",
+    scrollThumbsLeft: "Scroll thumbnails left",
+    scrollThumbsRight: "Scroll thumbnails right",
   },
 };

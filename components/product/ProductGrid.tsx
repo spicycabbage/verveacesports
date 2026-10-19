@@ -17,10 +17,17 @@ function toCardData(p: ProductWithDefaultVariant): ProductCardData {
     defaultVariantId: p.defaultVariantId,
     defaultVariantLabel: p.defaultVariantLabel,
     defaultPriceCad: p.defaultPriceCad,
+    translations: p.translations,
   };
 }
 
-export function ProductGrid({ products }: { products: ProductWithDefaultVariant[] }) {
+export function ProductGrid({
+  products,
+  priorityCount = 4,
+}: {
+  products: ProductWithDefaultVariant[];
+  priorityCount?: number;
+}) {
   if (products.length === 0) {
     return (
       <div className="rounded-lg border border-dashed py-16 text-center text-sm text-muted-foreground">
@@ -30,8 +37,8 @@ export function ProductGrid({ products }: { products: ProductWithDefaultVariant[
   }
   return (
     <div className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-4">
-      {products.map((p) => (
-        <ProductCard key={p.id} product={toCardData(p)} />
+      {products.map((p, i) => (
+        <ProductCard key={p.id} product={toCardData(p)} priority={i < priorityCount} />
       ))}
     </div>
   );

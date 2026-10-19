@@ -1,6 +1,8 @@
 "use client";
 
 import { cn } from "@/lib/utils";
+import { useLocale } from "@/lib/i18n/I18nProvider";
+import { localizeOptionLabel } from "@/lib/i18n/catalog-copy";
 import type { OptionAxis, VariantOptionKey } from "@/lib/utils/variants";
 
 type Props = {
@@ -11,13 +13,14 @@ type Props = {
 };
 
 export function VariantPicker({ axes, selection, onSelect, disabledValues }: Props) {
+  const locale = useLocale();
   if (axes.length === 0) return null;
 
   return (
     <div className="space-y-4">
       {axes.map((axis) => (
         <div key={axis.key} className="space-y-2">
-          <p className="text-sm font-medium">{axis.name}</p>
+          <p className="text-sm font-medium">{localizeOptionLabel(axis.name, locale)}</p>
           <div className="flex flex-wrap gap-2">
             {axis.values.map((value) => {
               const selected = selection[axis.key] === value;
@@ -36,7 +39,7 @@ export function VariantPicker({ axes, selection, onSelect, disabledValues }: Pro
                     disabled && "cursor-not-allowed opacity-40",
                   )}
                 >
-                  {value}
+                  {localizeOptionLabel(value, locale)}
                 </button>
               );
             })}

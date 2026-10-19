@@ -2,6 +2,8 @@ import { NextResponse, type NextRequest } from "next/server";
 import { requireAdmin } from "@/lib/auth/admin";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { getPayouts, getTaxReport, parseRange } from "@/lib/actions/finance";
+import { pacificDateKey } from "@/lib/utils/format";
+import { MIN_REPORTED_ORDER_TOTAL } from "@/lib/orders/reported";
 
 function csvEscape(value: unknown): string {
   const s = value == null ? "" : String(value);
@@ -32,7 +34,7 @@ export async function GET(req: NextRequest, { params }: { params: Params }) {
   const { report } = await params;
   const sp = req.nextUrl.searchParams;
   const range = parseRange({ from: sp.get("from") ?? undefined, to: sp.get("to") ?? undefined });
-  const stamp = `${range.from.slice(0, 10)}_${range.to.slice(0, 10)}`;
+  const stamp = `${pacificDateKey(range.from)}_${pacificDateKey(range.to)}`;
 
   switch (report) {
     case "orders": {
@@ -43,6 +45,7 @@ export async function GET(req: NextRequest, { params }: { params: Params }) {
           "id, paid_at, created_at, email, country, currency, financial_status, subtotal, discount_code, discount_total, points_value, tax, tax_rate, shipping, total, refunded_total",
         )
         .in("financial_status", ["paid", "partially_refunded", "refunded"])
+        .gte("total", MIN_REPORTED_ORDER_TOTAL)
         .gte("paid_at", range.from)
         .lte("paid_at", range.to)
         .order("paid_at", { ascending: true });

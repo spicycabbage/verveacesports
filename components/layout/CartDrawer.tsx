@@ -18,11 +18,13 @@ import { Minus, Plus, Trash2, ShoppingBag } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { useHydrated } from "@/lib/hooks/use-hydrated";
-import { useDictionary } from "@/lib/i18n/I18nProvider";
+import { useDictionary, useLocale } from "@/lib/i18n/I18nProvider";
+import { catalogProductName, localizeOptionLabel } from "@/lib/i18n/catalog-copy";
 import { sizedImageUrl } from "@/lib/images/cdn";
 
 export function CartDrawer() {
   const dict = useDictionary();
+  const locale = useLocale();
   const { items, isOpen, close, setQty, remove } = useCartStore();
   const { currency } = useCountryStore();
   const mounted = useHydrated();
@@ -60,6 +62,8 @@ export function CartDrawer() {
             <ul className="space-y-4">
               {items.map((i) => {
                 const unit = i.priceCad;
+                const name = catalogProductName(i.slug, locale, i.name, i.translations);
+                const variant = localizeOptionLabel(i.variantLabel, locale);
                 return (
                   <li key={cartLineKey(i)} className="flex flex-col gap-2 sm:flex-row sm:gap-3">
                     <div className="flex min-w-0 gap-3">
@@ -67,7 +71,7 @@ export function CartDrawer() {
                         {i.image ? (
                           <Image
                             src={sizedImageUrl(i.image, 160)}
-                            alt={i.name}
+                            alt={name}
                             fill
                             sizes="80px"
                             className="object-cover"
@@ -80,10 +84,10 @@ export function CartDrawer() {
                           onClick={close}
                           className="line-clamp-2 text-sm font-medium hover:underline"
                         >
-                          {i.name}
+                          {name}
                         </Link>
                         {i.variantLabel !== "Default" && (
-                          <span className="text-xs text-muted-foreground">{i.variantLabel}</span>
+                          <span className="text-xs text-muted-foreground">{variant}</span>
                         )}
                         <div className="mt-1 flex items-center justify-between gap-2">
                           <span className="text-xs text-muted-foreground">{formatPrice(unit, currency)}</span>

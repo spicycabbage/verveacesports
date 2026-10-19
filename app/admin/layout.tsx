@@ -16,7 +16,7 @@ export default async function AdminLayout({
   await requireAdminPage();
 
   return (
-    <div className="mx-auto grid max-w-6xl gap-6 px-4 py-8 md:grid-cols-[200px_1fr] print:block print:max-w-none print:px-0 print:py-0">
+    <div className="mx-auto grid max-w-6xl gap-6 px-4 py-8 md:grid-cols-[200px_1fr] print:block print:max-w-none print:px-0 print:py-0" data-admin-shell>
       <AdminNav />
       <section className="min-w-0 print:max-w-none">
         <Suspense fallback={<div className="h-64 animate-pulse rounded-xl bg-muted" />}>

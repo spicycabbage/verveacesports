@@ -1,20 +1,33 @@
 import Link from "next/link";
+import Image from "next/image";
 import { cookies } from "next/headers";
 import { getSite } from "@/lib/site/get-site";
+import { siteLogoPath } from "@/lib/site/seo";
 import { LOCALE_COOKIE, parseLocaleCookie } from "@/lib/i18n/locale";
 import { getDictionary, interpolate } from "@/lib/i18n/dictionary";
+import { catalogNavLabel, catalogShortLabel } from "@/lib/i18n/catalog-copy";
+import { roverCopy } from "@/lib/i18n/rover-copy";
 
 export async function BleeqFooter() {
   const site = await getSite();
   const cookieStore = await cookies();
-  const dict = getDictionary(parseLocaleCookie(cookieStore.get(LOCALE_COOKIE)?.value));
+  const locale = parseLocaleCookie(cookieStore.get(LOCALE_COOKIE)?.value);
+  const dict = getDictionary(locale);
   const year = new Date().getFullYear();
 
   return (
     <footer className="mt-16 border-t border-border bg-card/40">
       <div className="mx-auto grid max-w-7xl gap-10 px-4 py-12 sm:grid-cols-2 lg:grid-cols-4">
         <div>
-          <p className="text-lg font-semibold tracking-tight">{site.name}</p>
+          <Link href="/" className="inline-flex">
+            <Image
+              src={siteLogoPath(site)}
+              alt={site.name}
+              width={180}
+              height={49}
+              className="h-8 w-auto"
+            />
+          </Link>
           <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
             {dict.bleeq.footer.blurb}
           </p>
@@ -26,13 +39,18 @@ export async function BleeqFooter() {
             {site.rangerProducts.map((p) => (
               <li key={p.slug}>
                 <Link href={`/products/${p.slug}`} className="hover:text-foreground">
-                  {p.shortLabel}
+                  {catalogShortLabel(p.slug, locale, p.shortLabel)}
                 </Link>
               </li>
             ))}
             <li>
               <Link href="/products?category=ai-glasses" className="hover:text-foreground">
                 {dict.bleeq.footer.allModels}
+              </Link>
+            </li>
+            <li>
+              <Link href="/compare" className="hover:text-foreground">
+                {roverCopy(locale).compare.title}
               </Link>
             </li>
           </ul>
@@ -44,7 +62,7 @@ export async function BleeqFooter() {
             {site.accessoryProducts.map((p) => (
               <li key={p.slug}>
                 <Link href={`/products/${p.slug}`} className="hover:text-foreground">
-                  {p.label}
+                  {catalogNavLabel(p.slug, locale, p.label)}
                 </Link>
               </li>
             ))}

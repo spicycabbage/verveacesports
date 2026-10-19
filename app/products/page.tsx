@@ -1,9 +1,13 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { cookies } from "next/headers";
 import { notFound } from "next/navigation";
 import { ProductFilters } from "@/components/product/ProductFilters";
 import { ProductGrid } from "@/components/product/ProductGrid";
 import { AiGlassesHero, AiGlassesVideoGallery } from "@/components/product/ai-glasses/AiGlassesShowcase";
+import { RoverShowcase } from "@/components/product/rover/RoverShowcase";
+import { roverCopy } from "@/lib/i18n/rover-copy";
+import { ROVER_PRIMARY_SLUG } from "@/lib/content/bleequp-rover";
 import {
   listStorefrontProducts,
   parseCatalogSort,
@@ -13,7 +17,7 @@ import { getSite } from "@/lib/site/get-site";
 import { categoryAllowedOnSite } from "@/lib/site/catalog";
 import { LOCALE_COOKIE, parseLocaleCookie } from "@/lib/i18n/locale";
 import { getDictionary, interpolate } from "@/lib/i18n/dictionary";
-import { categoryLabelFromDict } from "@/lib/i18n/helpers";
+import { categoryLabelFromDict, siteDescription } from "@/lib/i18n/helpers";
 
 type SearchParams = Promise<{
   category?: string;
@@ -34,21 +38,19 @@ export async function generateMetadata({
     return {
       title:
         site.id === "bleeq-ca"
-          ? "BleeqUp Rover & Ranger AI Sports Glasses"
+          ? dict.products.shopRangerBleeq
           : `${dict.products.shopRanger} | ${site.name}`,
       description:
-        site.id === "bleeq-ca"
-          ? "Shop BleeqUp Rover and Ranger AI sports glasses in Canada. ZEISS, Standard, and bundles — CAD pricing, free 30-day returns."
-          : "Shop BleeqUp Rover and Ranger AI sports camera glasses. Watch feature demos, athlete testimonials, and creator reviews. Authorized retailer with shipping to USA & Canada.",
+        site.id === "bleeq-ca" ? dict.products.rangerMetaDesc : dict.products.aiGlassesMetaDesc,
       alternates: { canonical: "/products?category=ai-glasses" },
     };
   }
   return {
     title:
       site.id === "bleeq-ca"
-        ? { absolute: "Shop BleeqUp Canada" }
+        ? { absolute: dict.products.shopBleeqCanada }
         : dict.products.shopAllTitle,
-    description: site.description,
+    description: siteDescription(dict, site.id),
     alternates: {
       canonical: sp.category
         ? `/products?category=${sp.category}`
@@ -64,7 +66,8 @@ export default async function ProductsPage({
 }) {
   const site = await getSite();
   const cookieStore = await cookies();
-  const dict = getDictionary(parseLocaleCookie(cookieStore.get(LOCALE_COOKIE)?.value));
+  const locale = parseLocaleCookie(cookieStore.get(LOCALE_COOKIE)?.value);
+  const dict = getDictionary(locale);
   const sp = await searchParams;
 
   if (sp.category && !categoryAllowedOnSite(site, sp.category)) {
@@ -86,29 +89,43 @@ export default async function ProductsPage({
     : interpolate(dict.products.count, { n: products.length });
 
   return (
-    <div className="mx-auto max-w-7xl px-4 py-8">
+    <div className="mx-auto min-w-0 max-w-7xl overflow-x-clip px-4 py-8">
       {isAiGlasses ? (
         <>
-          <div className="mb-6">
-            <ProductFilters categories={site.categories} />
-          </div>
-
           <section id="shop-ranger" className="scroll-mt-24">
             <div className="mb-6">
               <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">
                 {site.id === "bleeq-ca"
-                  ? "BleeqUp Rover & Ranger AI Sports Glasses"
+                  ? dict.products.shopRangerBleeq
                   : dict.products.shopRanger}
               </h1>
               <p className="mt-1 text-sm text-muted-foreground">
-                {interpolate(dict.products.rangerMeta, { n: products.length })}
+                {interpolate(dict.products.rangerMeta, { n: products.length })}{" "}
+                <Link href="/compare" className="text-foreground underline-offset-4 hover:underline">
+                  {roverCopy(locale).compare.title}
+                </Link>
               </p>
             </div>
+
+            <div className="mb-6">
+              <ProductFilters categories={site.categories} />
+            </div>
+
             <ProductGrid products={products} />
           </section>
 
-          <AiGlassesHero className="mt-16" />
-          <AiGlassesVideoGallery />
+          {site.id === "bleeq-ca" ? (
+            <RoverShowcase
+              copy={roverCopy(locale)}
+              ctaHref={`/products/${ROVER_PRIMARY_SLUG}`}
+              className="mt-16"
+            />
+          ) : (
+            <>
+              <AiGlassesHero className="mt-16" />
+              <AiGlassesVideoGallery />
+            </>
+          )}
         </>
       ) : (
         <>
@@ -117,7 +134,7 @@ export default async function ProductsPage({
               {sp.category
                 ? categoryLabelFromDict(dict, sp.category)
                 : site.id === "bleeq-ca"
-                  ? "Shop BleeqUp Canada"
+                  ? dict.products.shopBleeqCanada
                   : dict.products.allProducts}
             </h1>
             <p className="mt-1 text-sm text-muted-foreground">{countLabel}</p>

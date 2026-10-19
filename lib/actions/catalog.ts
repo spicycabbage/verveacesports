@@ -6,6 +6,9 @@ import { updateCatalogCache } from "@/lib/catalog/invalidate";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { requireAdmin } from "@/lib/auth/admin";
 import { CATEGORIES } from "@/lib/constants";
+import { compactProductTranslations } from "@/lib/i18n/product-translations";
+import { isMissingColumn } from "@/lib/supabase/order-row";
+import { submitProductToIndexNow } from "@/lib/site/indexnow";
 
 const PRODUCT_IMAGE_BUCKET = "product-images";
 
@@ -13,10 +16,16 @@ type ActionResult = { ok: true } | { error: string };
 
 const categorySchema = z.enum(CATEGORIES);
 
+const localeCopySchema = z.object({
+  name: z.string().trim().max(200).optional(),
+  description: z.string().max(20_000).optional(),
+});
+
 const updateProductSchema = z.object({
   productId: z.string().uuid(),
   name: z.string().trim().min(1).max(200),
   description: z.string().max(20_000),
+  translations: z.record(z.string(), localeCopySchema).optional(),
   category: categorySchema,
   isActive: z.boolean(),
   images: z
@@ -80,12 +89,14 @@ export async function saveProductEdit(
     .single<{ slug: string }>();
   if (fetchErr || !existing) return { error: "Product not found" };
 
+  const translations = compactProductTranslations(d.translations ?? {});
   const productPatch: Record<string, unknown> = {
     name: d.name,
     description: d.description,
     category: d.category,
     is_active: d.isActive,
     images: d.images,
+    translations,
   };
 
   if (d.persistOptions) {
@@ -106,7 +117,13 @@ export async function saveProductEdit(
     .from("products")
     .update(productPatch)
     .eq("id", d.productId);
-  if (productErr) return { error: productErr.message };
+  if (productErr && isMissingColumn(productErr.message, "translations")) {
+    delete productPatch.translations;
+    const retry = await admin.from("products").update(productPatch).eq("id", d.productId);
+    if (retry.error) return { error: retry.error.message };
+  } else if (productErr) {
+    return { error: productErr.message };
+  }
 
   for (const v of d.variants ?? []) {
     const { data: updated, error: variantErr } = await admin
@@ -169,17 +186,23 @@ export async function updateProductCatalog(
     .single<{ slug: string }>();
   if (fetchErr || !existing) return { error: "Product not found" };
 
-  const { error } = await admin
-    .from("products")
-    .update({
-      name: d.name,
-      description: d.description,
-      category: d.category,
-      is_active: d.isActive,
-      images: d.images,
-    })
-    .eq("id", d.productId);
-  if (error) return { error: error.message };
+  const translations = compactProductTranslations(d.translations ?? {});
+  const productPatch: Record<string, unknown> = {
+    name: d.name,
+    description: d.description,
+    category: d.category,
+    is_active: d.isActive,
+    images: d.images,
+    translations,
+  };
+  const { error } = await admin.from("products").update(productPatch).eq("id", d.productId);
+  if (error && isMissingColumn(error.message, "translations")) {
+    delete productPatch.translations;
+    const retry = await admin.from("products").update(productPatch).eq("id", d.productId);
+    if (retry.error) return { error: retry.error.message };
+  } else if (error) {
+    return { error: error.message };
+  }
 
   await admin.from("product_variants").update({ is_active: d.isActive }).eq("product_id", d.productId);
 
@@ -376,6 +399,7 @@ function revalidateAfterProductDelete(slug: string) {
   revalidatePath("/products");
   revalidatePath(`/products/${slug}`);
   revalidatePath("/");
+  submitProductToIndexNow(slug);
 }
 
 /** Permanently removes a product. Blocked if any order_items reference it. */
@@ -445,4 +469,5 @@ function revalidateCatalog(productId: string, slug: string) {
   revalidatePath("/products");
   revalidatePath(`/products/${slug}`);
   revalidatePath("/");
+  submitProductToIndexNow(slug);
 }

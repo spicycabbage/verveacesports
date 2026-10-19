@@ -95,6 +95,19 @@ Physical **smart readers** (Stripe Reader S700/S710, BBPOS WisePOS E, Verifone).
 5. Optional env fallback: `STRIPE_TERMINAL_LOCATION_ID_CAD`
 6. Test mode: **Add simulated reader** then **Simulate tap** after charging.
 
+### Tap to Pay (Android NFC)
+
+The web POS cannot accept card NFC. `apps/pos` is an Expo app that loads `/admin/pos` and collects Visa/Mastercard contactless + wallets on the phone. Interac chip+PIN stays on the counter reader. iPhone is skipped until there is an Apple Developer account.
+
+1. CAD Stripe Dashboard → **Payments → Terminal** enabled. Create a Terminal location in **Admin → POS** (same `tml_…` as the hardware reader).
+2. Phone: Android 13+, NFC, Google Play services, not rooted. `minSdk` is 33.
+3. Expo Go will not work. See `apps/pos/README.md`.
+4. **Test mode** (`expo run:android` + USB debugging): uses a simulated Tap to Pay reader.
+5. **Live cards:** sideload a release APK (`eas build -p android --profile preview`), then turn **Developer options off**. USB debugging makes Stripe reject the device as insecure.
+6. Sign in as admin. Badge: **Tap to Pay ready**. Charge → hold Visa/MC to the NFC area (back of the phone).
+
+Tap to Pay charges skip `interac_present`. Use the S700/WisePOS for Interac.
+
 ### Notes on wallets
 - **Apple Pay** only renders over HTTPS on a verified domain. Stripe handles `apple-developer-merchantid-domain-association.txt` automatically once you register your production domain in Stripe → Settings → Payment methods → Apple Pay → Add new domain.
 - **Google Pay** works on Chrome/Android over HTTPS or `localhost`.
@@ -122,13 +135,19 @@ STRIPE_WEBHOOK_SECRET_CAD=whsec_...
 # GEO_COUNTRY_OVERRIDE=CA
 
 # Brevo (Contacts → Lists → list IDs; SMTP & API → API keys)
-# Sender addresses must be verified in Brevo for each storefront:
-#   verveace → info@verveacesports.com
-#   bleeq-ca → info@bleequp.ca
-# Transactional: account welcome, newsletter welcome, order confirmation (HTML in lib/brevo/emails.ts)
+# Transactional: account welcome, newsletter welcome, order confirmation, admin new-order alert
+# From: authenticated domain verveacesports.com (info@). Reply-To is site support.
 BREVO_API_KEY=xkeysib-...
 BREVO_LIST_ID=2
 # BREVO_LIST_ID_BLEEQ_CA=3
+# BREVO_SENDER_EMAIL=info@verveacesports.com
+# Extra inbox on top of every is_admin profile
+# ADMIN_ORDER_ALERT_EMAIL=ming@verveacesports.com
+
+# Web Push (admin PWA order alerts). Generate with: npx web-push generate-vapid-keys
+# VAPID_PUBLIC_KEY=...
+# VAPID_PRIVATE_KEY=...
+# VAPID_SUBJECT=mailto:ming@verveacesports.com
 
 NEXT_PUBLIC_SITE_URL=http://localhost:3000
 # NEXT_PUBLIC_BLEEQ_SITE_URL=https://ca.bleequp.com
@@ -145,8 +164,9 @@ NEXT_PUBLIC_SITE_URL=http://localhost:3000
 | PDP + gallery | `app/products/[slug]/page.tsx`, `components/product/Gallery.tsx` |
 | Cart (Zustand + persist) | `lib/store/cart.ts`, `components/layout/CartDrawer.tsx`, `app/cart` |
 | Checkout (Stripe Payment Element) | `app/checkout/`, `app/api/stripe/payment-intent`, `app/api/stripe/webhook` |
-| In-person POS (Stripe Terminal) | `app/admin/pos`, `app/api/admin/terminal/*` |
-| Brevo emails (welcome + order confirm) | `lib/brevo/send.ts`, `lib/brevo/emails.ts` |
+| In-person POS (Stripe Terminal + Tap to Pay) | `app/admin/pos`, `app/api/admin/terminal/*`, `apps/pos` |
+| Brevo emails (welcome + order confirm + admin new-order) | `lib/brevo/send.ts`, `lib/brevo/emails.ts` |
+| Admin PWA order alerts (push + icon badge) | `components/admin/AdminOrderAlerts.tsx`, `public/sw.js` |
 | Loyalty points (earn + redeem) | DB triggers in `0001_init.sql`, `app/account/loyalty`, redeem slider in checkout |
 | Referrals (`?ref=CODE`) | `middleware.ts` (cookie), `handle_new_user()` trigger, `award_loyalty_on_paid_order()` qualifies + double-rewards on first paid order, `app/account/referrals` |
 | User dashboard | `app/account/*` |

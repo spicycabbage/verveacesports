@@ -10,6 +10,8 @@ import {
   POS_CURRENCY,
   loadPosSettings,
   pickupAddress,
+  stripeLocationIdFor,
+  tapToPayPaymentMethodTypes,
   terminalPaymentMethodTypes,
 } from "@/lib/pos/settings";
 import { voidPendingOrder } from "@/lib/pos/void-pending-order";
@@ -22,11 +24,14 @@ export type PosCartItem = {
   qty: number;
 };
 
+export type PosCollectMethod = "reader" | "tap_to_pay";
+
 export type PosChargeInput = {
   items: PosCartItem[];
   customItems?: QuoteCustomItem[];
   siteId: SiteId;
-  readerId: string;
+  readerId?: string;
+  collect?: PosCollectMethod;
   discountCode?: string;
   email?: string;
   customerName?: string;
@@ -37,8 +42,12 @@ export type PosChargeResult = {
   orderId: string;
   paymentIntentId: string;
   readerId: string;
+  collect: PosCollectMethod;
   total: number;
   currency: Currency;
+  clientSecret?: string;
+  connectionToken?: string;
+  locationId?: string;
 };
 
 async function rollbackCreatedOrder(
@@ -62,6 +71,11 @@ export async function createPosCharge(
   admin: SupabaseClient,
   input: PosChargeInput,
 ): Promise<PosChargeResult> {
+  const collect: PosCollectMethod = input.collect === "tap_to_pay" ? "tap_to_pay" : "reader";
+  if (collect === "reader" && !input.readerId) {
+    throw new QuoteError("Reader not found", 400);
+  }
+
   const settings = await loadPosSettings(admin);
   if (!settings) throw new QuoteError("No default inventory location configured", 500);
 
@@ -120,7 +134,10 @@ export async function createPosCharge(
     total: quote.total,
     country: POS_COUNTRY,
     shipping_address: shipping,
-    admin_note: `POS in-person · ${site.shortName} · reader ${input.readerId}`,
+    admin_note:
+      collect === "tap_to_pay"
+        ? `POS in-person · ${site.shortName} · Tap to Pay`
+        : `POS in-person · ${site.shortName} · reader ${input.readerId}`,
   };
   let { data: order, error: orderErr } = await admin
     .from("orders")
@@ -152,6 +169,7 @@ export async function createPosCharge(
     currency: POS_CURRENCY,
     product_name: li.name,
     product_image: li.image,
+    variant_title: li.variantTitle,
   }));
   const { error: itemsErr } = await admin.from("order_items").insert(itemsToInsert);
   if (itemsErr) {
@@ -189,18 +207,25 @@ export async function createPosCharge(
   }
 
   const stripe = getStripe(POS_CURRENCY);
+  const locationId = stripeLocationIdFor(settings);
+  if (collect === "tap_to_pay" && !locationId) {
+    throw new QuoteError("Create a Stripe Terminal location in POS settings first", 400);
+  }
+
   let intent;
   try {
     intent = await stripe.paymentIntents.create({
       amount: toMinorUnits(quote.total),
       currency: POS_CURRENCY.toLowerCase(),
-      payment_method_types: terminalPaymentMethodTypes(),
+      payment_method_types:
+        collect === "tap_to_pay" ? tapToPayPaymentMethodTypes() : terminalPaymentMethodTypes(),
       capture_method: "automatic",
       metadata: {
         order_id: order.id,
         sales_channel: "pos",
         site_id: site.id,
         charged_by: input.actorId,
+        collect,
       },
       description: `In-person POS ${site.shortName} ${order.id}`,
     });
@@ -221,8 +246,38 @@ export async function createPosCharge(
     stripe_payment_intent_id: intent.id,
   });
 
+  if (collect === "tap_to_pay") {
+    let connectionToken: string;
+    try {
+      const token = await stripe.terminal.connectionTokens.create(
+        locationId ? { location: locationId } : {},
+      );
+      connectionToken = token.secret;
+    } catch (err) {
+      try {
+        await stripe.paymentIntents.cancel(intent.id);
+      } catch {
+        /* ignore */
+      }
+      await rollbackCreatedOrder(admin, order.id, 0, userId);
+      const msg = err instanceof Error ? err.message : "Connection token failed";
+      throw new QuoteError(`Tap to Pay setup failed: ${msg}`, 502);
+    }
+    return {
+      orderId: order.id,
+      paymentIntentId: intent.id,
+      readerId: "tap_to_pay",
+      collect,
+      total: quote.total,
+      currency: POS_CURRENCY,
+      clientSecret: intent.client_secret ?? undefined,
+      connectionToken,
+      locationId,
+    };
+  }
+
   try {
-    await stripe.terminal.readers.processPaymentIntent(input.readerId, {
+    await stripe.terminal.readers.processPaymentIntent(input.readerId!, {
       payment_intent: intent.id,
     });
   } catch (err) {
@@ -239,7 +294,8 @@ export async function createPosCharge(
   return {
     orderId: order.id,
     paymentIntentId: intent.id,
-    readerId: input.readerId,
+    readerId: input.readerId!,
+    collect,
     total: quote.total,
     currency: POS_CURRENCY,
   };

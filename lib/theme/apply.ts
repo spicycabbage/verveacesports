@@ -6,7 +6,7 @@ import {
   type ThemeColors,
   type ThemeMode,
 } from "./tokens";
-import { SITE_COOKIE, SITES, type SiteId } from "@/lib/site/config";
+import { isSiteId, SITE_COOKIE, SITES, type SiteId } from "@/lib/site/config";
 
 function themeStorageKey(): string {
   if (typeof document === "undefined") return THEME_STORAGE_KEY;
@@ -14,7 +14,7 @@ function themeStorageKey(): string {
     new RegExp(`(?:^|; )${SITE_COOKIE.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}=([^;]*)`),
   );
   const id = match?.[1] as SiteId | undefined;
-  if (id === "bleeq-ca" || id === "verveace") return SITES[id].themeStorageKey;
+  if (isSiteId(id)) return SITES[id].themeStorageKey;
   return THEME_STORAGE_KEY;
 }
 

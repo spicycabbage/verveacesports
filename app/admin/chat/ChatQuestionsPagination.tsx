@@ -17,6 +17,7 @@ export function ChatQuestionsPagination({ page, total, site, q }: Props) {
 
   function href(targetPage: number) {
     const params = new URLSearchParams();
+    params.set("tab", "questions");
     if (site) params.set("site", site);
     if (q) params.set("q", q);
     if (targetPage > 1) params.set("page", String(targetPage));

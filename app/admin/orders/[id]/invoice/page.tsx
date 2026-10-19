@@ -11,6 +11,8 @@ import { InvoiceActions } from "../InvoiceActions";
 import { AutoPrint } from "./AutoPrint";
 import { requireAdminPage } from "@/lib/auth/admin";
 import { GST_NUMBER, taxLinesForOrder } from "@/lib/tax/label";
+import { formatOrderNumber } from "@/lib/orders/number";
+import { orderVariantLabel } from "@/lib/orders/variant-label";
 
 export const metadata = { title: "Admin · Invoice" };
 
@@ -18,7 +20,7 @@ type Params = Promise<{ id: string }>;
 type Search = Promise<{ print?: string }>;
 
 function isSiteId(value: string | undefined | null): value is SiteId {
-  return value === "verveace" || value === "bleeq-ca";
+  return value === "verveace" || value === "bleeq-ca" || value === "volt-ca";
 }
 
 export default async function AdminOrderInvoicePage({
@@ -39,8 +41,6 @@ export default async function AdminOrderInvoicePage({
   const currency = "CAD" as const;
   const siteId = isSiteId(order.site_id) ? order.site_id : "verveace";
   const site = SITES[siteId];
-  const shortId = order.id.slice(0, 8).toUpperCase();
-
   const { data: itemsData } = await admin.from("order_items").select("*").eq("order_id", id);
   const items = (itemsData ?? []) as OrderItem[];
   const address = order.shipping_address as ShippingAddress | null;
@@ -75,7 +75,7 @@ export default async function AdminOrderInvoicePage({
             <p className="mt-0.5 text-sm text-muted-foreground">GST/HST {GST_NUMBER}</p>
           </div>
           <div className="text-right text-sm">
-            <p className="font-mono text-base font-semibold">#{shortId}</p>
+            <p className="font-mono text-base font-semibold">{formatOrderNumber(order)}</p>
             <p className="text-muted-foreground">{formatDateOnly(invoiceDate)}</p>
             <p className="mt-1 capitalize text-muted-foreground">
               {order.financial_status.replaceAll("_", " ")}
@@ -127,6 +127,12 @@ export default async function AdminOrderInvoicePage({
                 {address.city}, {address.state} {address.postal_code}
                 <br />
                 {countryName(address.country)}
+                {address.phone ? (
+                  <>
+                    <br />
+                    {address.phone}
+                  </>
+                ) : null}
               </p>
             ) : (
               <p className="mt-1 text-muted-foreground">—</p>
@@ -149,6 +155,9 @@ export default async function AdminOrderInvoicePage({
                 <tr key={item.id} className="border-b border-border/70">
                   <td className="py-3 pr-3 align-top">
                     <p className="font-medium">{item.product_name}</p>
+                    {orderVariantLabel(item.variant_title) ? (
+                      <p className="text-xs">{orderVariantLabel(item.variant_title)}</p>
+                    ) : null}
                     {item.sku ? (
                       <p className="text-xs text-muted-foreground">{item.sku}</p>
                     ) : null}

@@ -1,0 +1,64 @@
+{
+  "expo": {
+    "name": "Verveace POS",
+    "slug": "verveace-pos",
+    "version": "1.0.1",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "automatic",
+    "scheme": "verveace-pos",
+    "android": {
+      "package": "com.verveacesports.pos",
+      "versionCode": 2,
+      "googleServicesFile": "./google-services.json",
+      "permissions": [
+        "android.permission.NFC",
+        "android.permission.ACCESS_FINE_LOCATION",
+        "android.permission.ACCESS_COARSE_LOCATION",
+        "android.permission.POST_NOTIFICATIONS"
+      ],
+      "adaptiveIcon": {
+        "backgroundColor": "#111111",
+        "foregroundImage": "./assets/android-icon-foreground.png",
+        "backgroundImage": "./assets/android-icon-background.png",
+        "monochromeImage": "./assets/android-icon-monochrome.png"
+      },
+      "predictiveBackGestureEnabled": false
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    },
+    "plugins": [
+      [
+        "expo-build-properties",
+        {
+          "android": {
+            "minSdkVersion": 33
+          }
+        }
+      ],
+      [
+        "@stripe/stripe-terminal-react-native",
+        {
+          "tapToPayCheck": true,
+          "appDelegate": true,
+          "locationWhenInUsePermission": "Location is required to accept in-person card payments."
+        }
+      ],
+        "./plugins/withAndroidTapToPay.js",
+        [
+          "expo-notifications",
+          {
+            "icon": "./assets/android-icon-monochrome.png",
+            "color": "#111111",
+            "defaultChannel": "orders"
+          }
+        ]
+      ],
+    "extra": {
+      "eas": {
+        "projectId": "c3fc34ad-a7ab-4e42-8f9b-915b72cf2030"
+      }
+    }
+  }
+}

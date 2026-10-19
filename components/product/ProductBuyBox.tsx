@@ -8,7 +8,8 @@ import { Badge } from "@/components/ui/badge";
 import { ProductPrice } from "./ProductPrice";
 import { VariantPicker } from "./VariantPicker";
 import { useCartStore } from "@/lib/store/cart";
-import { useDictionary, useT } from "@/lib/i18n/I18nProvider";
+import { useDictionary, useLocale, useT } from "@/lib/i18n/I18nProvider";
+import { catalogProductName, localizeOptionLabel } from "@/lib/i18n/catalog-copy";
 import type { Product, ProductOption } from "@/lib/supabase/types";
 import {
   buildOptionAxes,
@@ -37,6 +38,8 @@ export function ProductBuyBox({
 }: Props) {
   const dict = useDictionary();
   const t = useT();
+  const locale = useLocale();
+  const name = catalogProductName(product.slug, locale, product.name, product.translations);
   const axes = useMemo(
     () => buildOptionAxes(variants, productOptions),
     [variants, productOptions],
@@ -92,12 +95,14 @@ export function ProductBuyBox({
         priceUsd: priceCad,
         priceCad,
         stock,
+        translations: product.translations,
       },
       qty,
     );
     const label = variantLabel(selected);
-    const suffix = label !== "Default" ? ` (${label})` : "";
-    toast.success(t("product.addedToast", { name: `${product.name}${suffix} ×${qty}` }), {
+    const shown = localizeOptionLabel(label, locale);
+    const suffix = label !== "Default" ? ` (${shown})` : "";
+    toast.success(t("product.addedToast", { name: `${name}${suffix} ×${qty}` }), {
       action: { label: dict.product.viewCart, onClick: () => open() },
     });
   }

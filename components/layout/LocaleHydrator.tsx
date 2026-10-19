@@ -2,7 +2,7 @@
 
 import { useLayoutEffect } from "react";
 import { useLocaleStore } from "@/lib/store/locale";
-import type { Locale } from "@/lib/i18n/locale";
+import { applyDocumentLocale, type Locale } from "@/lib/i18n/locale";
 
 /** Sync client store with locale from the server cookie. */
 export function LocaleHydrator({ locale }: { locale: Locale }) {
@@ -10,6 +10,7 @@ export function LocaleHydrator({ locale }: { locale: Locale }) {
 
   useLayoutEffect(() => {
     setLocale(locale);
+    applyDocumentLocale(locale);
   }, [locale, setLocale]);
 
   return null;

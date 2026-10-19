@@ -16,7 +16,7 @@ import {
   YAxis,
 } from "recharts";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { formatPrice } from "@/lib/utils/format";
+import { formatPrice, formatShortDateKey } from "@/lib/utils/format";
 import type { Currency } from "@/lib/constants";
 import type {
   CurrencyFinance,
@@ -45,8 +45,7 @@ type FinanceChartsProps = {
 };
 
 function shortDate(iso: string): string {
-  const d = new Date(`${iso}T12:00:00Z`);
-  return d.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+  return formatShortDateKey(iso.slice(0, 10));
 }
 
 function moneyTooltip(value: number | string | undefined, currency: Currency) {

@@ -5,15 +5,19 @@ import { ProductDetailPanel } from "@/components/product/ProductDetailPanel";
 import { ProductReviews } from "@/components/product/ProductReviews";
 import { ProductGrid } from "@/components/product/ProductGrid";
 import { loadStorefrontVariants } from "@/lib/catalog/variants";
+import { descriptionFaq, descriptionPlainText } from "@/lib/catalog/description";
 import { parseProductOptions } from "@/lib/catalog/product-options";
 import { getActiveProductBySlug, getRelatedProducts } from "@/lib/catalog/queries";
 import type { Product } from "@/lib/supabase/types";
 import type { Metadata } from "next";
 import { getSite } from "@/lib/site/get-site";
-import { categoryAllowedOnSite } from "@/lib/site/catalog";
+import { productAllowedOnSite } from "@/lib/site/catalog";
+import { productMetaCloser } from "@/lib/i18n/helpers";
 import {
   inferProductBrand,
+  merchantReturnPolicyJsonLd,
   metaDescription,
+  offerShippingDetailsJsonLd,
   productBreadcrumbJsonLd,
   productMetaDescription,
   productMetaTitle,
@@ -28,6 +32,10 @@ import { summarizeReviews } from "@/lib/reviews/summary";
 import { LOCALE_COOKIE, parseLocaleCookie } from "@/lib/i18n/locale";
 import { getDictionary } from "@/lib/i18n/dictionary";
 import { categoryLabelFromDict } from "@/lib/i18n/helpers";
+import { localizeProduct } from "@/lib/i18n/catalog-copy";
+import { roverCopy } from "@/lib/i18n/rover-copy";
+import { isRoverGlassesSlug } from "@/lib/content/bleequp-rover";
+import { RoverShowcase } from "@/components/product/rover/RoverShowcase";
 import { sizedImageUrl } from "@/lib/images/cdn";
 
 type Params = Promise<{ slug: string }>;
@@ -37,14 +45,26 @@ type Params = Promise<{ slug: string }>;
 
 export async function generateMetadata({ params }: { params: Params }): Promise<Metadata> {
   const { slug } = await params;
-  const [site, data] = await Promise.all([getSite(), getActiveProductBySlug(slug)]);
+  const [site, cookieStore, data] = await Promise.all([
+    getSite(),
+    cookies(),
+    getActiveProductBySlug(slug),
+  ]);
+  const dict = getDictionary(parseLocaleCookie(cookieStore.get(LOCALE_COOKIE)?.value));
   if (!data) return { title: "Product" };
-  if (!categoryAllowedOnSite(site, data.category)) {
+  if (!productAllowedOnSite(site, data)) {
     return { title: "Product", robots: { index: false, follow: false } };
   }
 
-  const title = productMetaTitle(site, data.name);
-  const description = productMetaDescription(site, data.description ?? "");
+  const locale = parseLocaleCookie(cookieStore.get(LOCALE_COOKIE)?.value);
+  const localized = localizeProduct(data, locale);
+  const title = productMetaTitle(site, localized.name);
+  const closer = productMetaCloser(dict, site.id);
+  const description = productMetaDescription(
+    site,
+    descriptionPlainText(localized.description),
+    closer,
+  );
   const image = sizedImageUrl((data.images as string[] | null)?.[0], 1200);
   return {
     title,
@@ -54,7 +74,7 @@ export async function generateMetadata({ params }: { params: Params }): Promise<
       title: `${title} | ${site.name}`,
       description,
       url: `/products/${slug}`,
-      ...(image ? { images: [{ url: image, alt: data.name }] } : {}),
+      ...(image ? { images: [{ url: image, alt: localized.name }] } : {}),
     },
     twitter: {
       card: "summary_large_image",
@@ -73,9 +93,11 @@ export default async function ProductDetailPage({ params }: { params: Params }) 
     createSupabaseServerClient(),
     getActiveProductBySlug(slug),
   ]);
-  const dict = getDictionary(parseLocaleCookie(cookieStore.get(LOCALE_COOKIE)?.value));
+  const locale = parseLocaleCookie(cookieStore.get(LOCALE_COOKIE)?.value);
+  const dict = getDictionary(locale);
   if (!product) notFound();
-  if (!categoryAllowedOnSite(site, product.category)) notFound();
+  if (!productAllowedOnSite(site, product)) notFound();
+  const localized = localizeProduct(product, locale);
 
   const productOptions = parseProductOptions(product.options);
 
@@ -93,12 +115,12 @@ export default async function ProductDetailPage({ params }: { params: Params }) 
   const productJsonLd = {
     "@context": "https://schema.org",
     "@type": "Product",
-    name: product.name,
-    description: metaDescription(product.description ?? "", 5000),
+    name: localized.name,
+    description: metaDescription(descriptionPlainText(localized.description), 5000),
     image: ((product.images as string[]) ?? []).map((src) => sizedImageUrl(src, 1200)),
     url: productUrl,
     sku: product.slug,
-    brand: { "@type": "Brand", name: inferProductBrand(product.name) },
+    brand: { "@type": "Brand", name: inferProductBrand(localized.name) },
     offers: {
       "@type": "Offer",
       url: productUrl,
@@ -109,6 +131,8 @@ export default async function ProductDetailPage({ params }: { params: Params }) 
           ? "https://schema.org/InStock"
           : "https://schema.org/OutOfStock",
       seller: { "@type": "Organization", name: site.name },
+      hasMerchantReturnPolicy: merchantReturnPolicyJsonLd(site),
+      shippingDetails: offerShippingDetailsJsonLd(site, Number(product.price_cad)),
     },
     ...(summary.count > 0
       ? {
@@ -135,16 +159,31 @@ export default async function ProductDetailPage({ params }: { params: Params }) 
         }
       : {}),
   };
+  const faq = descriptionFaq(localized.description);
+  const faqJsonLd = faq.length
+    ? {
+        "@context": "https://schema.org",
+        "@type": "FAQPage",
+        mainEntity: faq.map((entry) => ({
+          "@type": "Question",
+          name: entry.question,
+          acceptedAnswer: { "@type": "Answer", text: entry.answer },
+        })),
+      }
+    : null;
 
   return (
-    <div className="mx-auto max-w-7xl overflow-x-hidden px-4 py-4 sm:py-8">
+    <div id="product" className="mx-auto min-w-0 max-w-7xl scroll-mt-24 overflow-x-clip px-4 py-4 sm:py-8">
       <JsonLd data={productJsonLd} />
+      {faqJsonLd ? <JsonLd data={faqJsonLd} /> : null}
       <JsonLd
         data={productBreadcrumbJsonLd({
           site,
           category: product.category,
-          name: product.name,
+          name: localized.name,
           slug: product.slug,
+          homeLabel: dict.common.home,
+          categoryLabel: categoryLabelFromDict(dict, product.category),
         })}
       />
       <ProductDetailPanel
@@ -154,6 +193,10 @@ export default async function ProductDetailPage({ params }: { params: Params }) 
         categoryLabel={categoryLabelFromDict(dict, product.category)}
         reviewSummary={summary}
       />
+
+      {isRoverGlassesSlug(product.slug) && (
+        <RoverShowcase copy={roverCopy(locale)} ctaHref="#product" className="mt-12 sm:mt-16" />
+      )}
 
       <ProductReviews
         productId={product.id}

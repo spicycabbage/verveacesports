@@ -53,6 +53,7 @@ export type Dictionary = {
     profile: string;
     loyaltyPoints: string;
     referrals: string;
+    liveAgent: string;
     admin: string;
     pts: string;
     accountMenu: string;
@@ -76,7 +77,7 @@ export type Dictionary = {
     warranty: string;
     privacy: string;
     terms: string;
-    themePlayground: string;
+    blog: string;
     faq: string;
     copyright: string;
   };
@@ -129,8 +130,16 @@ export type Dictionary = {
     searching: string;
     clearSearch: string;
     all: string;
+    filterCategory: string;
     shopRanger: string;
     rangerMeta: string;
+    shopBleeqCanada: string;
+    shopRangerBleeq: string;
+    rangerMetaDesc: string;
+    aiGlassesMetaDesc: string;
+    metaCloserBleeq: string;
+    metaCloserVerveace: string;
+    metaCloserVolt: string;
   };
 
   product: {
@@ -202,6 +211,8 @@ export type Dictionary = {
     city: string;
     stateProvince: string;
     postalCode: string;
+    phone: string;
+    phoneInvalid: string;
     country: string;
     unitedStates: string;
     canada: string;
@@ -236,6 +247,10 @@ export type Dictionary = {
     completeShipping: string;
     couldNotUpdate: string;
     promoRemoved: string;
+    checkPaymentDetails: string;
+    paymentFailed: string;
+    payAgreeBefore: string;
+    securedByStripe: string;
     successConfirmed: string;
     thankYou: string;
     viewOrder: string;
@@ -285,6 +300,28 @@ export type Dictionary = {
     status_shipped: string;
     status_delivered: string;
     status_cancelled: string;
+    tracking: string;
+    trackPackage: string;
+    settings: string;
+    editInSettings: string;
+    name: string;
+    personalTitle: string;
+    personalDesc: string;
+    phone: string;
+    addressTitle: string;
+    addressDesc: string;
+    addressLine1: string;
+    addressLine2: string;
+    city: string;
+    stateProvince: string;
+    postalCode: string;
+    addressSaved: string;
+    passwordTitle: string;
+    passwordDescChange: string;
+    passwordDescSet: string;
+    currentPassword: string;
+    changePassword: string;
+    setPassword: string;
   };
 
   auth: {
@@ -312,10 +349,26 @@ export type Dictionary = {
     privacyPolicy: string;
     signedIn: string;
     checkEmailConfirm: string;
+    rememberMe: string;
+    forgotPassword: string;
+    forgotTitle: string;
+    forgotDesc: string;
+    sendResetLink: string;
+    resetLinkSent: string;
+    resetLinkExpired: string;
+    backToSignIn: string;
+    resetTitle: string;
+    resetDesc: string;
+    newPassword: string;
+    confirmPassword: string;
+    passwordsDontMatch: string;
+    updatePassword: string;
+    passwordUpdated: string;
   };
 
   faq: {
     title: string;
+    titleBleeq: string;
     home: string;
     introVerveace: string;
     introBleeq: string;
@@ -362,7 +415,17 @@ export type Dictionary = {
       errorProduct: string;
       errorGeneric: string;
       errorConn: string;
+      otherGolf: string;
     };
+  };
+
+  site: {
+    verveaceTagline: string;
+    verveaceDescription: string;
+    bleeqTagline: string;
+    bleeqDescription: string;
+    voltTagline: string;
+    voltDescription: string;
   };
 
   newsletter: {
@@ -441,6 +504,8 @@ export type Dictionary = {
       compareModels: string;
       chooseTitle: string;
       chooseSubtitle: string;
+      remainingRangerTitle: string;
+      remainingRangerSubtitle: string;
       viewAll: string;
       featuresKicker: string;
       featuresTitle: string;
@@ -454,6 +519,21 @@ export type Dictionary = {
       ctaTitle: string;
       ctaSubtitle: string;
       shopRanger: string;
+      heroSubcopy: string;
+      heroAlt: string;
+    };
+    showcase: {
+      authorizedRetailer: string;
+      shopModels: string;
+      featuresDesc: string;
+      realAthletes: string;
+      testimonialsDesc: string;
+      trustedByCreators: string;
+      independentReviews: string;
+      creatorsDesc: string;
+      gettingStarted: string;
+      questionsFaq: string;
+      orEmail: string;
     };
   };
 
@@ -471,5 +551,12 @@ export type Dictionary = {
     save: string;
     close: string;
     error: string;
+    offlineTitle: string;
+    offlineBody: string;
+    tryAgain: string;
+    cadPrices: string;
+    viewImage: string;
+    scrollThumbsLeft: string;
+    scrollThumbsRight: string;
   };
 };

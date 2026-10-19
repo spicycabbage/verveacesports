@@ -2,14 +2,19 @@ import Link from "next/link";
 import { cookies } from "next/headers";
 import { Logo } from "./Logo";
 import { getSite } from "@/lib/site/get-site";
-import { LOCALE_COOKIE, parseLocaleCookie } from "@/lib/i18n/locale";
+import { LOCALE_COOKIE } from "@/lib/i18n/locale";
+import { resolveRequestLocale } from "@/lib/i18n/request-locale";
 import { getDictionary, interpolate } from "@/lib/i18n/dictionary";
 import { categoryLabelFromDict } from "@/lib/i18n/helpers";
+import { VOLT_NAV } from "@/lib/site/volt-nav";
+import { roverCopy } from "@/lib/i18n/rover-copy";
 
 export async function Footer() {
   const site = await getSite();
   const cookieStore = await cookies();
-  const dict = getDictionary(parseLocaleCookie(cookieStore.get(LOCALE_COOKIE)?.value));
+  const locale = await resolveRequestLocale(cookieStore.get(LOCALE_COOKIE)?.value);
+  const dict = getDictionary(locale);
+  const compareTitle = roverCopy(locale).compare.title;
   const year = new Date().getFullYear();
 
   return (
@@ -17,18 +22,35 @@ export async function Footer() {
       <div className="mx-auto grid max-w-7xl gap-8 px-4 py-12 md:grid-cols-4">
         <div>
           <Logo />
-          <p className="mt-3 text-sm text-muted-foreground">{dict.footer.tagline}</p>
+          <p className="mt-3 text-sm text-muted-foreground">
+            {site.id === "volt-ca" ? dict.site.voltTagline : dict.footer.tagline}
+          </p>
         </div>
         <div>
           <h3 className="mb-3 text-sm font-semibold">{dict.footer.shop}</h3>
           <ul className="space-y-1.5 text-sm text-muted-foreground">
-            {site.categories.map((c) => (
-              <li key={c}>
-                <Link href={`/products?category=${c}`} className="hover:text-foreground">
-                  {categoryLabelFromDict(dict, c)}
+            {site.id === "volt-ca"
+              ? VOLT_NAV.map((item) => (
+                  <li key={item.href}>
+                    <Link href={item.href} className="hover:text-foreground">
+                      {item.label}
+                    </Link>
+                  </li>
+                ))
+              : site.categories.map((c) => (
+                  <li key={c}>
+                    <Link href={`/products?category=${c}`} className="hover:text-foreground">
+                      {categoryLabelFromDict(dict, c)}
+                    </Link>
+                  </li>
+                ))}
+            {site.id === "volt-ca" ? null : (
+              <li>
+                <Link href="/compare" className="hover:text-foreground">
+                  {compareTitle}
                 </Link>
               </li>
-            ))}
+            )}
           </ul>
         </div>
         <div>
@@ -52,6 +74,11 @@ export async function Footer() {
             <li>
               <Link href="/account/referrals" className="hover:text-foreground">
                 {dict.footer.referFriend}
+              </Link>
+            </li>
+            <li>
+              <Link href="/account/settings" className="hover:text-foreground">
+                {dict.account.settings}
               </Link>
             </li>
           </ul>
@@ -84,17 +111,23 @@ export async function Footer() {
                 {dict.footer.termsOfService}
               </Link>
             </li>
-            <li>
-              <Link href="/theme" className="hover:text-foreground">
-                {dict.footer.themePlayground}
-              </Link>
-            </li>
+            {site.id === "volt-ca" ? null : (
+              <li>
+                <Link href="/blog" className="hover:text-foreground">
+                  {dict.footer.blog}
+                </Link>
+              </li>
+            )}
           </ul>
         </div>
       </div>
       <div className="border-t">
         <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-2 px-4 py-4 text-xs text-muted-foreground">
-          <span>{interpolate(dict.footer.copyright, { year })}</span>
+          <span>
+            {site.id === "volt-ca"
+              ? `© ${year} ${site.name}. All rights reserved.`
+              : interpolate(dict.footer.copyright, { year })}
+          </span>
           <div className="flex gap-3">
             <Link href="/warranty" className="hover:text-foreground">
               {dict.footer.warranty}

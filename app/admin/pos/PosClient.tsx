@@ -39,7 +39,8 @@ import { CA_REGIONS, MAX_LINE_QTY } from "@/lib/constants";
 import { savePosSettings } from "@/lib/actions/pos";
 import type { AdminProduct } from "@/app/admin/products/load-inventory";
 import { POS_CURRENCY, type PosSettings } from "@/lib/pos/settings";
-import { SITES, siteAllowsCategory, type SiteId } from "@/lib/site/config";
+import { getTapToPayBridge } from "@/lib/pos/tap-to-pay-bridge";
+import { isSiteId, SITES, siteAllowsProduct, type SiteId } from "@/lib/site/config";
 import { cn } from "@/lib/utils";
 
 type Reader = {
@@ -79,14 +80,14 @@ type PendingCharge = {
   orderId: string;
   readerId: string;
   paymentIntentId: string;
+  collect?: "reader" | "tap_to_pay";
+  clientSecret?: string;
+  connectionToken?: string;
+  locationId?: string;
 };
 
 const READER_KEY = "verveace_pos_reader_CAD";
 const SITE_KEY = "verveace_pos_site";
-
-function isSiteId(value: string | null): value is SiteId {
-  return value === "verveace" || value === "bleeq-ca";
-}
 
 // localStorage-backed site selection, read through useSyncExternalStore so the
 // first client render already has the persisted value (server renders the default).
@@ -403,6 +404,8 @@ export function PosClient({
   const [readerId, setReaderId] = useState("");
   const [readersError, setReadersError] = useState<string | null>(null);
   const [testMode, setTestMode] = useState(false);
+  const [tapToPay, setTapToPay] = useState(false);
+  const [stripeLocationId, setStripeLocationId] = useState(settings?.stripeLocationIdCad ?? "");
 
   const [taxRegion, setTaxRegion] = useState(settings?.taxRegion ?? "BC");
   const [storeName, setStoreName] = useState(settings?.name ?? "Store");
@@ -421,7 +424,7 @@ export function PosClient({
   const filtered = useMemo(() => {
     const needle = q.trim().toLowerCase();
     return products
-      .filter((p) => siteAllowsCategory(site, p.category))
+      .filter((p) => siteAllowsProduct(site, p))
       .filter((p) => {
         if (!needle) return true;
         if (p.name.toLowerCase().includes(needle)) return true;
@@ -436,11 +439,12 @@ export function PosClient({
 
   const loadReaders = useCallback(async () => {
     try {
-      const data = await api<{ readers: Reader[]; testMode: boolean }>(
+      const data = await api<{ readers: Reader[]; testMode: boolean; locationId: string | null }>(
         "/api/admin/terminal/readers",
       );
       setReaders(data.readers);
       setTestMode(data.testMode);
+      if (data.locationId) setStripeLocationId(data.locationId);
       setReadersError(null);
       const stored = window.localStorage.getItem(READER_KEY);
       const preferred =
@@ -455,7 +459,43 @@ export function PosClient({
   }, []);
 
   useEffect(() => {
-    // Initial load is deferred a tick so the effect itself doesn't set state.
+    const sync = () => {
+      if (!getTapToPayBridge()) return false;
+      setTapToPay(true);
+      return true;
+    };
+    if (sync()) return;
+    window.addEventListener("verveace-ttp-ready", sync);
+    const id = window.setInterval(() => {
+      if (sync()) window.clearInterval(id);
+    }, 500);
+    return () => {
+      window.removeEventListener("verveace-ttp-ready", sync);
+      window.clearInterval(id);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!tapToPay || !stripeLocationId) return;
+    const warmup = getTapToPayBridge()?.warmup;
+    if (!warmup) return;
+    void (async () => {
+      try {
+        const tok = await api<{ secret: string }>("/api/admin/terminal/connection-token", {
+          method: "POST",
+        });
+        await warmup({
+          connectionToken: tok.secret,
+          locationId: stripeLocationId,
+          simulated: testMode,
+        });
+      } catch {
+        /* first charge will retry connect */
+      }
+    })();
+  }, [tapToPay, stripeLocationId, testMode]);
+
+  useEffect(() => {
     const first = window.setTimeout(() => void loadReaders(), 0);
     const id = window.setInterval(() => void loadReaders(), 8000);
     return () => {
@@ -616,31 +656,62 @@ export function PosClient({
 
   async function charge() {
     if (!cart.length) return toast.error("Add an item first");
-    if (!readerId) return toast.error("Reader not found");
-    if (selectedReader?.status !== "online") return toast.error("Turn the terminal on");
+    const bridge = getTapToPayBridge();
+    const useTap = Boolean(bridge);
+    if (!useTap) {
+      if (!readerId) return toast.error("Reader not found");
+      if (selectedReader?.status !== "online") return toast.error("Turn the terminal on");
+    }
     const sendTo = parsePosCustomerEmail(email);
     if (email.trim() && !sendTo) {
       toast.message("Email looks invalid — charging without invoice");
     }
     setInvoiceEmail(sendTo ?? null);
     setBusy(true);
+    let created: PendingCharge | null = null;
     try {
       const data = await api<PendingCharge>("/api/admin/terminal/charge", {
         method: "POST",
         body: JSON.stringify({
           ...cartPayload(),
           siteId,
-          readerId,
+          collect: useTap ? "tap_to_pay" : "reader",
+          readerId: useTap ? undefined : readerId,
           discountCode: discountCode.trim() || undefined,
           email: sendTo,
           customerName: customerName.trim() || undefined,
         }),
       });
-      window.localStorage.setItem(READER_KEY, readerId);
+      created = data;
+      if (!useTap) window.localStorage.setItem(READER_KEY, readerId);
       setPending(data);
       setPhase("charging");
+      if (useTap && bridge) {
+        if (!data.clientSecret || !data.connectionToken || !data.locationId) {
+          throw new Error("Tap to Pay is not configured");
+        }
+        setBusy(false);
+        await bridge.collect({
+          clientSecret: data.clientSecret,
+          connectionToken: data.connectionToken,
+          locationId: data.locationId,
+          simulated: testMode,
+        });
+      }
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Charge failed");
+      if (created?.collect === "tap_to_pay") {
+        try {
+          await api("/api/admin/terminal/cancel", {
+            method: "POST",
+            body: JSON.stringify({ orderId: created.orderId }),
+          });
+        } catch {
+          /* already voided */
+        }
+      }
+      setPhase("idle");
+      setPending(null);
     } finally {
       setBusy(false);
     }
@@ -648,13 +719,27 @@ export function PosClient({
 
   async function retryCharge() {
     if (!pending) return;
+    const bridge = getTapToPayBridge();
     setBusy(true);
     try {
-      await api("/api/admin/terminal/retry", {
-        method: "POST",
-        body: JSON.stringify({ orderId: pending.orderId, readerId: pending.readerId }),
-      });
-      setPhase("charging");
+      if (pending.collect === "tap_to_pay" && bridge) {
+        if (!pending.clientSecret || !pending.connectionToken || !pending.locationId) {
+          throw new Error("Tap to Pay is not configured");
+        }
+        setPhase("charging");
+        await bridge.collect({
+          clientSecret: pending.clientSecret,
+          connectionToken: pending.connectionToken,
+          locationId: pending.locationId,
+          simulated: testMode,
+        });
+      } else {
+        await api("/api/admin/terminal/retry", {
+          method: "POST",
+          body: JSON.stringify({ orderId: pending.orderId, readerId: pending.readerId }),
+        });
+        setPhase("charging");
+      }
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Retry failed");
     } finally {
@@ -666,9 +751,14 @@ export function PosClient({
     if (!pending) return;
     setBusy(true);
     try {
+      const bridge = getTapToPayBridge();
+      if (pending.collect === "tap_to_pay") await bridge?.cancel();
       await api("/api/admin/terminal/cancel", {
         method: "POST",
-        body: JSON.stringify({ orderId: pending.orderId, readerId: pending.readerId }),
+        body: JSON.stringify({
+          orderId: pending.orderId,
+          readerId: pending.collect === "tap_to_pay" ? undefined : pending.readerId,
+        }),
       });
       setPending(null);
       setPhase("idle");
@@ -742,7 +832,7 @@ export function PosClient({
       prev.filter((l) => {
         if (l.custom) return true;
         const product = products.find((p) => p.id === l.productId);
-        return product ? siteAllowsCategory(nextSite, product.category) : false;
+        return product ? siteAllowsProduct(nextSite, product) : false;
       }),
     );
   }
@@ -751,7 +841,9 @@ export function PosClient({
   const online = selectedReader?.status === "online";
   const locked = phase === "charging" || phase === "declined";
   const total = quote?.total ?? 0;
-  const canCharge = Boolean(cart.length && readerId && online && !busy && phase === "idle");
+  const canCharge = Boolean(
+    cart.length && !busy && phase === "idle" && (tapToPay || (readerId && online)),
+  );
 
   return (
     <div className="space-y-4">
@@ -759,32 +851,32 @@ export function PosClient({
         <h1 className="hidden text-2xl font-bold tracking-tight lg:block">Register</h1>
         <div className="flex min-w-0 flex-1 items-center gap-2">
           <div className="flex shrink-0 rounded-lg border p-0.5">
-            <Button
-              type="button"
-              size="sm"
-              variant={siteId === "verveace" ? "default" : "ghost"}
-              disabled={locked}
-              onClick={() => switchSite("verveace")}
-            >
-              Verveace
-            </Button>
-            <Button
-              type="button"
-              size="sm"
-              variant={siteId === "bleeq-ca" ? "default" : "ghost"}
-              disabled={locked}
-              onClick={() => switchSite("bleeq-ca")}
-            >
-              Bleeq
-            </Button>
+            {(Object.keys(SITES) as SiteId[]).map((id) => (
+              <Button
+                key={id}
+                type="button"
+                size="sm"
+                variant={siteId === id ? "default" : "ghost"}
+                disabled={locked}
+                onClick={() => switchSite(id)}
+              >
+                {SITES[id].shortName}
+              </Button>
+            ))}
           </div>
           <span
             className={cn(
               "ml-auto inline-flex items-center rounded-md px-2.5 py-1 text-xs font-semibold",
-              online ? "bg-yellow-400 text-black" : "bg-red-600 text-white",
+              tapToPay || online ? "bg-yellow-400 text-black" : "bg-red-600 text-white",
             )}
           >
-            {online ? "Terminal ready" : "Terminal offline"}
+            {tapToPay
+              ? testMode
+                ? "Tap to Pay (test)"
+                : "Tap to Pay ready"
+              : online
+                ? "Terminal ready"
+                : "Terminal offline"}
           </span>
           <Badge variant="outline" className="hidden lg:inline-flex">
             CAD
@@ -939,7 +1031,9 @@ export function PosClient({
 
             {phase === "charging" && (
               <div className="rounded-lg border bg-muted/40 p-3 text-sm font-medium">
-                Look at the terminal. Customer taps or inserts their card.
+                {pending?.collect === "tap_to_pay"
+                  ? "Hold the card or phone to the NFC area (top/back of this device)."
+                  : "Look at the terminal. Customer taps or inserts their card."}
               </div>
             )}
             {phase === "declined" && (
@@ -969,9 +1063,11 @@ export function PosClient({
                 <CreditCard />
                 {cart.length === 0
                   ? "Add an item"
-                  : !online
-                    ? "Turn the terminal on"
-                    : `Charge ${formatPrice(total, currency)}`}
+                  : tapToPay
+                    ? `Tap to Pay ${formatPrice(total, currency)}`
+                    : !online
+                      ? "Turn the terminal on"
+                      : `Charge ${formatPrice(total, currency)}`}
               </Button>
             )}
             {phase === "success" && (
@@ -1007,7 +1103,7 @@ export function PosClient({
                 <Button type="button" variant="destructive" onClick={cancelCharge} disabled={busy}>
                   Cancel charge
                 </Button>
-                {testMode && (
+                {testMode && pending?.collect !== "tap_to_pay" && (
                   <Button type="button" variant="outline" onClick={simulateTap} disabled={busy}>
                     Simulate tap
                   </Button>

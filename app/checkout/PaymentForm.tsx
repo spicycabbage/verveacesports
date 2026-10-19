@@ -30,7 +30,7 @@ export function PaymentForm({
     try {
       const { error: submitError } = await elements.submit();
       if (submitError) {
-        toast.error(submitError.message ?? "Check your payment details");
+        toast.error(submitError.message ?? dict.checkout.checkPaymentDetails);
         return;
       }
 
@@ -46,7 +46,7 @@ export function PaymentForm({
       });
 
       if (error) {
-        toast.error(error.message ?? "Payment failed");
+        toast.error(error.message ?? dict.checkout.paymentFailed);
         return;
       }
       if (paymentIntent?.status === "succeeded") {
@@ -61,7 +61,7 @@ export function PaymentForm({
         onSuccess(orderId);
       }
     } catch (err) {
-      const msg = err instanceof Error ? err.message : "Payment failed";
+      const msg = err instanceof Error ? err.message : dict.checkout.paymentFailed;
       toast.error(msg);
     } finally {
       setSubmitting(false);
@@ -85,15 +85,15 @@ export function PaymentForm({
         {submitting ? <Loader2 className="h-4 w-4 animate-spin" /> : dict.checkout.payForOrder}
       </Button>
       <p className="text-center text-xs text-muted-foreground">
-        By completing payment you agree to our{" "}
+        {dict.checkout.payAgreeBefore}{" "}
         <Link href="/terms" className="text-primary hover:underline">
-          Terms of Service
+          {dict.footer.termsOfService}
         </Link>{" "}
-        and{" "}
+        {dict.auth.and}{" "}
         <Link href="/privacy" className="text-primary hover:underline">
-          Privacy Policy
+          {dict.footer.privacyPolicy}
         </Link>
-        . Secured by Stripe.
+        . {dict.checkout.securedByStripe}
       </p>
     </form>
   );

@@ -1,5 +1,12 @@
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import type { Currency } from "@/lib/constants";
+import {
+  addCalendarDays,
+  endOfStoreDay,
+  pacificDateKey,
+  startOfStoreDay,
+} from "@/lib/utils/format";
+import { MIN_REPORTED_ORDER_TOTAL } from "@/lib/orders/reported";
 
 export type DateRange = { from: string; to: string };
 
@@ -25,18 +32,23 @@ const round2 = (n: number) => Math.round(n * 100) / 100;
 
 // Default range: last 30 days through now.
 export function defaultRange(): DateRange {
-  const to = new Date();
-  const from = new Date();
-  from.setDate(from.getDate() - 30);
-  return { from: from.toISOString(), to: to.toISOString() };
+  const today = pacificDateKey(new Date());
+  const start = addCalendarDays(today, -30);
+  return { from: startOfStoreDay(start).toISOString(), to: new Date().toISOString() };
 }
 
 export function parseRange(sp: { from?: string; to?: string }): DateRange {
   const def = defaultRange();
-  const from = sp.from ? new Date(sp.from) : new Date(def.from);
-  const to = sp.to ? new Date(sp.to) : new Date(def.to);
-  // Treat `to` as inclusive end-of-day when a bare date is supplied.
-  if (sp.to && sp.to.length <= 10) to.setHours(23, 59, 59, 999);
+  const from = sp.from
+    ? sp.from.length <= 10
+      ? startOfStoreDay(sp.from)
+      : new Date(sp.from)
+    : new Date(def.from);
+  const to = sp.to
+    ? sp.to.length <= 10
+      ? endOfStoreDay(sp.to)
+      : new Date(sp.to)
+    : new Date(def.to);
   return {
     from: Number.isNaN(from.getTime()) ? def.from : from.toISOString(),
     to: Number.isNaN(to.getTime()) ? def.to : to.toISOString(),
@@ -66,6 +78,7 @@ export async function getFinanceSummary(range: DateRange): Promise<CurrencyFinan
       "id, currency, subtotal, discount_total, points_value, tax, shipping, total, refunded_total",
     )
     .in("financial_status", ["paid", "partially_refunded", "refunded"])
+    .gte("total", MIN_REPORTED_ORDER_TOTAL)
     .gte("paid_at", range.from)
     .lte("paid_at", range.to);
   const orders = (ordersData ?? []) as OrderRow[];
@@ -160,6 +173,7 @@ export async function getTaxReport(range: DateRange): Promise<TaxRow[]> {
     .from("orders")
     .select("currency, tax_rate, tax, subtotal, discount_total, points_value")
     .in("financial_status", ["paid", "partially_refunded", "refunded"])
+    .gte("total", MIN_REPORTED_ORDER_TOTAL)
     .gte("paid_at", range.from)
     .lte("paid_at", range.to);
 
@@ -260,18 +274,16 @@ export type DailyFinancePoint = {
 type OrderTimeRow = OrderRow & { paid_at: string | null };
 
 function dateKey(iso: string): string {
-  return iso.slice(0, 10);
+  return pacificDateKey(iso);
 }
 
 function enumerateDates(from: string, to: string): string[] {
   const dates: string[] = [];
-  const cursor = new Date(from);
-  cursor.setUTCHours(0, 0, 0, 0);
-  const end = new Date(to);
-  end.setUTCHours(0, 0, 0, 0);
+  let cursor = pacificDateKey(from);
+  const end = pacificDateKey(to);
   while (cursor <= end) {
-    dates.push(cursor.toISOString().slice(0, 10));
-    cursor.setUTCDate(cursor.getUTCDate() + 1);
+    dates.push(cursor);
+    cursor = addCalendarDays(cursor, 1);
   }
   return dates;
 }
@@ -287,6 +299,7 @@ export async function getDailyFinanceSeries(
       "currency, subtotal, discount_total, points_value, tax, shipping, total, refunded_total, paid_at",
     )
     .in("financial_status", ["paid", "partially_refunded", "refunded"])
+    .gte("total", MIN_REPORTED_ORDER_TOTAL)
     .gte("paid_at", range.from)
     .lte("paid_at", range.to)
     .order("paid_at", { ascending: true });

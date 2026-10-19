@@ -16,6 +16,7 @@ export const zhCN: Dictionary = {
     profile: "个人资料",
     loyaltyPoints: "积分",
     referrals: "推荐",
+    liveAgent: "人工客服",
     admin: "管理",
     pts: "{n} 分",
     accountMenu: "账户菜单",
@@ -39,7 +40,7 @@ export const zhCN: Dictionary = {
     warranty: "保修",
     privacy: "隐私",
     terms: "条款",
-    themePlayground: "主题试验场",
+    blog: "博客",
     faq: "常见问题",
     copyright: "© {year} VerveaceSports。保留所有权利。",
   },
@@ -93,8 +94,18 @@ export const zhCN: Dictionary = {
     searching: "搜索：",
     clearSearch: "清除搜索",
     all: "全部",
+    filterCategory: "分类",
     shopRanger: "选购 Ranger 与 Rover",
     rangerMeta: "{n} 款型号在售 · 30 天内免费退货 · 每消费 1 美元赚取 1 积分",
+    shopBleeqCanada: "选购 BleeqUp Canada",
+    shopRangerBleeq: "BleeqUp Rover 与 Ranger AI 运动眼镜",
+    rangerMetaDesc:
+      "在加拿大选购 BleeqUp Rover 与 Ranger AI 运动眼镜。ZEISS、Standard 及套装 — CAD 定价，30 天免费退货。",
+    aiGlassesMetaDesc:
+      "选购 BleeqUp Rover 与 Ranger AI 运动摄像眼镜。观看功能演示、运动员评价和创作者评测。授权经销商，配送至美国和加拿大。",
+    metaCloserBleeq: "加拿大 BleeqUp 授权经销商。CAD 定价，30 天免费退货。",
+    metaCloserVerveace: "授权经销商。配送至美国和加拿大。",
+    metaCloserVolt: "加拿大 Volt Caddy 授权经销商。加元标价，加拿大境内配送。",
   },
 
   product: {
@@ -166,6 +177,8 @@ export const zhCN: Dictionary = {
     city: "城市",
     stateProvince: "州 / 省",
     postalCode: "邮政编码",
+    phone: "电话",
+    phoneInvalid: "请输入有效的电话号码",
     country: "国家/地区",
     unitedStates: "美国",
     canada: "加拿大",
@@ -200,6 +213,10 @@ export const zhCN: Dictionary = {
     completeShipping: "请填写完整的配送信息。",
     couldNotUpdate: "无法更新总计",
     promoRemoved: "已移除优惠码",
+    checkPaymentDetails: "请核对付款信息",
+    paymentFailed: "付款失败",
+    payAgreeBefore: "完成付款即表示你同意我们的",
+    securedByStripe: "由 Stripe 保障安全。",
     successConfirmed: "订单已确认",
     thankYou: "感谢你的订单！",
     viewOrder: "查看订单",
@@ -249,6 +266,28 @@ export const zhCN: Dictionary = {
     status_shipped: "已发货",
     status_delivered: "已送达",
     status_cancelled: "已取消",
+    tracking: "物流",
+    trackPackage: "追踪包裹",
+    settings: "设置",
+    editInSettings: "在设置中编辑",
+    name: "姓名",
+    personalTitle: "个人信息",
+    personalDesc: "显示在订单和收据上的姓名和电话。",
+    phone: "电话",
+    addressTitle: "默认地址",
+    addressDesc: "自动填充结账信息，并用于账单和配送。",
+    addressLine1: "地址",
+    addressLine2: "公寓、单元等（可选）",
+    city: "城市",
+    stateProvince: "省 / 州",
+    postalCode: "邮政编码",
+    addressSaved: "地址已保存",
+    passwordTitle: "密码",
+    passwordDescChange: "更改你用于登录的密码。",
+    passwordDescSet: "你使用 Google 登录。设置密码后也可以使用邮箱登录。",
+    currentPassword: "当前密码",
+    changePassword: "更改密码",
+    setPassword: "设置密码",
   },
 
   auth: {
@@ -276,15 +315,31 @@ export const zhCN: Dictionary = {
     privacyPolicy: "隐私政策",
     signedIn: "已登录",
     checkEmailConfirm: "请查收邮件以确认你的账户。",
+    rememberMe: "记住我",
+    forgotPassword: "忘记密码？",
+    forgotTitle: "重置密码",
+    forgotDesc: "输入你的账户邮箱，我们会发送重置密码的链接。",
+    sendResetLink: "发送链接",
+    resetLinkSent: "如果该邮箱存在账户，重置链接已发送。请查收邮件。",
+    resetLinkExpired: "该链接无效或已过期。请在下方重新申请。",
+    backToSignIn: "返回登录",
+    resetTitle: "设置新密码",
+    resetDesc: "为你的账户输入新密码。",
+    newPassword: "新密码",
+    confirmPassword: "确认新密码",
+    passwordsDontMatch: "两次输入的密码不一致",
+    updatePassword: "更新密码",
+    passwordUpdated: "密码已更新",
   },
 
   faq: {
     title: "常见问题",
+    titleBleeq: "BleeqUp Canada 常见问题",
     home: "首页",
     introVerveace:
       "关于配送、退货、BleeqUp、MGI 和 Motocaddy 产品、积分及结账的快速解答。找不到所需信息？请发送邮件至 {email}。",
     introBleeq:
-      "关于加拿大境内配送、CAD 定价、退货、BleeqUp Ranger 眼镜、积分及结账的快速解答。找不到所需信息？请发送邮件至 {email}。",
+      "关于加拿大境内配送、CAD 定价、退货、BleeqUp Rover 与 Ranger AI 运动眼镜、积分及结账的快速解答。找不到所需信息？请发送邮件至 {email}。",
     emailSupport: "如需更多帮助，请发送邮件至 {email}。",
     sections: {
       ordersShipping: {
@@ -329,12 +384,24 @@ export const zhCN: Dictionary = {
         title: "产品与价格",
         items: [
           {
-            q: "你们是授权经销商吗？",
-            a: "是的。VerveaceSports 是 BleeqUp AI 摄像眼镜以及 MGI 和 Motocaddy 电动高尔夫球车、球童车及配件的授权经销商。",
+            q: "你们销售什么？",
+            a: "VerveaceSports 是一家多品牌体育用品店。我们销售 BleeqUp Rover 与 Ranger AI 运动摄像眼镜及配件，以及 MGI 和 Motocaddy 的电动高尔夫球车、球童车和相关高尔夫装备。可在商品页浏览 AI 眼镜、可穿戴设备、电动球车和高尔夫装备。",
           },
           {
-            q: "为什么价格以美元或加元显示？",
-            a: "价格会根据你所选的市场，为美国买家显示美元、为加拿大买家显示加元。每个商品页面和结账时显示的货币即为向你收取的金额。",
+            q: "你们是授权经销商吗？",
+            a: "是的。VerveaceSports 是 BleeqUp AI 摄像眼镜以及 MGI 和 Motocaddy 电动高尔夫球车、球童车及配件的授权经销商。我们不是 BleeqUp 官方制造商网站（bleequp.com）。",
+          },
+          {
+            q: "你们提供哪些 BleeqUp 眼镜？",
+            a: "我们有 BleeqUp Rover（ZEISS 与套装，以及 Rover Power Plus 和 Rover 镜片）和 BleeqUp Ranger（标准镜片、Zeiss 镜片、Ultimate 套装），以及共用配件如 Power Plus、蓝牙控制器、磁吸充电线、可更换镜片和配镜服务。各商品页可查看当前规格与 CAD 定价。",
+          },
+          {
+            q: "这和 BleeqUp Canada（ca.bleequp.com）是同一家吗？",
+            a: "不是。VerveaceSports.com 是我们面向美国和加拿大的多品牌店铺（BleeqUp + MGI + Motocaddy）。ca.bleequp.com 的 BleeqUp Canada 是独立的加拿大专属 BleeqUp 店铺，以 CAD 定价。两个站点的订单和账户彼此独立。",
+          },
+          {
+            q: "为什么价格以加元显示？",
+            a: "所有价格和结账总额均以加元（CAD）计。无论配送国家为何，都将以 CAD 向你收费。",
           },
           {
             q: "如果商品缺货怎么办？",
@@ -429,11 +496,19 @@ export const zhCN: Dictionary = {
         items: [
           {
             q: "你们销售什么？",
-            a: "这是 BleeqUp 加拿大专属店铺。我们销售 BleeqUp Ranger AI 运动摄像眼镜及官方配件（Power Plus、蓝牙控制器、镜片、充电线、有度数选项及相关可穿戴设备）。本站不销售高尔夫球车或其他品牌。",
+            a: "这是 BleeqUp 加拿大专属店铺。我们销售 BleeqUp Rover 与 Ranger AI 运动摄像眼镜及官方配件（Power Plus、Rover Power Plus、蓝牙控制器、镜片、充电线、有度数选项及相关可穿戴设备）。本站不销售高尔夫球车或其他品牌。",
+          },
+          {
+            q: "你们提供哪些 BleeqUp 眼镜？",
+            a: "我们有 BleeqUp Rover（ZEISS 与套装，以及 Rover Power Plus 和 Rover 镜片）和 BleeqUp Ranger（标准镜片、Zeiss 镜片、Ultimate 套装），以及 Power Plus、蓝牙控制器、磁吸充电线、可更换镜片和配镜服务。各商品页可查看当前 CAD 定价与规格。",
           },
           {
             q: "你们是 BleeqUp 授权经销商吗？",
             a: "是的。本站作为面向加拿大市场的 BleeqUp 授权经销商运营。它不是 BleeqUp 官方制造商网站（bleequp.com）。",
+          },
+          {
+            q: "这和 VerveaceSports.com 是同一家吗？",
+            a: "不是。ca.bleequp.com 是 BleeqUp Canada — 仅售 BleeqUp 产品，CAD，加拿大境内配送。VerveaceSports.com 是独立的多品牌店铺（BleeqUp + MGI + Motocaddy），配送至美国和加拿大。订单和账户彼此独立。",
           },
           {
             q: "为什么价格以加元计？",
@@ -645,7 +720,20 @@ export const zhCN: Dictionary = {
       errorProduct: "请选择产品",
       errorGeneric: "出错了。请重试。",
       errorConn: "无法提交。请检查网络后重试。",
+      otherGolf: "其他（MGI / Motocaddy / 高尔夫装备）",
     },
+  },
+
+  site: {
+    verveaceTagline: "高端运动用品",
+    verveaceDescription:
+      "BleeqUp AI 运动摄像眼镜以及 MGI 与 Motocaddy 电动高尔夫手推车、球童车及装备的授权经销商。",
+    bleeqTagline: "Rover 与 Ranger AI 运动眼镜",
+    bleeqDescription:
+      "在加拿大购买 BleeqUp Rover 与 Ranger AI 运动眼镜。官方授权经销商 — CAD 定价，30 天免费退货。",
+    voltTagline: "电动遥控高尔夫球车",
+    voltDescription:
+      "在加拿大购买 Volt Caddy Pro-S 电动遥控高尔夫推车。加元标价，30 天免费退货。",
   },
 
   newsletter: {
@@ -727,11 +815,13 @@ export const zhCN: Dictionary = {
       heroKicker: "{shortName} · 加拿大 · CAD",
       shopNow: "立即选购",
       compareModels: "比较型号",
-      chooseTitle: "选择你的 Ranger",
-      chooseSubtitle: "Standard、Zeiss 或 Ultimate Bundle — 一键直达商品。",
+      chooseTitle: "选购 BleeqUp Rover",
+      chooseSubtitle: "Rover ZEISS 与 Rover 套装 — 3K60 HDR、可调俯仰相机、AI 运动助手。",
+      remainingRangerTitle: "Ranger",
+      remainingRangerSubtitle: "Standard、ZEISS 与 Ultimate 套装 — 3K 拍摄、开放式音频、紫外线防护。",
       viewAll: "查看全部 →",
       featuresKicker: "产品功能",
-      featuresTitle: "看看 Ranger 能做什么",
+      featuresTitle: "看看 BleeqUp 能做什么",
       watchMore: "在商店页面观看更多",
       testimonialsKicker: "用户怎么说",
       testimonialsTitle: "为你的每一次运动而生",
@@ -741,7 +831,25 @@ export const zhCN: Dictionary = {
       shopAccessories: "选购配件 →",
       ctaTitle: "准备好开启下一次骑行了吗？",
       ctaSubtitle: "加拿大 BleeqUp 授权经销商。30 天内免费退货。每笔订单赚取积分。",
-      shopRanger: "选购 Ranger",
+      shopRanger: "选购 Rover",
+      heroSubcopy:
+        "在加拿大选购 BleeqUp AI 运动摄像眼镜。免持第一人称视角摄像、开放式音频和紫外线防护 — CAD 定价，全国配送。",
+      heroAlt: "BleeqUp Rover AI 运动眼镜",
+    },
+    showcase: {
+      authorizedRetailer: "BleeqUp 授权经销商",
+      shopModels: "选购 Ranger 与 Rover 型号",
+      featuresDesc:
+        "以下片段均来自 BleeqUp 官方网站 — 防抖、AI 剪辑、视野等。",
+      realAthletes: "真实运动员",
+      testimonialsDesc:
+        "创作者与运动员在实地佩戴 Ranger — 来自 BleeqUp 官方社区的第一人称视角。",
+      trustedByCreators: "创作者信赖",
+      independentReviews: "独立评测",
+      creatorsDesc: "YouTube 创作者对 4 合 1 Ranger 进行实地测试。",
+      gettingStarted: "快速入门",
+      questionsFaq: "有疑问？请查看我们的",
+      orEmail: "或发送邮件至",
     },
   },
 
@@ -759,5 +867,12 @@ export const zhCN: Dictionary = {
     save: "保存",
     close: "关闭",
     error: "出错了。",
+    offlineTitle: "你已离线",
+    offlineBody: "请重新连接以浏览 {name}。价格和结账需要网络连接。",
+    tryAgain: "重试",
+    cadPrices: "所有价格均为加拿大元",
+    viewImage: "查看第 {n} 张，共 {total} 张",
+    scrollThumbsLeft: "向左滚动缩略图",
+    scrollThumbsRight: "向右滚动缩略图",
   },
 };

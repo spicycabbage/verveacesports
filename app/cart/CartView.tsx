@@ -10,13 +10,15 @@ import { useCartStore, cartSubtotal, cartLineKey } from "@/lib/store/cart";
 import { useCountryStore } from "@/lib/store/country";
 import { useCartPromo } from "@/lib/store/use-cart-promo";
 import { formatPrice } from "@/lib/utils/format";
-import { useDictionary } from "@/lib/i18n/I18nProvider";
+import { useDictionary, useLocale } from "@/lib/i18n/I18nProvider";
+import { catalogProductName, localizeOptionLabel } from "@/lib/i18n/catalog-copy";
 import { sizedImageUrl } from "@/lib/images/cdn";
 import { Minus, Plus, ShoppingBag, Trash2 } from "lucide-react";
 import { useHydrated } from "@/lib/hooks/use-hydrated";
 
 export function CartView() {
   const dict = useDictionary();
+  const locale = useLocale();
   const { items, setQty, remove } = useCartStore();
   const { currency } = useCountryStore();
   const mounted = useHydrated();
@@ -49,6 +51,8 @@ export function CartView() {
       <div className="space-y-3 lg:col-span-2">
         {items.map((i) => {
           const unit = i.priceCad;
+          const name = catalogProductName(i.slug, locale, i.name, i.translations);
+          const variant = localizeOptionLabel(i.variantLabel, locale);
           return (
             <Card key={cartLineKey(i)}>
               <CardContent className="flex flex-col gap-3 p-4 sm:flex-row sm:gap-4">
@@ -57,7 +61,7 @@ export function CartView() {
                     {i.image && (
                       <Image
                         src={sizedImageUrl(i.image, 192)}
-                        alt={i.name}
+                        alt={name}
                         fill
                         sizes="96px"
                         className="object-cover"
@@ -66,10 +70,10 @@ export function CartView() {
                   </div>
                   <div className="min-w-0 flex-1">
                     <Link href={`/products/${i.slug}`} className="font-medium hover:underline">
-                      {i.name}
+                      {name}
                     </Link>
                     {i.variantLabel !== "Default" && (
-                      <p className="text-sm text-muted-foreground">{i.variantLabel}</p>
+                      <p className="text-sm text-muted-foreground">{variant}</p>
                     )}
                     <div className="mt-1 flex items-center justify-between gap-2 sm:hidden">
                       <span className="text-sm text-muted-foreground">{formatPrice(unit, currency)}</span>
