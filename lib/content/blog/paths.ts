@@ -114,8 +114,6 @@ export function blogLocaleFromPath(pathname: string): Locale | null {
 
 /** Same blog resource in another language. Null when `pathname` isn't a blog URL. */
 export function blogPathForLocale(pathname: string, next: Locale): string | null {
-  // Category hubs are English-only: other languages land on their blog index.
-  if (pathname.startsWith("/blog/category/")) return blogPath(next);
   const prefixed = BLOG_PATH_RE.exec(pathname);
   if (prefixed) {
     const rest = prefixed[2];

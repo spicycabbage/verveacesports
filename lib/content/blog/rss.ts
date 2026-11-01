@@ -1,7 +1,7 @@
 import type { Locale } from "@/lib/i18n/locale";
 import type { SiteConfig } from "@/lib/site/config";
 import { siteAbsoluteUrl } from "@/lib/site/seo";
-import { BLOG_POSTS, blogDateIso } from "./index";
+import { blogDateIso, publishedBlogPosts } from "./index";
 import { localizePost } from "./localize";
 import { blogHrefLang, blogPath, blogPostPath } from "./paths";
 import { blogUi } from "./ui";
@@ -17,7 +17,8 @@ function escapeXml(value: string): string {
 
 export function renderBlogRss(site: SiteConfig, locale: Locale): string {
   const ui = blogUi(locale);
-  const posts = BLOG_POSTS.flatMap((post) => {
+  const live = publishedBlogPosts();
+  const posts = live.flatMap((post) => {
     const localized = localizePost(post, locale);
     return localized ? [localized] : [];
   });
@@ -45,7 +46,7 @@ export function renderBlogRss(site: SiteConfig, locale: Locale): string {
     <atom:link href="${siteAbsoluteUrl(site, blogPath(locale, "/rss.xml"))}" rel="self" type="application/rss+xml" />
     <description>${escapeXml(ui.indexDescription)}</description>
     <language>${blogHrefLang(locale)}</language>
-    <lastBuildDate>${new Date(blogDateIso(posts[0]?.publishedAt ?? BLOG_POSTS[0].publishedAt)).toUTCString()}</lastBuildDate>
+    <lastBuildDate>${new Date(blogDateIso(posts[0]?.publishedAt ?? live[0].publishedAt)).toUTCString()}</lastBuildDate>
 ${items}
   </channel>
 </rss>

@@ -9,7 +9,7 @@ export const recordGolfRoundWithCameraGlasses: BlogPost = {
     "Film your golf round from your own eyes: camera glasses settings, battery planning for 18 holes, what the Rules of Golf allow, and on-course etiquette.",
   excerpt:
     "Camera glasses film the round the way you saw it: the lie, the line, the putt that dropped. Here's how to set them up, make the battery last, and stay within the rules.",
-  publishedAt: "2026-11-01",
+  publishedAt: "2026-11-22",
   category: "AI Glasses",
   author: KIM_CHEN,
   keywords: [

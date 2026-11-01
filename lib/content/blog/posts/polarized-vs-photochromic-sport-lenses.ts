@@ -9,7 +9,7 @@ export const polarizedVsPhotochromicSportLenses: BlogPost = {
     "Polarized, photochromic, or fixed tint? How each sport lens works, where it shines for cycling, running, and golf, and which BleeqUp lens fits your glasses.",
   excerpt:
     "One lens can't be perfect at dawn, noon, and in a tunnel. Here's how polarized, photochromic, and fixed-tint ZEISS lenses differ, and how to pick for your sport.",
-  publishedAt: "2026-11-01",
+  publishedAt: "2026-11-08",
   category: "AI Glasses",
   author: KIM_CHEN,
   keywords: [

@@ -1,0 +1,331 @@
+import type { BlogTranslation } from "../../translation";
+
+/** November 2026 guides. Block shape mirrors the English posts exactly. */
+export const itNov2026: Record<string, BlogTranslation> = {
+  "flying-with-golf-trolley-lithium-battery": {
+    title: "Si può portare in aereo la batteria di un carrello da golf elettrico? Le regole canadesi spiegate",
+    metaTitle: "Batteria del carrello da golf in aereo: regole in Canada",
+    description: "In viaggio con il carrello da golf elettrico? Come funzionano i limiti in wattora sui voli canadesi e cosa fare se la batteria non può salire a bordo.",
+    excerpt: "Il telaio di solito viaggia come bagaglio sportivo. La batteria al litio è un'altra storia. Ecco come leggere l'etichetta in wattora e organizzare il viaggio di golf di conseguenza.",
+    keywords: ["batteria carrello golf aereo", "batteria carrello golf compagnia aerea", "volare con batteria litio carrello golf", "viaggiare con carrello golf elettrico", "wattora batteria carrello golf"],
+    imageAlt: "Batteria al litio estraibile e unità motrice del Volt Caddy Pro-S, staccate dal telaio",
+    categoryLabel: "Golf",
+    body: [
+      { type: "p", text: "Il viaggio di golf al sud d'inverno è una tradizione canadese, e chi ha camminato con un carrello elettrico non vuole tornare a un carrello a traino o a uno a noleggio. La buona notizia: un telaio piegato di solito viaggia come normale bagaglio sportivo. Il problema è la **batteria al litio**, che le compagnie aeree trattano come merce pericolosa. Se può partire dipende da un solo numero stampato sulla batteria." },
+      { type: "callout", text: "Le regole cambiano, e ogni compagnia aggiunge le proprie politiche ai limiti nazionali. Consulta la pagina sulle merci pericolose della tua compagnia e ottieni per iscritto qualsiasi approvazione prima di volare. Questa guida spiega come funzionano i limiti; non sostituisce la risposta della compagnia." },
+      { type: "h2", text: "Il numero che conta: i wattora (Wh)" },
+      { type: "p", text: "I limiti delle compagnie aeree sono espressi in **wattora (Wh)**, l'energia che la batteria immagazzina. Molte batterie per carrelli lo riportano sull'etichetta. Se trovi solo volt e ampere-ora, moltiplicali: **volt × ampere-ora = wattora**. Per esempio, una batteria da 24 V e 10 Ah corrisponde a 240 Wh." },
+      { type: "p", text: "Per darti un'idea, ecco i valori dichiarati di alcuni carrelli che vendiamo:" },
+      {
+        type: "table",
+        caption: "Valori dichiarati delle batterie di alcuni carrelli da golf elettrici",
+        head: ["Carrello", "Batteria", "Valore"],
+        rows: [
+          ["[MGI Ai Navigator Halo](/products/mgi-ai-navigator-halo)", "Litio 24 V in un involucro metallico ignifugo", "299 Wh"],
+          ["[MGI Zip X1](/products/mgi-zip-x1) e [Zip X5](/products/mgi-zip-x5)", "Litio 24 V", "250 Wh"],
+          ["[MGI E-Boost](/products/mgi-e-boost-pushcart)", "Litio 24 V Click & Go", "225 Wh"],
+          ["[Rover Power Plus](/products/bleequp-rover-power-plus) (per occhiali BleeqUp)", "1600 mAh", "Approvata per il bagaglio a mano"],
+        ],
+      },
+      { type: "p", text: "Per altri carrelli, come il [Volt Caddy Pro-S](/products/volt-caddy-pro-s) e le batterie 28V CLICK 'N' CONNECT di Motocaddy, leggi l'etichetta della tua batteria invece di andare a intuito." },
+      { type: "h2", text: "I limiti per i voli in Canada" },
+      { type: "p", text: "L'autorità canadese per la sicurezza aerea ([CATSA](https://www.catsa-acsta.gc.ca/en/what-can-bring/guidelines-batteries)) pubblica i limiti di controllo per le batterie agli ioni di litio, e la maggior parte delle compagnie segue le stesse soglie dell'associazione internazionale del trasporto aereo IATA:" },
+      {
+        type: "ul",
+        items: [
+          "**100 Wh o meno:** ammesse nel bagaglio a mano. Le batterie di ricambio di questa taglia vanno nel bagaglio a mano, non in stiva.",
+          "**Da 101 a 160 Wh:** ammesse nel bagaglio a mano con l'approvazione della compagnia, fino a due batterie di ricambio a persona.",
+          "**Oltre 160 Wh:** non ammesse nel bagaglio a mano. In stiva serve un'approvazione esplicita della compagnia.",
+        ],
+      },
+      { type: "p", text: "Le batterie dei carrelli da golf di dimensioni standard sono progettate per alimentare un carrello per 18-36 buche, quindi di solito superano ampiamente i 160 Wh. Lo stesso vale per tutti i valori della tabella. In pratica: **considera che la batteria del carrello resterà a casa**, a meno che la tua compagnia non abbia confermato per iscritto di accettarla." },
+      { type: "h2", text: "Cosa può viaggiare: il telaio e gli accessori" },
+      {
+        type: "ol",
+        items: [
+          "**Togli la batteria** e lasciala a casa, carica a circa metà per la conservazione. La nostra [guida al rimessaggio invernale della batteria](/blog/golf-trolley-lithium-battery-winter-storage) spiega come.",
+          "**Piega e proteggi il telaio.** Imbottisci impugnatura, console e assi delle ruote e mettilo in una valigia rigida o in una borsa da viaggio ben imbottita.",
+          "**Chiedi come viene conteggiato.** Le compagnie di solito trattano l'attrezzatura da golf come bagaglio sportivo, ma un telaio può contare come collo aggiuntivo. Controlla dimensioni, peso e costi prima di prenotare.",
+          "**Tieni telecomandi e piccola elettronica nel bagaglio a mano.** Le piccole batterie al litio, come quelle di un telecomando o della [Rover Power Plus](/products/bleequp-rover-power-plus), viaggiano in cabina.",
+        ],
+      },
+      { type: "h2", text: "Alternative se la batteria non può volare" },
+      {
+        type: "ul",
+        items: [
+          "**Vai in auto.** In auto non ci sono limiti di wattora. D'estate non lasciare la batteria in un bagagliaio rovente, e lascia che una batteria fredda torni a temperatura ambiente prima di caricarla.",
+          "**Noleggia a destinazione.** Molte destinazioni di golf noleggiano carrelli elettrici o a spinta. Chiama prima il campo o un negozio locale.",
+          "**Chiedi di una batteria da viaggio.** Alcuni marchi offrono batterie più piccole entro i limiti delle compagnie aeree. Se stai comprando un carrello e viaggi spesso, chiedi al produttore se ne esiste una per quel modello.",
+          "**Spediscila correttamente, o non spedirla.** Spedire una batteria al litio rientra nelle norme sulle merci pericolose. Chiedi al corriere i requisiti prima di imballarne una, e non nascondere mai una batteria in una sacca da golf o in valigia.",
+        ],
+      },
+      { type: "h2", text: "Perché le compagnie aeree sono così severe" },
+      { type: "p", text: "Una batteria al litio danneggiata o in cortocircuito può surriscaldarsi, e un incendio nella stiva è difficile da rilevare e spegnere. Per questo le regole si concentrano sull'energia immagazzinata (Wh), sulla protezione dei poli e sul tenere le batterie a portata dell'equipaggio. Secondo [Transport Canada](https://tc.canada.ca/en/tc-stories/lithium-batteries-part-2-what-you-didn-t-know-about-travelling-them), ogni anno negli aeroporti canadesi migliaia di oggetti vengono tolti dal bagaglio da stiva per batterie al litio imballate male o non conformi." },
+      { type: "h2", text: "Scegliere un carrello pensando ai viaggi" },
+      { type: "p", text: "Se giochi spesso lontano da casa, una **batteria estraibile** e un **ingombro ridotto da chiuso** contano di più. Sul [Volt Caddy Pro-S](/products/volt-caddy-pro-s) batteria e unità motrice si staccano dal telaio, e la serie Zip di MGI si piega a 70 × 47 × 42 cm. Confronta tutti i modelli nella nostra [guida all'acquisto 2026 dei carrelli da golf elettrici](/blog/best-electric-golf-push-carts-canada) o sfoglia la [collezione di carrelli elettrici](/products?category=electric-carts)." },
+    ],
+    faq: [
+      {
+        q: "Posso portare in aereo la batteria al litio del mio carrello da golf in Canada?",
+        a: "Di solito no. Le batterie oltre i 160 Wh non sono ammesse nel bagaglio a mano e in stiva richiedono l'approvazione esplicita della compagnia, e le batterie dei carrelli standard superano normalmente i 160 Wh. Controlla l'etichetta della batteria e chiedi alla compagnia prima di partire.",
+      },
+      {
+        q: "Come calcolo i wattora della batteria del mio carrello?",
+        a: "Moltiplica la tensione per gli ampere-ora. Una batteria da 24 V e 10 Ah corrisponde a 240 Wh. Molte batterie riportano anche il valore in Wh sull'etichetta.",
+      },
+      {
+        q: "Posso imbarcare il telaio del carrello senza batteria?",
+        a: "Di solito sì. Senza batteria il telaio è normale bagaglio sportivo. Imballalo bene e controlla le regole della compagnia su dimensioni, peso e costi del bagaglio sportivo.",
+      },
+      {
+        q: "Posso portare a bordo i miei occhiali BleeqUp e il Power Plus?",
+        a: "Sì. BleeqUp indica che le batterie Power Plus di Rover e Ranger sono approvate per il bagaglio a mano. Tienile nel bagaglio a mano, come tutte le batterie al litio di ricambio.",
+      },
+    ],
+  },
+  "polarized-vs-photochromic-sport-lenses": {
+    title: "Polarizzate, fotocromatiche o ZEISS: quale lente sportiva scegliere?",
+    metaTitle: "Lenti sportive polarizzate o fotocromatiche: quali?",
+    description: "Polarizzate, fotocromatiche o a tinta fissa? Come funziona ogni lente sportiva, dove rende meglio in bici, corsa e golf, e quale lente BleeqUp scegliere.",
+    excerpt: "Nessuna lente è perfetta all'alba, a mezzogiorno e in galleria. Ecco come si differenziano lenti polarizzate, fotocromatiche e ZEISS a tinta fissa, e come scegliere per il tuo sport.",
+    keywords: ["polarizzate o fotocromatiche", "occhiali fotocromatici ciclismo", "miglior colore lente ciclismo", "occhiali da sole polarizzati golf", "lenti bleequp rover", "trasmissione luce vlt"],
+    imageAlt: "Occhiali sportivi AI BleeqUp con lente sportiva rossa a specchio",
+    categoryLabel: "Occhiali IA",
+    body: [
+      { type: "p", text: "Gli occhiali sportivi affrontano una luce più difficile rispetto ai normali occhiali da sole: un'uscita alle 6 sotto gli alberi, una corsa a mezzogiorno su asfalto abbagliante, un tee in ombra accanto a un fairway al sole. La lente che scegli decide se vedi la buca sulla strada, la radice o la pendenza del green. Con occhiali a lenti intercambiabili come i [BleeqUp Rover](/products/bleequp-rover-ai-sports-glasses) e [Ranger](/products/bleequp-ranger-zeiss-lens) non devi scegliere una sola lente." },
+      { type: "h2", text: "Prima: capire la trasmissione della luce (VLT)" },
+      { type: "p", text: "La visible light transmission (VLT) è la percentuale di luce che una lente lascia passare. Più basso è il numero, più scura è la lente. Le lenti da sole sono classificate in categorie di filtro in base alla VLT secondo la norma ISO 12312-1:" },
+      {
+        type: "table",
+        caption: "Categorie di filtro delle lenti da sole in base alla trasmissione della luce",
+        head: ["Categoria", "VLT", "Uso tipico"],
+        rows: [
+          ["Categoria 0", "80-100%", "Trasparente: notte, cielo molto coperto, interni"],
+          ["Categoria 1", "43-80%", "Poca luce: alba, crepuscolo, bosco fitto"],
+          ["Categoria 2", "18-43%", "Sole variabile o moderato: la maggior parte di uscite e giri"],
+          ["Categoria 3", "8-18%", "Sole forte, acqua, piena estate"],
+          ["Categoria 4", "3-8%", "Ghiacciai e riverbero in alta quota; non per la guida"],
+        ],
+      },
+      { type: "p", text: "Come riferimento, le lenti ZEISS Orange, ZEISS Blue e Orange Red del Ranger hanno una VLT del 18-43% (categoria 2), e la lente fotocromatica Black Red passa dal 43-80% quando è chiara al 18-43% quando è scura. Tutte le lenti BleeqUp sono UV400 e bloccano i raggi UV, qualunque sia la tinta." },
+      { type: "h2", text: "Lenti a tinta fissa (incluse le ZEISS)" },
+      { type: "p", text: "Una lente a tinta fissa ha sempre la stessa oscurità. È l'opzione più semplice e di solito la più nitida, ed è per questo che le lenti ZEISS di BleeqUp sono di serie sul [Rover](/products/bleequp-rover-zeiss-lens) e sulla [Ranger edizione ZEISS](/products/bleequp-ranger-zeiss-lens). Sul Ranger le lenti ZEISS aggiungono trattamenti antigraffio, idrorepellenti e oleorepellenti, utili quando sudore e pioggia finiscono sulla lente." },
+      {
+        type: "ul",
+        items: [
+          "**Ideali per:** ciclismo e golf con luce diurna costante, e per chi vuole una lente che funzioni e basta.",
+          "**Attenzione a:** ombra profonda e crepuscolo, dove una lente di categoria 2 può sembrare scura.",
+        ],
+      },
+      { type: "h2", text: "Lenti fotocromatiche" },
+      { type: "p", text: "Le lenti fotocromatiche si scuriscono quando i raggi UV le colpiscono e tornano chiare quando diminuiscono. La [lente fotocromatica Rover](/products/bleequp-rover-photochromic-lens) è chiara in condizioni di poca luce e si scurisce automaticamente al sole, così una sola lente copre una partenza all'alba, una galleria e il pieno sole." },
+      {
+        type: "ul",
+        items: [
+          "**Ideali per:** uscite e corse lunghe che iniziano presto o finiscono tardi, sentieri nel bosco e il tempo variabile canadese.",
+          "**I compromessi:** la transizione non è istantanea, e schiarirsi di solito richiede più tempo che scurirsi. Conta anche la temperatura: con il freddo le lenti fotocromatiche tendono a scurirsi di più e a reagire più lentamente. Poiché reagiscono ai raggi UV, dietro il parabrezza di un'auto si scuriscono appena.",
+        ],
+      },
+      { type: "h2", text: "Lenti polarizzate" },
+      { type: "p", text: "La luce riflessa da superfici piatte come acqua, strade bagnate e vetri delle auto si polarizza orizzontalmente, ed è ciò che percepisci come riverbero. Una lente polarizzata blocca quella luce. La [lente polarizzata Rover](/products/bleequp-rover-polarized-lens) è fatta proprio per questo: riflessi su acqua, strade bagnate e vetri delle auto." },
+      {
+        type: "ul",
+        items: [
+          "**Ideali per:** percorsi lungo laghi e coste, strade bagnate dopo la pioggia e chi è sensibile al riverbero.",
+          "**I compromessi:** la polarizzazione può far apparire scuri o a chiazze alcuni schermi LCD, come ciclocomputer e telefoni, da certe angolazioni. Alcuni ciclisti notano anche meno i punti bagnati o ghiacciati, perché il riflesso che li segnala viene filtrato. Alcuni golfisti preferiscono leggere i green con una lente non polarizzata; è una scelta personale, quindi prova entrambe.",
+        ],
+      },
+      { type: "h2", text: "Quale lente per il tuo sport?" },
+      {
+        type: "table",
+        caption: "Tipo di lente consigliato per sport e condizioni",
+        head: ["Situazione", "La nostra scelta", "Perché"],
+        rows: [
+          ["Ciclismo su strada, sole e ombra alternati", "Fotocromatica", "Si adatta entrando e uscendo dall'ombra"],
+          ["Alba, crepuscolo o sentieri nel bosco", "Fotocromatica", "Abbastanza chiara per vedere radici e buche"],
+          ["Giornata estiva limpida, sole costante", "ZEISS a tinta fissa", "Visione nitida e costante"],
+          ["Percorsi lungo il lago o strade bagnate", "Polarizzata", "Elimina il riverbero di acqua e asfalto bagnato"],
+          ["Golf", "ZEISS o fotocromatica", "Contrasto costante; prova la polarizzata prima al campo pratica"],
+          ["Uscite con ciclocomputer", "ZEISS o fotocromatica", "Nessuno schermo oscurato dalla polarizzazione"],
+        ],
+      },
+      { type: "h2", text: "Cambiare lente sugli occhiali BleeqUp" },
+      { type: "p", text: "Entrambi i modelli hanno lenti intercambiabili, ma **le lenti di Rover e Ranger non sono compatibili tra loro**. Le lenti Rover (ZEISS, polarizzata e fotocromatica) si montano solo sul Rover; le lenti Ranger (ZEISS Orange, ZEISS Blue, Orange Red e fotocromatica Black Red) solo sul Ranger. Le lenti del Ranger si cambiano senza attrezzi. Cambiare lente non modifica nemmeno le riprese: la fotocamera è nella montatura, non dietro la lente. Un'altra cosa: la garanzia BleeqUp copre gli occhiali, non le lenti, quindi tieni le lenti di ricambio in un astuccio." },
+      { type: "p", text: "Ti servono lenti graduate? Entrambi i modelli includono un inserto per lenti graduate che si monta dietro la lente sportiva, così puoi ancora cambiare tinta. La nostra [guida agli occhiali con fotocamera graduati](/blog/prescription-camera-glasses) spiega come funziona." },
+      { type: "callout", text: "Non sai con quali occhiali iniziare? Confronta [Rover e Ranger](/compare) fianco a fianco o leggi la nostra guida ai [migliori occhiali smart per il ciclismo](/blog/best-smart-glasses-for-cycling)." },
+    ],
+    faq: [
+      {
+        q: "Per il ciclismo sono meglio le lenti polarizzate o fotocromatiche?",
+        a: "Per la maggior parte dei ciclisti le fotocromatiche. Si adattano all'ombra e alla luce variabile e non ostacolano la lettura del ciclocomputer. Le polarizzate sono migliori se il problema principale è il riverbero di acqua o strade bagnate.",
+      },
+      {
+        q: "Le lenti fotocromatiche funzionano con il freddo?",
+        a: "Sì. Con il freddo tendono a scurirsi di più e a cambiare più lentamente. Dietro il parabrezza di un'auto si scuriscono appena, perché il vetro blocca gran parte dei raggi UV.",
+      },
+      {
+        q: "Gli occhiali da sole polarizzati vanno bene per il golf?",
+        a: "Molti golfisti apprezzano la riduzione del riverbero, ma alcuni preferiscono leggere i green con una lente non polarizzata. Prova entrambe sul putting green prima di scegliere.",
+      },
+      {
+        q: "Le lenti del Rover si montano sul Ranger?",
+        a: "No. Le lenti di Rover e Ranger non sono compatibili. Ogni modello ha le proprie lenti ZEISS, fotocromatiche e altre.",
+      },
+    ],
+  },
+  "how-to-use-remote-control-golf-caddy": {
+    title: "Come usare un carrello da golf radiocomandato: configurazione, galateo in campo e consigli",
+    metaTitle: "Carrello da golf radiocomandato: consigli e galateo",
+    description: "Nuovo carrello da golf radiocomandato? Come configurarlo, esercitarti prima del primo giro, guidarlo in sicurezza in pendenza e rispettare il galateo in campo.",
+    excerpt: "Un carrello radiocomandato è facile da guidare, e facile da guidare male. Ecco come configurarlo, parcheggiarlo con criterio e tenerlo lontano da green e laghetti.",
+    keywords: ["come usare carrello golf radiocomandato", "consigli carrello golf radiocomandato", "galateo carrello golf", "configurare carrello golf elettrico", "telecomando volt caddy pro-s"],
+    imageAlt: "Carrello da golf elettrico radiocomandato Volt Caddy Pro-S aperto e pronto per un giro",
+    categoryLabel: "Golf",
+    body: [
+      { type: "p", text: "Un carrello da golf radiocomandato è la cosa più vicina a un vero caddie: i bastoni ti seguono mentre cammini a mani libere. Ci si abitua in circa un giro, e con qualche buona abitudine il carrello non finirà mai da solo su un green, in un bunker o in fondo a una discesa." },
+      { type: "p", text: "Questa guida usa come esempio il [Volt Caddy Pro-S](/products/volt-caddy-pro-s), ma lo stesso approccio vale per i carrelli MGI Zip e Ai Navigator e per il Motocaddy M7. Leggi sempre prima il manuale del tuo carrello." },
+      { type: "h2", text: "Prima del primo giro" },
+      {
+        type: "ol",
+        items: [
+          "**Carica completamente la batteria.** Le batterie al litio non hanno bisogno di un ciclo di rodaggio, ma per le prime 18 buche la vuoi piena.",
+          "**Abbina e prova il telecomando.** Verifica che avanti, stop, sinistra, destra e velocità rispondano. Impara dov'è il tasto stop senza guardare.",
+          "**Carica bene la sacca.** Fissa la sacca in alto e in basso perché non possa ruotare. Metti le cose pesanti in basso e resta entro il carico massimo del carrello (20 kg sui modelli MGI e Motocaddy).",
+          "**Esercitati in un posto tranquillo.** Un parcheggio silenzioso o un campo vuoto sono ideali. Fai degli otto, fermati su un obiettivo e prova a girare a diverse velocità.",
+          "**Impara a conoscere i freni.** Il Pro-S ha un freno di stazionamento automatico e il controllo della velocità in discesa. Scopri come si comporta il tuo carrello quando si ferma in pendenza prima di fidarti.",
+        ],
+      },
+      { type: "h2", text: "Guidarlo in campo" },
+      { type: "h3", text: "Resta nel raggio d'azione, e a vista" },
+      { type: "p", text: "La portata del telecomando varia molto da modello a modello: fino a 40 m sul Pro-S, 100 m o più sul Motocaddy M7 e da 100 a 200 m sui carrelli radiocomandati MGI. La portata è un limite, non un obiettivo. Tieni il carrello abbastanza vicino da vedere cosa c'è davanti e fermalo prima che superi un dosso oltre cui non vedi. Alcuni carrelli hanno una sicurezza: l'MGI Ai Navigator Halo si ferma se perde il contatto con il telecomando per 5 secondi." },
+      { type: "h3", text: "Salite, discese e pendenze laterali" },
+      { type: "p", text: "Vai dritto in salita e in discesa invece che di traverso, rallenta prima della pendenza invece che sopra, e tieni una mano sull'impugnatura su terreno ripido o scivoloso. Il Pro-S affronta pendenze fino a 30 gradi e ha due ruote stabilizzatrici, e il Straight Tracker giroscopico di MGI aiuta a mantenere la linea su una pendenza laterale. Con una forte pendenza laterale, sull'erba bagnata o su un ponticello stretto, spingilo semplicemente dall'impugnatura." },
+      { type: "h3", text: "Velocità" },
+      { type: "p", text: "Adatta la velocità al tuo passo. Il Pro-S ha livelli di velocità fino a 10 km/h, più veloce di chi cammina, quindi usa la velocità massima solo su un fairway aperto e riducila vicino a persone, golf car e curve strette." },
+      { type: "h2", text: "Galateo in campo con un carrello radiocomandato" },
+      {
+        type: "ul",
+        items: [
+          "**Non guidare mai su green, tee o bunker.** Stai lontano anche dall'avangreen. Segui i cartelli e le zone delimitate del campo; valgono anche per i carrelli.",
+          "**Parcheggia verso il tee successivo.** Lascia il carrello sul lato del green più vicino alla buca seguente, così non riattraversi il green.",
+          "**Resta fermo mentre gli altri giocano.** Anche un carrello silenzioso che si muove nel campo visivo di qualcuno distrae. Fermati prima che un compagno si metta in posizione.",
+          "**Non mandarlo verso l'ignoto.** Le funzioni a distanza sono comode sui fairway aperti, ma non mandare mai un carrello verso giocatori davanti, l'acqua o un dosso cieco.",
+          "**Rispetta le regole con il bagnato.** Alcuni campi limitano golf car e carrelli quando il terreno è morbido. Nel dubbio, chiedi in segreteria.",
+        ],
+      },
+      { type: "h2", text: "Un carrello radiocomandato è ammesso nelle gare?" },
+      { type: "p", text: "Secondo le Regole del Golf un carrello elettrico è generalmente ammesso, ma un comitato di gara può limitare mezzi o attrezzature motorizzate nelle condizioni di gara. Alcuni carrelli hanno anche una modalità torneo; lo [Zip Navigator AT](/products/mgi-zip-navigator-at-all-terrain) di MGI è uno di questi. Prima di una gara controlla il regolamento o chiedi al comitato." },
+      { type: "h2", text: "Dopo il giro" },
+      {
+        type: "ol",
+        items: [
+          "**Spegnilo prima di piegarlo o sollevarlo.** Tieni le dita lontane da ruote e cerniere.",
+          "**Puliscilo.** Erba, sabbia e acqua si accumulano attorno a ruote e assi.",
+          "**Ricarica la batteria al chiuso.** Ricaricare dopo ogni giro tiene la batteria pronta, e farlo al chiuso evita il problema della carica al freddo in primavera e autunno. Sul Pro-S batteria e unità motrice si staccano, così puoi portarle in casa.",
+          "**Tieni carico il telecomando** o porta batterie di ricambio se ne usa di sostituibili.",
+        ],
+      },
+      { type: "callout", text: "Stagione finita? Segui la nostra [guida al rimessaggio invernale](/blog/golf-trolley-lithium-battery-winter-storage) prima di mettere il carrello in garage, e leggi [Si può portare in aereo la batteria di un carrello da golf elettrico?](/blog/flying-with-golf-trolley-lithium-battery) se stai pianificando un viaggio di golf al sud." },
+      { type: "h2", text: "Stai ancora scegliendo?" },
+      { type: "p", text: "Se sei indeciso tra radiocomando e follow-me, inizia da [Carrelli radiocomandati o follow-me](/blog/remote-vs-follow-me-golf-caddy) e poi confronta i modelli nella nostra [guida all'acquisto dei carrelli da golf elettrici](/blog/best-electric-golf-push-carts-canada)." },
+    ],
+    faq: [
+      {
+        q: "Da quanto lontano posso controllare un carrello da golf radiocomandato?",
+        a: "Dipende dal modello: fino a 40 m sul Volt Caddy Pro-S, 100 m o più sul Motocaddy M7 e da 100 a 200 m sui carrelli radiocomandati MGI. Tieni il carrello a vista e più vicino della portata massima.",
+      },
+      {
+        q: "Posso guidare un carrello radiocomandato sul green?",
+        a: "No. Tieni tutti i carrelli lontani da green, tee e bunker e segui i cartelli del campo. Parcheggia sul lato del green più vicino al tee successivo.",
+      },
+      {
+        q: "I carrelli radiocomandati sono sicuri in pendenza?",
+        a: "Sì, se vai dritto in salita e in discesa, mantieni una velocità bassa e usi il controllo in discesa e il freno di stazionamento. Su una forte pendenza laterale o sull'erba bagnata, spingi il carrello dall'impugnatura.",
+      },
+      {
+        q: "Devo ricaricare il carrello dopo ogni giro?",
+        a: "Ricaricare dopo ogni giro lo tiene pronto per il successivo. Ricarica al chiuso a temperatura ambiente, e per una conservazione lunga lascia la batteria parzialmente carica.",
+      },
+    ],
+  },
+  "record-golf-round-with-camera-glasses": {
+    title: "Come filmare il tuo giro di golf con occhiali con fotocamera (guida ai video golf in POV)",
+    metaTitle: "Filmare il golf in POV con occhiali con fotocamera",
+    description: "Filma il tuo giro di golf dai tuoi occhi: impostazioni degli occhiali con fotocamera, batteria per 18 buche, cosa ammettono le Regole del Golf e galateo in campo.",
+    excerpt: "Gli occhiali con fotocamera registrano il giro come l'hai visto tu: il lie, la linea, il putt imbucato. Ecco come configurarli, far durare la batteria e restare nelle regole.",
+    keywords: ["occhiali con fotocamera golf", "filmare giro golf pov", "videocamera vlog golf", "video golf pov", "occhiali fotocamera per golf", "bleequp rover golf"],
+    imageAlt: "Occhiali sportivi con fotocamera AI BleeqUp Rover",
+    categoryLabel: "Occhiali IA",
+    body: [
+      { type: "p", text: "La maggior parte dei video di golf si gira con un telefono su treppiede o con un amico che riprende da dietro. Gli occhiali con fotocamera catturano qualcosa di diverso: **il giro visto con i tuoi occhi**. Il lie che stavi guardando, la linea che hai scelto, la camminata verso il green e il putt imbucato. Perfetti per un vlog di golf, il racconto di un viaggio o semplicemente per ricordare una bella giornata." },
+      { type: "p", text: "Questa guida usa come esempio i [BleeqUp Rover](/products/bleequp-rover-ai-sports-glasses) e [Ranger](/products/bleequp-ranger-zeiss-lens). Entrambi registrano in 3K fino a 60 fps con un obiettivo da 120° e fanno anche da occhiali da sole UV400." },
+      { type: "h2", text: "Cosa possono e non possono mostrare gli occhiali con fotocamera" },
+      { type: "p", text: "Prima di tutto, aspettative realistiche. Gli occhiali registrano **ciò che vedi**: all'address catturi palla, testa del bastone e bersaglio quando alzi lo sguardo. Non mostrano il tuo swing dall'esterno. Per analizzare lo swing serve ancora un telefono su treppiede, da dietro o di fronte. Pensa agli occhiali come alla videocamera per raccontare e al telefono come a quella per allenarti." },
+      { type: "h2", text: "Le impostazioni migliori per il golf" },
+      {
+        type: "ul",
+        items: [
+          "**Inclinazione (Rover):** la fotocamera del Rover si inclina a −10°, 0° o 15°. Porti il cappellino? Parti da −10° per tenere fuori la visiera.",
+          "**Risoluzione e frame rate:** 3K30 è una buona impostazione predefinita. Le clip durano fino a 5 minuti in 3K30, contro 1 minuto in 3K60 o 1080p60, e 1080p30 non ha limiti di durata. Nota: le modalità a 60 fps e 3K richiedono un telefono compatibile.",
+          "**Orientamento:** gira in 9:16 se le clip sono per Reels, TikTok o Shorts, e in 16:9 per YouTube.",
+          "**HDR (Rover):** l'HDR in tempo reale aiuta nelle giornate di sole quando sei in ombra e guardi un fairway illuminato.",
+        ],
+      },
+      { type: "h2", text: "Far durare la batteria 18 buche" },
+      { type: "p", text: "Rover e Ranger registrano ciascuno **circa 1 ora di video** con la batteria integrata, e un giro da 18 buche dura molto di più. Filmare tutto non è comunque l'obiettivo; nessuno vuole guardare quattro ore di camminata. Filma i colpi, non il giro:" },
+      {
+        type: "ol",
+        items: [
+          "**Avvia la registrazione quando ti prepari e fermala quando la palla atterra.** Una clip di 15-30 secondi per colpo cattura routine, vista dello swing e volo della palla.",
+          "**Usa i comandi vocali sul Rover** per avviare e fermare senza toccare gli occhiali a metà routine.",
+          "**Salta le camminate.** Meglio qualche bella clip sulle buche più spettacolari.",
+          "**Ricarica prima di partire.** Entrambi i modelli si ricaricano rapidamente in circa un'ora.",
+        ],
+      },
+      { type: "p", text: "Così la batteria integrata copre abbondantemente molti colpi. Se filmi anche lunghe uscite in bici, il [bundle Rover](/products/bleequp-rover-ai-sports-glasses-bundle) aggiunge il Rover Power Plus, che porta la registrazione a circa 5 ore. Si fissa sul retro di un casco da bici, quindi è più adatto al ciclismo che al golf." },
+      { type: "h2", text: "Dalle clip al riassunto" },
+      { type: "p", text: "La parte difficile dei video di golf è il montaggio, non le riprese. L'app BleeqUp individua i momenti salienti e crea un montaggio con un tocco, e sul Rover puoi cercare le clip con la voce per trovare un colpo preciso. La memoria è di 64 GB sul Rover e 32 GB sul Ranger, e la registrazione in loop può continuare sovrascrivendo i filmati più vecchi, quindi trasferisci le clip preferite dopo il giro." },
+      { type: "h2", text: "Cosa ammettono le Regole del Golf" },
+      { type: "p", text: "In un giro amichevole filma quanto vuoi. In gara si applica la Regola 4.3 delle [Regole del Golf](https://www.randa.org/rog/the-rules-of-golf/rule-4):" },
+      {
+        type: "ul",
+        items: [
+          "**Ammesso:** registrare informazioni del tuo giro per usarle **dopo** il giro.",
+          "**Non ammesso:** guardare durante il giro video della gara che ti aiutino a scegliere il bastone, eseguire un colpo o decidere come giocare. Non riguardare le clip dello swing tra una buca e l'altra.",
+          "**Audio:** ascoltare musica non legata alla gara è consentito, ma non per eliminare distrazioni o darti il ritmo dello swing. Se usi gli altoparlanti open-ear, tieni il volume basso.",
+        ],
+      },
+      { type: "p", text: "I comitati possono aggiungere condizioni proprie, quindi nel dubbio controlla le condizioni di gara." },
+      { type: "h2", text: "Galateo: filmare altri giocatori" },
+      {
+        type: "ul",
+        items: [
+          "**Avvisa il tuo gruppo** sul primo tee che stai filmando, e smetti se qualcuno preferisce non essere ripreso.",
+          "**Chiedi prima di pubblicare** se le clip mostrano volti o swing di altri.",
+          "**Rispetta le regole del circolo.** Alcuni club privati limitano fotocamere o telefoni; chiedi in segreteria.",
+          "**Mantieni il ritmo di gioco.** Filmare non deve far perdere tempo. Avvia e ferma la fotocamera come parte della tua routine.",
+        ],
+      },
+      { type: "h2", text: "Scegli la lente giusta per il campo" },
+      { type: "p", text: "Visto che gli occhiali con fotocamera sono anche i tuoi occhiali da sole, la lente conta. La nostra [guida alle lenti polarizzate e fotocromatiche](/blog/polarized-vs-photochromic-sport-lenses) spiega quale tinta è adatta al golf. Indeciso tra i modelli? Confronta [Rover e Ranger](/compare) o leggi [Occhiali con fotocamera o action cam](/blog/camera-glasses-vs-action-camera) per vedere dove vince ciascun dispositivo." },
+    ],
+    faq: [
+      {
+        q: "Gli occhiali con fotocamera possono filmare il mio swing?",
+        a: "Registrano ciò che vedi all'altezza degli occhi: palla e testa del bastone all'address e il volo della palla quando alzi lo sguardo. Per lo swing completo visto dall'esterno usa un telefono su treppiede.",
+      },
+      {
+        q: "Posso filmare durante una gara di golf?",
+        a: "Secondo la Regola 4.3 puoi registrare informazioni da usare dopo il giro, ma non puoi guardare video durante il giro che ti aiutino nella scelta del bastone, nel colpo o nel modo di giocare. Controlla anche le condizioni di gara.",
+      },
+      {
+        q: "Gli occhiali con fotocamera durano un giro di golf intero?",
+        a: "Non se filmi di continuo. Rover e Ranger registrano circa 1 ora di video per carica, quindi filma ogni colpo invece dell'intero giro.",
+      },
+      {
+        q: "Qual è la migliore impostazione video per il golf in POV?",
+        a: "3K30 è una buona impostazione predefinita: video nitido con clip fino a 5 minuti. Usa il 9:16 per i social e il 16:9 per YouTube.",
+      },
+    ],
+  },
+};

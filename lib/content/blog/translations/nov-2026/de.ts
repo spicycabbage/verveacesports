@@ -1,0 +1,331 @@
+import type { BlogTranslation } from "../../translation";
+
+/** November 2026 guides. Block shape mirrors the English posts exactly. */
+export const deNov2026: Record<string, BlogTranslation> = {
+  "flying-with-golf-trolley-lithium-battery": {
+    title: "Darf der Akku eines Elektro-Golftrolleys mit ins Flugzeug? Die kanadischen Regeln erklärt",
+    metaTitle: "Golftrolley-Akku im Flugzeug? Die Regeln in Kanada",
+    description: "Mit dem Elektro-Golftrolley auf Reisen? So funktionieren die Wattstunden-Grenzen bei Flügen in Kanada, und was Sie tun, wenn der Akku nicht mitfliegen darf.",
+    excerpt: "Der Rahmen reist meist als Sportgepäck. Der Lithium-Akku ist eine andere Geschichte. So lesen Sie die Wattstunden-Angabe und planen Ihre Golfreise.",
+    keywords: ["golftrolley akku flugzeug", "golftrolley akku fluggesellschaft", "lithium golftrolley akku flug", "mit elektro golftrolley reisen", "golftrolley akku wattstunden"],
+    imageAlt: "Abnehmbarer Lithium-Akku und Antriebseinheit des Volt Caddy Pro-S, vom Rahmen abgenommen",
+    categoryLabel: "Golf",
+    body: [
+      { type: "p", text: "Golfreisen in den Süden sind im Winter eine kanadische Tradition, und wer einmal mit einem Elektrotrolley gegangen ist, will ungern zurück zum Ziehwagen oder Leihtrolley. Die gute Nachricht: Ein zusammengeklappter Trolleyrahmen kann meist wie anderes Sportgepäck reisen. Der Haken ist der **Lithium-Akku**, den Fluggesellschaften als Gefahrgut behandeln. Ob er mitfliegen darf, entscheidet eine einzige Zahl auf dem Akku." },
+      { type: "callout", text: "Regeln ändern sich, und jede Fluggesellschaft legt eigene Vorgaben über die nationalen Grenzen. Prüfen Sie die Gefahrgutseite Ihrer Fluggesellschaft und lassen Sie sich jede Genehmigung schriftlich geben, bevor Sie fliegen. Dieser Ratgeber erklärt, wie die Grenzen funktionieren; er ersetzt nicht die Antwort Ihrer Fluggesellschaft." },
+      { type: "h2", text: "Die entscheidende Zahl: Wattstunden (Wh)" },
+      { type: "p", text: "Die Grenzen der Fluggesellschaften werden in **Wattstunden (Wh)** angegeben, also der im Akku gespeicherten Energie. Viele Trolley-Akkus nennen den Wert auf dem Etikett. Steht dort nur Volt und Amperestunden, multiplizieren Sie beides: **Volt × Amperestunden = Wattstunden**. Ein 24-V-Akku mit 10 Ah hat zum Beispiel 240 Wh." },
+      { type: "p", text: "Zur Einordnung hier die veröffentlichten Werte einiger Trolleys aus unserem Sortiment:" },
+      {
+        type: "table",
+        caption: "Veröffentlichte Akkuwerte ausgewählter Elektro-Golftrolleys",
+        head: ["Trolley", "Akku", "Wert"],
+        rows: [
+          ["[MGI Ai Navigator Halo](/products/mgi-ai-navigator-halo)", "24-V-Lithium im feuerfesten Metallgehäuse", "299 Wh"],
+          ["[MGI Zip X1](/products/mgi-zip-x1) und [Zip X5](/products/mgi-zip-x5)", "24-V-Lithium", "250 Wh"],
+          ["[MGI E-Boost](/products/mgi-e-boost-pushcart)", "24-V-Lithium Click & Go", "225 Wh"],
+          ["[Rover Power Plus](/products/bleequp-rover-power-plus) (für BleeqUp-Brillen)", "1600 mAh", "Für das Handgepäck zugelassen"],
+        ],
+      },
+      { type: "p", text: "Bei anderen Trolleys, etwa dem [Volt Caddy Pro-S](/products/volt-caddy-pro-s) und den 28-V-Akkus CLICK 'N' CONNECT von Motocaddy, lesen Sie das Etikett Ihres eigenen Akkus, statt zu raten." },
+      { type: "h2", text: "Die Grenzen für Flüge in Kanada" },
+      { type: "p", text: "Die kanadische Luftsicherheitsbehörde ([CATSA](https://www.catsa-acsta.gc.ca/en/what-can-bring/guidelines-batteries)) veröffentlicht die Kontrollgrenzen für Lithium-Ionen-Akkus, und die meisten Fluggesellschaften folgen denselben Schwellen des internationalen Luftverkehrsverbands (IATA):" },
+      {
+        type: "ul",
+        items: [
+          "**100 Wh oder weniger:** im Handgepäck erlaubt. Ersatzakkus dieser Größe gehören ins Handgepäck, nicht ins aufgegebene Gepäck.",
+          "**101 bis 160 Wh:** im Handgepäck mit Genehmigung der Fluggesellschaft erlaubt, höchstens zwei Ersatzakkus pro Person.",
+          "**Über 160 Wh:** im Handgepäck nicht erlaubt. Im aufgegebenen Gepäck nur mit ausdrücklicher Genehmigung der Fluggesellschaft.",
+        ],
+      },
+      { type: "p", text: "Vollwertige Golftrolley-Akkus sind dafür gebaut, einen Trolley 18 bis 36 Löcher lang anzutreiben, und liegen deshalb in der Regel deutlich über 160 Wh. Jeder Wert in der Tabelle oben tut das. In der Praxis heißt das: **Planen Sie damit, dass Ihr Trolley-Akku zu Hause bleibt**, es sei denn, Ihre Fluggesellschaft hat schriftlich bestätigt, dass sie ihn annimmt." },
+      { type: "h2", text: "Was reisen kann: der Rahmen und Ihr Zubehör" },
+      {
+        type: "ol",
+        items: [
+          "**Nehmen Sie den Akku heraus** und lassen Sie ihn zu Hause, für die Lagerung etwa zur Hälfte geladen. Unser [Ratgeber zur Winterlagerung des Akkus](/blog/golf-trolley-lithium-battery-winter-storage) erklärt, wie.",
+          "**Klappen Sie den Rahmen zusammen und schützen Sie ihn.** Polstern Sie Griff, Konsole und Radachsen und verpacken Sie ihn in einem Hartschalenkoffer oder gut gepolsterten Reisesack.",
+          "**Fragen Sie, wie er gezählt wird.** Fluggesellschaften behandeln Golfausrüstung meist als Sportgepäck, ein Trolleyrahmen kann aber als zusätzliches Gepäckstück gelten. Prüfen Sie Maße, Gewicht und Gebühren vor der Buchung.",
+          "**Fernbedienungen und kleine Elektronik ins Handgepäck.** Kleine Lithium-Akkus, etwa in einer Fernbedienung oder die [Rover Power Plus](/products/bleequp-rover-power-plus), gehören in die Kabine.",
+        ],
+      },
+      { type: "h2", text: "Optionen, wenn der Akku nicht mitfliegen darf" },
+      {
+        type: "ul",
+        items: [
+          "**Fahren Sie mit dem Auto.** Im eigenen Auto gibt es keine Wattstunden-Grenze. Lassen Sie den Akku im Sommer nicht im heißen Kofferraum, und lassen Sie einen kalten Akku vor dem Laden auf Zimmertemperatur kommen.",
+          "**Leihen Sie vor Ort.** Viele Golfziele vermieten Elektrotrolleys oder Schiebewagen. Rufen Sie vorab im Club oder in einem Geschäft vor Ort an.",
+          "**Fragen Sie nach einem Reiseakku.** Manche Trolleymarken bieten kleinere Akkus an, die auf die Grenzen der Fluggesellschaften ausgelegt sind. Wenn Sie einen Trolley kaufen und oft reisen, fragen Sie den Hersteller, ob es für das Modell einen gibt.",
+          "**Richtig versenden oder gar nicht.** Der Versand eines Lithium-Akkus ist als Gefahrgut geregelt. Fragen Sie den Paketdienst nach seinen Anforderungen, bevor Sie einen verpacken, und verstecken Sie nie einen Akku in einem Golfbag oder Koffer.",
+        ],
+      },
+      { type: "h2", text: "Warum Fluggesellschaften so streng sind" },
+      { type: "p", text: "Ein beschädigter oder kurzgeschlossener Lithium-Akku kann überhitzen, und ein Brand im Frachtraum ist schwer zu erkennen und zu bekämpfen. Deshalb drehen sich die Regeln um gespeicherte Energie (Wh), geschützte Pole und darum, Akkus in Reichweite der Crew zu halten. Laut [Transport Canada](https://tc.canada.ca/en/tc-stories/lithium-batteries-part-2-what-you-didn-t-know-about-travelling-them) werden an kanadischen Flughäfen jedes Jahr Tausende Gegenstände aus aufgegebenem Gepäck entfernt, weil Lithium-Akkus falsch verpackt sind oder nicht den Vorschriften entsprechen." },
+      { type: "h2", text: "Einen Trolley mit Blick aufs Reisen kaufen" },
+      { type: "p", text: "Wenn Sie oft auswärts spielen, zählen ein **abnehmbarer Akku** und ein **kompaktes Faltmaß** mehr als sonst. Beim [Volt Caddy Pro-S](/products/volt-caddy-pro-s) lassen sich Akku und Antriebseinheit vom Rahmen trennen, und die Zip-Reihe von MGI faltet sich auf 70 × 47 × 42 cm. Vergleichen Sie alle Modelle in unserem [Kaufratgeber 2026 für Elektro-Golftrolleys](/blog/best-electric-golf-push-carts-canada) oder stöbern Sie in der [Kollektion Elektrotrolleys](/products?category=electric-carts)." },
+    ],
+    faq: [
+      {
+        q: "Darf ich in Kanada den Lithium-Akku meines Golftrolleys mit ins Flugzeug nehmen?",
+        a: "Meist nicht. Akkus über 160 Wh sind im Handgepäck verboten und brauchen für das aufgegebene Gepäck eine ausdrückliche Genehmigung der Fluggesellschaft, und vollwertige Golftrolley-Akkus liegen normalerweise deutlich über 160 Wh. Prüfen Sie das Etikett Ihres Akkus und fragen Sie vor der Reise Ihre Fluggesellschaft.",
+      },
+      {
+        q: "Wie berechne ich die Wattstunden meines Trolley-Akkus?",
+        a: "Multiplizieren Sie die Spannung mit der Amperestunden-Angabe. Ein Akku mit 24 V und 10 Ah hat 240 Wh. Viele Akkus nennen den Wh-Wert auch auf dem Etikett.",
+      },
+      {
+        q: "Kann ich den Trolleyrahmen ohne Akku aufgeben?",
+        a: "In der Regel ja. Ohne Akku ist der Rahmen normales Sport- oder Reisegepäck. Verpacken Sie ihn gut und prüfen Sie die Regeln Ihrer Fluggesellschaft zu Maßen, Gewicht und Gebühren für Sportgepäck.",
+      },
+      {
+        q: "Darf ich meine BleeqUp-Brille und Power Plus mit ins Flugzeug nehmen?",
+        a: "Ja. BleeqUp gibt die Power-Plus-Akkus von Rover und Ranger als für das Handgepäck zugelassen an. Nehmen Sie sie und alle Ersatz-Lithium-Akkus im Handgepäck mit.",
+      },
+    ],
+  },
+  "polarized-vs-photochromic-sport-lenses": {
+    title: "Polarisiert, phototrop oder ZEISS: Welche Sportscheibe ist die richtige für Sie?",
+    metaTitle: "Polarisierte oder phototrope Sportgläser: Was wählen?",
+    description: "Polarisiert, phototrop oder feste Tönung? Wie jede Sportscheibe funktioniert, wo sie beim Radfahren, Laufen und Golf glänzt und welche BleeqUp-Scheibe passt.",
+    excerpt: "Eine Scheibe kann nicht im Morgengrauen, mittags und im Tunnel perfekt sein. So unterscheiden sich polarisierte, phototrope und fest getönte ZEISS-Scheiben, und so wählen Sie für Ihren Sport.",
+    keywords: ["polarisiert oder phototrop", "phototrope fahrradbrille", "beste glastönung radfahren", "polarisierte sonnenbrille golf", "bleequp rover gläser", "lichttransmission vlt"],
+    imageAlt: "BleeqUp KI-Sportbrille mit verspiegelter roter Sportscheibe",
+    categoryLabel: "KI-Brillen",
+    body: [
+      { type: "p", text: "Sportbrillen haben mit schwierigerem Licht zu tun als Alltagsbrillen: eine Ausfahrt um 6 Uhr unter Bäumen, ein Mittagslauf auf gleißendem Asphalt, ein schattiger Abschlag neben einem sonnigen Fairway. Die Scheibe entscheidet, ob Sie das Schlagloch, die Wurzel oder das Gefälle auf dem Grün sehen. Mit Wechselscheiben-Brillen wie der [BleeqUp Rover](/products/bleequp-rover-ai-sports-glasses) und der [Ranger](/products/bleequp-ranger-zeiss-lens) müssen Sie sich nicht auf eine festlegen." },
+      { type: "h2", text: "Zuerst: die Lichttransmission (VLT) verstehen" },
+      { type: "p", text: "Die Transmission des sichtbaren Lichts (VLT) ist der Anteil des Lichts, den eine Scheibe durchlässt. Je niedriger die Zahl, desto dunkler die Scheibe. Sonnenschutzgläser werden nach der Norm ISO 12312-1 anhand der VLT in Filterkategorien eingeteilt:" },
+      {
+        type: "table",
+        caption: "Filterkategorien von Sonnenschutzgläsern nach Lichttransmission",
+        head: ["Kategorie", "VLT", "Typischer Einsatz"],
+        rows: [
+          ["Kategorie 0", "80 bis 100 %", "Klar: Nacht, starke Bewölkung, drinnen"],
+          ["Kategorie 1", "43 bis 80 %", "Wenig Licht: Morgen- und Abenddämmerung, dichter Wald"],
+          ["Kategorie 2", "18 bis 43 %", "Wechselnde oder mäßige Sonne: die meisten Ausfahrten und Runden"],
+          ["Kategorie 3", "8 bis 18 %", "Helle Sonne, Wasser, Hochsommer"],
+          ["Kategorie 4", "3 bis 8 %", "Gletscher und Blendung im Hochgebirge; nicht zum Autofahren"],
+        ],
+      },
+      { type: "p", text: "Zum Vergleich: Die Scheiben ZEISS Orange, ZEISS Blue und Orange Red der Ranger haben 18 bis 43 % VLT (Kategorie 2), und ihre phototrope Scheibe Black Red wechselt zwischen 43 bis 80 % im hellen und 18 bis 43 % im dunklen Zustand. Alle BleeqUp-Scheiben sind UV400 und blockieren UV-Licht unabhängig von der Tönung." },
+      { type: "h2", text: "Fest getönte Scheiben (inklusive ZEISS)" },
+      { type: "p", text: "Eine fest getönte Scheibe ist immer gleich dunkel. Sie ist die einfachste und meist schärfste Option, weshalb die ZEISS-Scheiben von BleeqUp Standard bei der [Rover](/products/bleequp-rover-zeiss-lens) und der [Ranger ZEISS-Edition](/products/bleequp-ranger-zeiss-lens) sind. Bei der Ranger kommen kratzfeste, wasser- und ölabweisende Beschichtungen hinzu, die helfen, wenn Schweiß und Regen auf die Scheibe treffen." },
+      {
+        type: "ul",
+        items: [
+          "**Ideal für:** Radfahren und Golf bei gleichmäßigem Tageslicht und alle, die eine Scheibe wollen, die einfach funktioniert.",
+          "**Achtung bei:** tiefem Schatten und Dämmerung, wo eine Scheibe der Kategorie 2 dunkel wirken kann.",
+        ],
+      },
+      { type: "h2", text: "Phototrope Scheiben" },
+      { type: "p", text: "Phototrope Scheiben dunkeln ab, wenn UV-Licht auf sie trifft, und hellen wieder auf, wenn es nachlässt. Die [phototrope Rover-Scheibe](/products/bleequp-rover-photochromic-lens) ist bei wenig Licht klar und dunkelt in der Sonne automatisch ab, sodass eine Scheibe Start im Morgengrauen, Tunnel und volle Sonne abdeckt." },
+      {
+        type: "ul",
+        items: [
+          "**Ideal für:** lange Ausfahrten und Läufe, die früh beginnen oder spät enden, Waldwege und das wechselhafte kanadische Wetter.",
+          "**Die Kompromisse:** Der Wechsel passiert nicht sofort, und das Aufhellen dauert meist länger als das Abdunkeln. Auch die Temperatur zählt: Phototrope Scheiben werden bei Kälte tendenziell dunkler und reagieren langsamer. Da sie auf UV reagieren, dunkeln sie hinter einer Windschutzscheibe kaum ab.",
+        ],
+      },
+      { type: "h2", text: "Polarisierte Scheiben" },
+      { type: "p", text: "Licht, das von flachen Flächen wie Wasser, nassen Straßen und Autoscheiben reflektiert wird, ist horizontal polarisiert, und genau das empfinden Sie als Blendung. Eine polarisierte Scheibe blockiert dieses Licht. Die [polarisierte Rover-Scheibe](/products/bleequp-rover-polarized-lens) ist genau dafür gemacht: Blendung durch Wasser, nasse Straßen und Autoscheiben." },
+      {
+        type: "ul",
+        items: [
+          "**Ideal für:** Strecken an Seen und Küsten, nasse Straßen nach Regen und alle, die blendempfindlich sind.",
+          "**Die Kompromisse:** Polarisation kann manche LCD-Displays, etwa Radcomputer und Smartphones, in bestimmten Winkeln dunkel oder fleckig erscheinen lassen. Manche Radfahrer erkennen nasse oder vereiste Stellen schlechter, weil genau der Glanz, der sie verrät, von der Scheibe entfernt wird. Manche Golfer bevorzugen zum Grünlesen eine nicht polarisierte Scheibe; das ist Geschmackssache, also probieren Sie beides.",
+        ],
+      },
+      { type: "h2", text: "Welche Scheibe für Ihren Sport?" },
+      {
+        type: "table",
+        caption: "Empfohlene Scheibe nach Sportart und Bedingungen",
+        head: ["Situation", "Unsere Wahl", "Warum"],
+        rows: [
+          ["Rennrad, Sonne und Schatten im Wechsel", "Phototrop", "Passt sich an, wenn Sie in den Schatten und wieder hinaus fahren"],
+          ["Dämmerung oder Waldwege", "Phototrop", "Hell genug, um Wurzeln und Schlaglöcher zu sehen"],
+          ["Heller Sommertag, gleichmäßige Sonne", "ZEISS fest getönt", "Klare, gleichbleibende Sicht"],
+          ["Strecken am See oder nasse Straßen", "Polarisiert", "Nimmt die Blendung von Wasser und nassem Asphalt"],
+          ["Golf", "ZEISS oder phototrop", "Gleichmäßiger Kontrast; polarisiert erst auf der Driving Range testen"],
+          ["Ausfahrten mit Radcomputer", "ZEISS oder phototrop", "Kein durch Polarisation geschwärztes Display"],
+        ],
+      },
+      { type: "h2", text: "Scheiben an BleeqUp-Brillen wechseln" },
+      { type: "p", text: "Beide Modelle nehmen Wechselscheiben auf, aber **Rover- und Ranger-Scheiben sind nicht untereinander austauschbar**. Rover-Scheiben (ZEISS, polarisiert und phototrop) passen nur auf die Rover; Ranger-Scheiben (ZEISS Orange, ZEISS Blue, Orange Red und phototrop Black Red) nur auf die Ranger. Ranger-Scheiben lassen sich ohne Werkzeug wechseln. Ein Scheibenwechsel ändert auch Ihre Aufnahmen nicht: Die Kamera sitzt im Rahmen, nicht hinter der Scheibe. Noch ein Hinweis: Die BleeqUp-Garantie deckt die Brille ab, nicht die Scheiben, bewahren Sie Ersatzscheiben also in einem Etui auf." },
+      { type: "p", text: "Sie brauchen Korrekturgläser? Beide Modelle werden mit einem Korrektureinsatz geliefert, der hinter der Sportscheibe sitzt, sodass Sie weiterhin die Tönung wechseln können. Unser [Ratgeber zu Kamerabrillen mit Sehstärke](/blog/prescription-camera-glasses) erklärt, wie das funktioniert." },
+      { type: "callout", text: "Unsicher, mit welcher Brille Sie anfangen sollen? Vergleichen Sie [Rover und Ranger](/compare) direkt oder lesen Sie unseren Ratgeber zu den [besten Smart Glasses fürs Radfahren](/blog/best-smart-glasses-for-cycling)." },
+    ],
+    faq: [
+      {
+        q: "Ist polarisiert oder phototrop besser fürs Radfahren?",
+        a: "Für die meisten Radfahrer phototrop. Die Scheibe passt sich Schatten und wechselndem Licht an und stört nicht beim Ablesen des Radcomputers. Polarisiert ist besser, wenn Blendung von Wasser oder nassen Straßen Ihr Hauptproblem ist.",
+      },
+      {
+        q: "Funktionieren phototrope Scheiben bei Kälte?",
+        a: "Ja. Sie werden bei Kälte tendenziell dunkler und wechseln langsamer. Hinter einer Windschutzscheibe dunkeln sie kaum ab, weil das Glas den Großteil des UV-Lichts blockiert.",
+      },
+      {
+        q: "Sind polarisierte Sonnenbrillen gut für Golf?",
+        a: "Viele Golfer mögen die geringere Blendung, manche bevorzugen zum Grünlesen aber eine nicht polarisierte Scheibe. Testen Sie beide auf dem Übungsgrün, bevor Sie sich festlegen.",
+      },
+      {
+        q: "Passen Rover-Scheiben auf die Ranger?",
+        a: "Nein. Rover- und Ranger-Scheiben sind nicht austauschbar. Jedes Modell hat eigene ZEISS-, phototrope und weitere Scheiben.",
+      },
+    ],
+  },
+  "how-to-use-remote-control-golf-caddy": {
+    title: "So nutzen Sie einen ferngesteuerten Golf-Caddy: Einrichtung, Etikette auf dem Platz und Profi-Tipps",
+    metaTitle: "Ferngesteuerten Golf-Caddy nutzen: Tipps und Etikette",
+    description: "Neuer ferngesteuerter Golf-Caddy? Einrichten, vor der ersten Runde üben, sicher am Hang fahren und die Etikette beachten, mit der alle auf dem Platz zufrieden sind.",
+    excerpt: "Ein ferngesteuerter Caddy ist leicht zu fahren und leicht schlecht zu fahren. So richten Sie ihn ein, wo Sie ihn parken und welche Gewohnheiten ihn von Grüns und Teichen fernhalten.",
+    keywords: ["ferngesteuerten golf caddy benutzen", "elektro golftrolley fernbedienung tipps", "golftrolley etikette", "golf caddy einrichten", "volt caddy pro-s fernbedienung"],
+    imageAlt: "Ferngesteuerter Elektro-Golftrolley Volt Caddy Pro-S, aufgeklappt und bereit für eine Runde",
+    categoryLabel: "Golf",
+    body: [
+      { type: "p", text: "Ein ferngesteuerter Golf-Caddy kommt einem echten Caddie am nächsten: Ihre Schläger rollen neben Ihnen her, während Sie mit freien Händen gehen. Nach etwa einer Runde fühlen Sie sich sicher, und ein paar gute Gewohnheiten sorgen dafür, dass der Trolley nie ohne Sie auf einem Grün, in einem Bunker oder am Fuß eines Hangs landet." },
+      { type: "p", text: "Dieser Ratgeber nimmt den [Volt Caddy Pro-S](/products/volt-caddy-pro-s) als Beispiel, derselbe Ansatz gilt aber für MGI Zip und Ai Navigator sowie den Motocaddy M7. Lesen Sie immer zuerst das Handbuch Ihres eigenen Trolleys." },
+      { type: "h2", text: "Vor Ihrer ersten Runde" },
+      {
+        type: "ol",
+        items: [
+          "**Laden Sie den Akku voll.** Lithium-Akkus brauchen keinen Einlaufzyklus, aber für die ersten 18 Löcher wollen Sie eine volle Ladung.",
+          "**Fernbedienung koppeln und testen.** Prüfen Sie, ob Vorwärts, Stopp, Links, Rechts und Geschwindigkeit reagieren. Finden Sie die Stopptaste, ohne hinzusehen.",
+          "**Bag richtig beladen.** Schnallen Sie das Bag oben und unten fest, damit es sich nicht verdreht. Schweres nach unten, und halten Sie die Maximallast Ihres Trolleys ein (20 kg bei MGI- und Motocaddy-Modellen).",
+          "**Üben Sie auf freier Fläche.** Ein ruhiger Parkplatz oder ein leeres Feld ist ideal. Fahren Sie Achten, halten Sie an einem Ziel und üben Sie Kurven bei verschiedenen Geschwindigkeiten.",
+          "**Lernen Sie die Bremsen kennen.** Der Pro-S hat eine automatische Parkbremse und eine Bergab-Geschwindigkeitskontrolle. Wissen Sie, wie Ihr Trolley sich beim Anhalten am Hang verhält, bevor Sie sich darauf verlassen.",
+        ],
+      },
+      { type: "h2", text: "Fahren auf dem Platz" },
+      { type: "h3", text: "In Reichweite und in Sichtweite bleiben" },
+      { type: "p", text: "Die Reichweite der Fernbedienung unterscheidet sich je nach Modell stark: bis zu 40 m beim Pro-S, 100 m oder mehr beim Motocaddy M7 und 100 bis 200 m bei den ferngesteuerten Caddies von MGI. Reichweite ist eine Obergrenze, kein Ziel. Halten Sie den Trolley so nah, dass Sie sehen, was vor ihm liegt, und stoppen Sie ihn, bevor er über eine Kuppe fährt, hinter die Sie nicht sehen können. Manche Trolleys haben eine Sicherung: Der MGI Ai Navigator Halo stoppt, wenn er 5 Sekunden lang den Kontakt zur Fernbedienung verliert." },
+      { type: "h3", text: "Hänge und Schräglagen" },
+      { type: "p", text: "Fahren Sie Hänge gerade hinauf und hinunter statt quer, bremsen Sie vor dem Hang statt darauf ab und halten Sie auf steilem oder rutschigem Boden eine Hand am Griff. Der Pro-S bewältigt Steigungen bis 30 Grad und hat zwei Stabilitätsräder, und der gyroskopische Straight Tracker von MGI hilft, in Schräglage die Spur zu halten. Bei starker Schräglage, nassem Gras oder auf einer schmalen Brücke schieben Sie ihn einfach am Griff." },
+      { type: "h3", text: "Geschwindigkeit" },
+      { type: "p", text: "Passen Sie sie Ihrem Gehtempo an. Der Pro-S hat Geschwindigkeitsstufen bis 10 km/h, schneller als jeder geht. Nutzen Sie die Höchstgeschwindigkeit nur auf freiem Fairway und werden Sie langsamer bei Personen, Carts und engen Kurven." },
+      { type: "h2", text: "Etikette auf dem Platz mit einem ferngesteuerten Caddy" },
+      {
+        type: "ul",
+        items: [
+          "**Nie auf Grüns, Abschläge oder in Bunker fahren.** Meiden Sie auch das Vorgrün. Befolgen Sie die Trolley-Schilder und abgesperrten Bereiche des Platzes; sie gelten auch für Trolleys.",
+          "**Parken Sie Richtung nächster Abschlag.** Stellen Sie den Trolley auf die Seite des Grüns, die dem nächsten Loch am nächsten liegt, damit Sie nicht zurück über das Grün gehen.",
+          "**Stillhalten, während andere spielen.** Selbst ein leiser Trolley, der sich im Blickfeld bewegt, lenkt ab. Halten Sie an, bevor ein Mitspieler den Ball anspricht.",
+          "**Nicht ins Ungewisse schicken.** Distanzfunktionen sind auf freien Fairways praktisch, aber schicken Sie einen Trolley nie in Richtung vorausspielender Golfer, Wasser oder einer unübersichtlichen Kuppe.",
+          "**Regeln bei Nässe beachten.** Manche Plätze schränken Carts und Trolleys bei weichem Boden ein. Fragen Sie im Pro-Shop, wenn Sie unsicher sind.",
+        ],
+      },
+      { type: "h2", text: "Ist ein ferngesteuerter Caddy im Turnier erlaubt?" },
+      { type: "p", text: "Nach den Golfregeln ist ein Elektrotrolley grundsätzlich erlaubt, aber eine Spielleitung kann motorisierte Fortbewegung oder Ausrüstung in ihren Wettspielbedingungen einschränken. Manche Trolleys haben auch einen Turniermodus, zum Beispiel der [Zip Navigator AT](/products/mgi-zip-navigator-at-all-terrain) von MGI. Prüfen Sie vor einem Turnier die Ausschreibung oder fragen Sie die Spielleitung." },
+      { type: "h2", text: "Nach der Runde" },
+      {
+        type: "ol",
+        items: [
+          "**Schalten Sie ihn vor dem Falten oder Anheben aus.** Halten Sie die Finger von Rädern und Klappgelenken fern.",
+          "**Wischen Sie ihn ab.** Gras, Sand und Wasser sammeln sich an Rädern und Achsen.",
+          "**Laden Sie den Akku drinnen.** Laden nach jeder Runde hält den Akku einsatzbereit, und drinnen vermeiden Sie im Frühjahr und Herbst das Laden bei Kälte. Beim Pro-S lassen sich Akku und Antriebseinheit abnehmen und ins Haus tragen.",
+          "**Halten Sie die Fernbedienung geladen** oder nehmen Sie Ersatzbatterien mit, falls sie austauschbare Zellen nutzt.",
+        ],
+      },
+      { type: "callout", text: "Saison vorbei? Folgen Sie unserem [Ratgeber zur Winterlagerung](/blog/golf-trolley-lithium-battery-winter-storage), bevor der Trolley in die Garage kommt, und lesen Sie [Darf der Akku eines Elektro-Golftrolleys mit ins Flugzeug?](/blog/flying-with-golf-trolley-lithium-battery), wenn Sie eine Golfreise in den Süden planen." },
+      { type: "h2", text: "Noch auf der Suche nach dem richtigen Trolley?" },
+      { type: "p", text: "Wenn Sie zwischen Fernbedienung und Follow-Me schwanken, beginnen Sie mit [Ferngesteuerte Golf-Caddies gegen Follow-Me](/blog/remote-vs-follow-me-golf-caddy) und vergleichen Sie dann die Modelle in unserem [Kaufratgeber für Elektro-Golftrolleys](/blog/best-electric-golf-push-carts-canada)." },
+    ],
+    faq: [
+      {
+        q: "Wie weit entfernt kann ich einen ferngesteuerten Golf-Caddy steuern?",
+        a: "Das hängt vom Modell ab: bis zu 40 m beim Volt Caddy Pro-S, 100 m oder mehr beim Motocaddy M7 und 100 bis 200 m bei den ferngesteuerten Caddies von MGI. Halten Sie den Trolley in Sichtweite und näher als seine maximale Reichweite.",
+      },
+      {
+        q: "Darf ich mit einem ferngesteuerten Caddy aufs Grün fahren?",
+        a: "Nein. Halten Sie alle Trolleys von Grüns, Abschlägen und Bunkern fern und befolgen Sie die Beschilderung des Platzes. Parken Sie auf der Seite des Grüns, die dem nächsten Abschlag am nächsten liegt.",
+      },
+      {
+        q: "Sind ferngesteuerte Caddies am Hang sicher?",
+        a: "Ja, wenn Sie Hänge gerade hinauf und hinunter fahren, langsam bleiben und die Bergab-Kontrolle sowie die Parkbremse nutzen. Bei starker Schräglage oder nassem Gras schieben Sie den Trolley am Griff.",
+      },
+      {
+        q: "Sollte ich meinen ferngesteuerten Caddy nach jeder Runde laden?",
+        a: "Laden nach jeder Runde hält ihn für die nächste bereit. Laden Sie drinnen bei Zimmertemperatur, und lagern Sie den Akku für längere Zeit nur teilweise geladen.",
+      },
+    ],
+  },
+  "record-golf-round-with-camera-glasses": {
+    title: "So filmen Sie Ihre Golfrunde mit einer Kamerabrille (Ratgeber für POV-Golfvideos)",
+    metaTitle: "Golf in POV filmen mit einer Kamerabrille",
+    description: "Filmen Sie Ihre Golfrunde aus eigener Sicht: Einstellungen der Kamerabrille, Akku für 18 Löcher, was die Golfregeln erlauben und Etikette auf dem Platz.",
+    excerpt: "Kamerabrillen filmen die Runde so, wie Sie sie gesehen haben: die Lage, die Linie, den Putt, der fiel. So richten Sie sie ein, sparen Akku und bleiben innerhalb der Regeln.",
+    keywords: ["kamerabrille golf", "golfrunde filmen pov", "golf vlog kamera", "pov golfvideo", "kamerabrille für golf", "bleequp rover golf"],
+    imageAlt: "BleeqUp Rover KI-Sportkamerabrille",
+    categoryLabel: "KI-Brillen",
+    body: [
+      { type: "p", text: "Die meisten Golfvideos entstehen mit einem Smartphone auf dem Stativ oder einem Freund, der von hinten filmt. Kamerabrillen fangen etwas anderes ein: **die Runde aus Ihren eigenen Augen**. Die Lage, die Sie betrachtet haben, die Linie, die Sie gewählt haben, den Weg zum Grün und den Putt, der fiel. Ideal für einen Golf-Vlog, einen Reiserückblick oder einfach als Erinnerung an einen schönen Tag." },
+      { type: "p", text: "Dieser Ratgeber nimmt die [BleeqUp Rover](/products/bleequp-rover-ai-sports-glasses) und [Ranger](/products/bleequp-ranger-zeiss-lens) als Beispiele. Beide filmen in 3K mit bis zu 60 fps durch ein 120°-Objektiv und sind zugleich UV400-Sonnenbrillen." },
+      { type: "h2", text: "Was Kamerabrillen zeigen können und was nicht" },
+      { type: "p", text: "Klären Sie zuerst die Erwartungen. Kamerabrillen filmen, **was Sie sehen**: Beim Ansprechen erfassen Sie Ball, Schlägerkopf und Ziel, wenn Sie aufblicken. Ihren Schwung von außen zeigen sie nicht. Für die Schwunganalyse brauchen Sie weiterhin ein Smartphone auf dem Stativ, von hinten oder von vorn. Sehen Sie die Brille als Kamera zum Erzählen und das Smartphone als Kamera zum Trainieren." },
+      { type: "h2", text: "Die besten Einstellungen für Golf" },
+      {
+        type: "ul",
+        items: [
+          "**Neigung (Rover):** Die Kamera der Rover neigt sich auf −10°, 0° oder 15°. Tragen Sie eine Kappe? Beginnen Sie mit −10°, damit der Schirm nicht im Bild ist.",
+          "**Auflösung und Bildrate:** 3K30 ist eine gute Grundeinstellung. Clips dauern bei 3K30 bis zu 5 Minuten, bei 3K60 oder 1080p60 nur 1 Minute, und 1080p30 hat kein Clip-Limit. Beachten Sie, dass die Modi mit 60 fps und 3K ein unterstütztes Smartphone brauchen.",
+          "**Ausrichtung:** Filmen Sie in 9:16, wenn die Clips für Reels, TikTok oder Shorts sind, und in 16:9 für YouTube.",
+          "**HDR (Rover):** Echtzeit-HDR hilft an sonnigen Tagen, wenn Sie im Schatten stehen und auf ein sonniges Fairway blicken.",
+        ],
+      },
+      { type: "h2", text: "Damit der Akku 18 Löcher hält" },
+      { type: "p", text: "Rover und Ranger filmen jeweils **etwa 1 Stunde Video** mit dem eingebauten Akku, und eine Runde über 18 Löcher dauert viel länger. Alles aufzunehmen ist ohnehin nicht das Ziel; niemand will vier Stunden Gehen anschauen. Filmen Sie Schläge, nicht die Runde:" },
+      {
+        type: "ol",
+        items: [
+          "**Starten Sie die Aufnahme beim Einrichten und stoppen Sie, wenn der Ball landet.** Ein Clip von 15 bis 30 Sekunden pro Schlag erfasst Routine, Schwungperspektive und Ballflug.",
+          "**Nutzen Sie die Sprachbefehle der Rover**, um ohne Berührung der Brille mitten in der Routine zu starten und zu stoppen.",
+          "**Lassen Sie die Wege weg.** Nehmen Sie stattdessen ab und zu einen Panorama-Clip auf den Signature-Löchern auf.",
+          "**Laden Sie vor dem Abschlag.** Beide Modelle laden in etwa einer Stunde schnell auf.",
+        ],
+      },
+      { type: "p", text: "So deckt der eingebaute Akku bequem viele Schläge ab. Wenn Sie auch lange Radausfahrten filmen, enthält das [Rover-Bundle](/products/bleequp-rover-ai-sports-glasses-bundle) die Rover Power Plus, die die Aufnahmezeit auf etwa 5 Stunden verlängert. Sie wird hinten an einem Fahrradhelm montiert und passt daher eher zum Radfahren als zum Golf." },
+      { type: "h2", text: "Aus Clips ein Highlight-Video machen" },
+      { type: "p", text: "Das Schwierige an Golfvideos ist der Schnitt, nicht das Filmen. Die BleeqUp-App erkennt Highlights und erstellt einen Schnitt mit einem Tippen, und bei der Rover können Sie Clips per Sprache durchsuchen, um einen bestimmten Schlag zu finden. Der Speicher fasst 64 GB bei der Rover und 32 GB bei der Ranger, und die Loop-Aufnahme kann weiterfilmen, indem sie das älteste Material überschreibt. Sichern Sie Ihre Lieblingsclips also nach der Runde." },
+      { type: "h2", text: "Was die Golfregeln erlauben" },
+      { type: "p", text: "In der Freizeitrunde filmen Sie, so viel Sie möchten. Im Wettspiel gilt Regel 4.3 der [Golfregeln](https://www.randa.org/rog/the-rules-of-golf/rule-4):" },
+      {
+        type: "ul",
+        items: [
+          "**Erlaubt:** Informationen aus Ihrer Runde zur Verwendung **nach** der Runde aufzuzeichnen.",
+          "**Nicht erlaubt:** während der Runde Videos des Wettspiels anzusehen, die bei der Schlägerwahl, beim Schlag oder bei der Entscheidung über die Spielweise helfen. Sehen Sie sich Ihre Schwungclips nicht zwischen den Löchern an.",
+          "**Audio:** Musik ohne Bezug zum Wettspiel ist erlaubt, aber nicht, um Ablenkungen auszublenden oder den Schwungrhythmus vorzugeben. Wenn Sie die Open-Ear-Lautsprecher nutzen, halten Sie die Lautstärke rücksichtsvoll.",
+        ],
+      },
+      { type: "p", text: "Spielleitungen können eigene Bedingungen festlegen; prüfen Sie im Zweifel die Ausschreibung." },
+      { type: "h2", text: "Etikette: andere Golfer filmen" },
+      {
+        type: "ul",
+        items: [
+          "**Sagen Sie Ihrem Flight** am ersten Abschlag, dass Sie filmen, und hören Sie auf, wenn jemand nicht gefilmt werden möchte.",
+          "**Fragen Sie vor dem Posten** von Clips, die Gesichter oder Schwünge anderer zeigen.",
+          "**Respektieren Sie die Clubregeln.** Manche Privatclubs schränken Kameras oder Handys ein; fragen Sie im Pro-Shop.",
+          "**Halten Sie das Tempo.** Filmen sollte keine Zeit kosten. Starten und stoppen Sie die Kamera als Teil Ihrer normalen Routine.",
+        ],
+      },
+      { type: "h2", text: "Die richtige Scheibe für den Platz wählen" },
+      { type: "p", text: "Da Kamerabrillen auch Ihre Sonnenbrille sind, zählt die Scheibe. Unser [Ratgeber zu polarisierten und phototropen Scheiben](/blog/polarized-vs-photochromic-sport-lenses) erklärt, welche Tönung zum Golf passt. Unschlüssig zwischen den Modellen? Vergleichen Sie [Rover und Ranger](/compare) oder lesen Sie [Kamerabrillen gegen Actioncams](/blog/camera-glasses-vs-action-camera), um zu sehen, wo welches Gerät gewinnt." },
+    ],
+    faq: [
+      {
+        q: "Kann eine Kamerabrille meinen Golfschwung filmen?",
+        a: "Sie filmt, was Sie auf Augenhöhe sehen: Ball und Schlägerkopf beim Ansprechen und den Ballflug, wenn Sie aufblicken. Für Ihren vollständigen Schwung von außen nutzen Sie ein Smartphone auf dem Stativ.",
+      },
+      {
+        q: "Darf ich während eines Golfturniers filmen?",
+        a: "Nach Regel 4.3 dürfen Sie Informationen zur Verwendung nach der Runde aufzeichnen, aber während der Runde keine Videos ansehen, die bei Schlägerwahl, Schlag oder Spielweise helfen. Prüfen Sie auch die Wettspielbedingungen.",
+      },
+      {
+        q: "Hält eine Kamerabrille eine ganze Golfrunde durch?",
+        a: "Nicht bei Daueraufnahme. Rover und Ranger filmen etwa 1 Stunde Video pro Ladung, also filmen Sie besser jeden Schlag statt der ganzen Runde.",
+      },
+      {
+        q: "Welche Videoeinstellung ist für Golf-POV am besten?",
+        a: "3K30 ist eine gute Grundeinstellung: scharfes Video mit Clips bis zu 5 Minuten. Nutzen Sie 9:16 für soziale Medien und 16:9 für YouTube.",
+      },
+    ],
+  },
+};

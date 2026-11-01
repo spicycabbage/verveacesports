@@ -9,7 +9,7 @@ export const howToUseRemoteControlGolfCaddy: BlogPost = {
     "New remote golf caddy? Set it up, practise before your first round, drive it safely on hills, and follow the course etiquette that keeps everyone happy.",
   excerpt:
     "A remote caddy is easy to drive and easy to drive badly. Here's how to set one up, where to park it, and the habits that keep it off greens and out of ponds.",
-  publishedAt: "2026-11-01",
+  publishedAt: "2026-11-15",
   category: "Golf",
   author: KIM_CHEN,
   keywords: [

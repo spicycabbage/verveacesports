@@ -145,14 +145,11 @@ export async function BlogArticle({
     timeRequired: `PT${minutes}M`,
     inLanguage: blogHrefLang(locale),
   };
-  // Category hubs are English-only, so only English breadcrumbs include them.
-  const category = locale === "en" ? blogCategoryInfo(post.category) : null;
+  const category = blogCategoryInfo(post.category);
   const crumbs = [
     { name: ui.home, item: base },
     { name: ui.blog, item: siteAbsoluteUrl(site, blogPath(locale)) },
-    ...(category
-      ? [{ name: post.categoryLabel, item: siteAbsoluteUrl(site, blogCategoryPath(category.slug)) }]
-      : []),
+    { name: post.categoryLabel, item: siteAbsoluteUrl(site, blogCategoryPath(category.slug, locale)) },
     { name: post.title, item: url },
   ];
   const breadcrumbJsonLd = {
@@ -191,14 +188,10 @@ export async function BlogArticle({
           {ui.blog}
         </Link>
         {" / "}
-        {category ? (
-          <>
-            <Link href={blogCategoryPath(category.slug)} className="hover:text-foreground">
-              {post.categoryLabel}
-            </Link>
-            {" / "}
-          </>
-        ) : null}
+        <Link href={blogCategoryPath(category.slug, locale)} className="hover:text-foreground">
+          {post.categoryLabel}
+        </Link>
+        {" / "}
         <span aria-current="page" className="line-clamp-1 inline">
           {post.title}
         </span>
@@ -206,16 +199,12 @@ export async function BlogArticle({
 
       <article className="mt-6">
         <header className="mx-auto max-w-3xl">
-          {category ? (
-            <Link
-              href={blogCategoryPath(category.slug)}
-              className="text-xs font-medium uppercase tracking-wide text-primary hover:underline"
-            >
-              {post.categoryLabel}
-            </Link>
-          ) : (
-            <p className="text-xs font-medium uppercase tracking-wide text-primary">{post.categoryLabel}</p>
-          )}
+          <Link
+            href={blogCategoryPath(category.slug, locale)}
+            className="text-xs font-medium uppercase tracking-wide text-primary hover:underline"
+          >
+            {post.categoryLabel}
+          </Link>
           <h1 className="mt-2 text-3xl font-bold leading-tight tracking-tight sm:text-4xl">{post.title}</h1>
           <p className="mt-4 text-lg leading-relaxed text-muted-foreground">{post.excerpt}</p>
           <p className="mt-4 flex flex-wrap gap-x-2 text-sm text-muted-foreground">

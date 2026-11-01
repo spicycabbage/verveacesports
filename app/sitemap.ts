@@ -2,10 +2,10 @@ import type { MetadataRoute } from "next";
 import { getSite } from "@/lib/site/get-site";
 import { siteBaseUrl } from "@/lib/site/seo";
 import { listSitemapProducts } from "@/lib/catalog/queries";
-import { BLOG_AUTHORS, BLOG_POSTS, blogDateIso } from "@/lib/content/blog";
+import { BLOG_AUTHORS, blogDateIso, publishedBlogPosts } from "@/lib/content/blog";
 import { blogHreflangLanguages, blogPath } from "@/lib/content/blog/paths";
 import { blogLocalesFor, blogLocalesForPost } from "@/lib/content/blog/translations";
-import { BLOG_CATEGORIES, blogCategoryPath } from "@/lib/content/blog/categories";
+import { BLOG_CATEGORIES, blogCategoryLocales, blogCategoryPath } from "@/lib/content/blog/categories";
 
 // Uses request headers (host) so each storefront domain serves its own sitemap.
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
@@ -47,30 +47,34 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   }));
 
   const blogLocales = blogLocalesFor();
+  // Scheduled posts stay out until their publish date (checked per request).
+  const livePosts = publishedBlogPosts();
   const blogEntries: MetadataRoute.Sitemap =
     site.id === "verveace"
       ? [
           ...blogLocales.map((locale) => ({
             url: `${base}${blogPath(locale)}`,
-            lastModified: blogDateIso(BLOG_POSTS[0].publishedAt),
+            lastModified: blogDateIso(livePosts[0].publishedAt),
             changeFrequency: "weekly" as const,
             priority: 0.7,
             alternates: { languages: blogHreflangLanguages(site, "", blogLocales) },
           })),
           ...BLOG_CATEGORIES.flatMap((category) => {
-            const latest = BLOG_POSTS.find((post) => post.category === category.category);
+            const latest = livePosts.find((post) => post.category === category.category);
             if (!latest) return [];
-            return [
-              {
-                url: `${base}${blogCategoryPath(category.slug)}`,
-                lastModified: blogDateIso(latest.updatedAt ?? latest.publishedAt),
-                changeFrequency: "weekly" as const,
-                priority: 0.6,
+            const hubLocales = blogCategoryLocales(category.slug);
+            return hubLocales.map((locale) => ({
+              url: `${base}${blogCategoryPath(category.slug, locale)}`,
+              lastModified: blogDateIso(latest.updatedAt ?? latest.publishedAt),
+              changeFrequency: "weekly" as const,
+              priority: 0.6,
+              alternates: {
+                languages: blogHreflangLanguages(site, `/category/${category.slug}`, hubLocales),
               },
-            ];
+            }));
           }),
           // Only languages a post is actually translated into.
-          ...BLOG_POSTS.flatMap((post) => {
+          ...livePosts.flatMap((post) => {
             const postLocales = blogLocalesForPost(post.slug);
             return postLocales.map((locale) => ({
               url: `${base}${blogPath(locale, `/${post.slug}`)}`,

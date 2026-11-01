@@ -2,11 +2,11 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import { JsonLd } from "@/components/seo/JsonLd";
-import { BLOG_POSTS, blogAuthorJsonLd, blogDateIso, blogReadingMinutes, formatBlogDate } from "@/lib/content/blog";
+import { blogAuthorJsonLd, blogDateIso, blogReadingMinutes, formatBlogDate, publishedBlogPosts } from "@/lib/content/blog";
 import { localizePost, type LocalizedPost } from "@/lib/content/blog/localize";
 import { blogHrefLang, blogHreflangLanguages, blogOgLocale, blogPath, blogPostPath } from "@/lib/content/blog/paths";
 import { blogLocalesFor } from "@/lib/content/blog/translations";
-import { BLOG_CATEGORIES, blogCategoryPath } from "@/lib/content/blog/categories";
+import { BLOG_CATEGORIES, blogCategoryCopy, blogCategoryNavUi, blogCategoryPath } from "@/lib/content/blog/categories";
 import { blogUi } from "@/lib/content/blog/ui";
 import { interpolate } from "@/lib/i18n/translate";
 import type { Locale } from "@/lib/i18n/locale";
@@ -14,8 +14,9 @@ import { LOCALE_LIST } from "@/lib/i18n/locale";
 import type { SiteConfig } from "@/lib/site/config";
 import { siteAbsoluteUrl, siteBaseUrl } from "@/lib/site/seo";
 
+/** Live posts translated into `locale`, newest first. */
 export function postsFor(locale: Locale): LocalizedPost[] {
-  return BLOG_POSTS.flatMap((post) => {
+  return publishedBlogPosts().flatMap((post) => {
     const localized = localizePost(post, locale);
     return localized ? [localized] : [];
   });
@@ -106,7 +107,7 @@ export function BlogIndex({ site, locale }: { site: SiteConfig; locale: Locale }
         <p className="mt-3 text-base leading-relaxed text-muted-foreground">{ui.indexDescription}</p>
       </header>
 
-      {locale === "en" ? <BlogCategoryNav /> : null}
+      <BlogCategoryNav locale={locale} />
 
       {featured ? (
         <article className="group mt-10 grid gap-6 overflow-hidden rounded-2xl border bg-card md:grid-cols-2">
@@ -154,14 +155,16 @@ export function BlogIndex({ site, locale }: { site: SiteConfig; locale: Locale }
   );
 }
 
-/** Category hub links (English only; translated blogs have one index each). */
-export function BlogCategoryNav({ current }: { current?: string }) {
+/** "All guides" plus one chip per topic hub with live posts in this language. */
+export function BlogCategoryNav({ locale, current }: { locale: Locale; current?: string }) {
+  const nav = blogCategoryNavUi(locale);
+  const live = new Set(postsFor(locale).map((post) => post.category));
   return (
-    <nav aria-label="Blog categories" className="mt-6">
+    <nav aria-label={nav.navLabel} className="mt-6">
       <ul className="flex flex-wrap gap-2 text-sm">
         <li>
           <Link
-            href={blogPath("en")}
+            href={blogPath(locale)}
             aria-current={current ? undefined : "page"}
             className={
               current
@@ -169,15 +172,15 @@ export function BlogCategoryNav({ current }: { current?: string }) {
                 : "inline-flex rounded-full border border-primary bg-primary/10 px-3 py-1.5 font-medium text-primary"
             }
           >
-            All guides
+            {nav.allGuides}
           </Link>
         </li>
-        {BLOG_CATEGORIES.map((category) => {
+        {BLOG_CATEGORIES.filter((category) => live.has(category.category)).map((category) => {
           const active = current === category.slug;
           return (
             <li key={category.slug}>
               <Link
-                href={blogCategoryPath(category.slug)}
+                href={blogCategoryPath(category.slug, locale)}
                 aria-current={active ? "page" : undefined}
                 className={
                   active
@@ -185,7 +188,7 @@ export function BlogCategoryNav({ current }: { current?: string }) {
                     : "inline-flex rounded-full border px-3 py-1.5 text-muted-foreground hover:border-primary/50 hover:text-foreground"
                 }
               >
-                {category.category}
+                {blogCategoryCopy(category.slug, locale).label}
               </Link>
             </li>
           );
