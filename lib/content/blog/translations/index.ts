@@ -49,8 +49,12 @@ function sameShape(en: BlogBlock, tr: BlogBlock): boolean {
   }
 }
 
+/**
+ * Translations are optional per post: a new English post can ship before its
+ * translations. A translation that does exist must match the English shape.
+ */
 function assertTranslation(locale: string, post: BlogPost, tr: BlogTranslation | undefined) {
-  if (!tr) throw new Error(`Blog translation missing: ${locale} / ${post.slug}`);
+  if (!tr) return;
   if (tr.body.length !== post.body.length || tr.body.some((block, i) => !sameShape(post.body[i], block))) {
     throw new Error(`Blog translation shape mismatch: ${locale} / ${post.slug}`);
   }
@@ -63,7 +67,22 @@ for (const [locale, map] of Object.entries(BLOG_TRANSLATIONS)) {
   for (const post of BLOG_POSTS) assertTranslation(locale, post, map[post.slug]);
 }
 
-/** English plus every locale that has a full translation. */
+/** English plus every locale that has a blog (at least one translated post). */
 export function blogLocalesFor(): Locale[] {
-  return ["en", ...(Object.keys(BLOG_TRANSLATIONS) as Exclude<Locale, "en">[])];
+  return [
+    "en",
+    ...(Object.keys(BLOG_TRANSLATIONS) as Exclude<Locale, "en">[]).filter(
+      (locale) => Object.keys(BLOG_TRANSLATIONS[locale]).length > 0,
+    ),
+  ];
+}
+
+/** English plus every locale that has a translation of this post. */
+export function blogLocalesForPost(slug: string): Locale[] {
+  return [
+    "en",
+    ...(Object.keys(BLOG_TRANSLATIONS) as Exclude<Locale, "en">[]).filter(
+      (locale) => Boolean(BLOG_TRANSLATIONS[locale][slug]),
+    ),
+  ];
 }

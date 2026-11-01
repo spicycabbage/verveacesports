@@ -8,6 +8,10 @@ import { bestSmartGlassesForCycling } from "./posts/best-smart-glasses-for-cycli
 import { walkingGolfElectricTrolleyBenefits } from "./posts/walking-golf-electric-trolley-benefits";
 import { prescriptionCameraGlasses } from "./posts/prescription-camera-glasses";
 import { golfTrolleyLithiumBatteryWinterStorage } from "./posts/golf-trolley-lithium-battery-winter-storage";
+import { flyingWithGolfTrolleyLithiumBattery } from "./posts/flying-with-golf-trolley-lithium-battery";
+import { howToUseRemoteControlGolfCaddy } from "./posts/how-to-use-remote-control-golf-caddy";
+import { polarizedVsPhotochromicSportLenses } from "./posts/polarized-vs-photochromic-sport-lenses";
+import { recordGolfRoundWithCameraGlasses } from "./posts/record-golf-round-with-camera-glasses";
 
 export type { BlogBlock, BlogPost } from "./types";
 export {
@@ -20,6 +24,10 @@ export {
 
 /** Newest first. */
 export const BLOG_POSTS: readonly BlogPost[] = [
+  recordGolfRoundWithCameraGlasses,
+  polarizedVsPhotochromicSportLenses,
+  howToUseRemoteControlGolfCaddy,
+  flyingWithGolfTrolleyLithiumBattery,
   golfTrolleyLithiumBatteryWinterStorage,
   prescriptionCameraGlasses,
   walkingGolfElectricTrolleyBenefits,

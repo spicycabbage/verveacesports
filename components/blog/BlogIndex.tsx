@@ -6,6 +6,7 @@ import { BLOG_POSTS, blogAuthorJsonLd, blogDateIso, blogReadingMinutes, formatBl
 import { localizePost, type LocalizedPost } from "@/lib/content/blog/localize";
 import { blogHrefLang, blogHreflangLanguages, blogOgLocale, blogPath, blogPostPath } from "@/lib/content/blog/paths";
 import { blogLocalesFor } from "@/lib/content/blog/translations";
+import { BLOG_CATEGORIES, blogCategoryPath } from "@/lib/content/blog/categories";
 import { blogUi } from "@/lib/content/blog/ui";
 import { interpolate } from "@/lib/i18n/translate";
 import type { Locale } from "@/lib/i18n/locale";
@@ -13,7 +14,7 @@ import { LOCALE_LIST } from "@/lib/i18n/locale";
 import type { SiteConfig } from "@/lib/site/config";
 import { siteAbsoluteUrl, siteBaseUrl } from "@/lib/site/seo";
 
-function postsFor(locale: Locale): LocalizedPost[] {
+export function postsFor(locale: Locale): LocalizedPost[] {
   return BLOG_POSTS.flatMap((post) => {
     const localized = localizePost(post, locale);
     return localized ? [localized] : [];
@@ -43,6 +44,12 @@ export function blogIndexMetadata(site: SiteConfig, locale: Locale): Metadata {
       ),
       ...(posts[0] ? { images: [{ url: posts[0].image.src, alt: posts[0].image.alt }] } : {}),
     },
+    twitter: {
+      card: "summary_large_image",
+      title: `${site.name} ${ui.blog}: ${ui.indexTitle}`,
+      description: ui.indexDescription,
+      ...(posts[0] ? { images: [posts[0].image.src] } : {}),
+    },
   };
 }
 
@@ -61,7 +68,7 @@ export function BlogIndex({ site, locale }: { site: SiteConfig; locale: Locale }
     description: ui.indexDescription,
     url: blogUrl,
     inLanguage: blogHrefLang(locale),
-    publisher: { "@type": "Organization", name: site.name, url: base },
+    publisher: { "@type": "Organization", "@id": `${base}/#organization`, name: site.name, url: base },
     blogPost: posts.map((post) => ({
       "@type": "BlogPosting",
       headline: post.title,
@@ -98,6 +105,8 @@ export function BlogIndex({ site, locale }: { site: SiteConfig; locale: Locale }
         <h1 className="text-3xl font-bold tracking-tight sm:text-4xl">{ui.indexTitle}</h1>
         <p className="mt-3 text-base leading-relaxed text-muted-foreground">{ui.indexDescription}</p>
       </header>
+
+      {locale === "en" ? <BlogCategoryNav /> : null}
 
       {featured ? (
         <article className="group mt-10 grid gap-6 overflow-hidden rounded-2xl border bg-card md:grid-cols-2">
@@ -137,35 +146,82 @@ export function BlogIndex({ site, locale }: { site: SiteConfig; locale: Locale }
       <ul className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
         {rest.map((post) => (
           <li key={post.slug}>
-            <article className="group flex h-full flex-col overflow-hidden rounded-2xl border bg-card">
-              <Link
-                href={blogPostPath(locale, post.slug)}
-                className="relative block aspect-[16/10]"
-                tabIndex={-1}
-                aria-hidden
-              >
-                <Image
-                  src={post.image.src}
-                  alt=""
-                  fill
-                  sizes="(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw"
-                  className="object-cover transition-transform duration-500 group-hover:scale-[1.02]"
-                />
-              </Link>
-              <div className="flex flex-1 flex-col p-5">
-                <PostMeta locale={locale} post={post} />
-                <h2 className="mt-2 text-lg font-semibold leading-snug tracking-tight">
-                  <Link href={blogPostPath(locale, post.slug)} className="hover:text-primary">
-                    {post.title}
-                  </Link>
-                </h2>
-                <p className="mt-2 line-clamp-3 text-sm leading-relaxed text-muted-foreground">{post.excerpt}</p>
-              </div>
-            </article>
+            <PostCard locale={locale} post={post} />
           </li>
         ))}
       </ul>
     </div>
+  );
+}
+
+/** Category hub links (English only; translated blogs have one index each). */
+export function BlogCategoryNav({ current }: { current?: string }) {
+  return (
+    <nav aria-label="Blog categories" className="mt-6">
+      <ul className="flex flex-wrap gap-2 text-sm">
+        <li>
+          <Link
+            href={blogPath("en")}
+            aria-current={current ? undefined : "page"}
+            className={
+              current
+                ? "inline-flex rounded-full border px-3 py-1.5 text-muted-foreground hover:border-primary/50 hover:text-foreground"
+                : "inline-flex rounded-full border border-primary bg-primary/10 px-3 py-1.5 font-medium text-primary"
+            }
+          >
+            All guides
+          </Link>
+        </li>
+        {BLOG_CATEGORIES.map((category) => {
+          const active = current === category.slug;
+          return (
+            <li key={category.slug}>
+              <Link
+                href={blogCategoryPath(category.slug)}
+                aria-current={active ? "page" : undefined}
+                className={
+                  active
+                    ? "inline-flex rounded-full border border-primary bg-primary/10 px-3 py-1.5 font-medium text-primary"
+                    : "inline-flex rounded-full border px-3 py-1.5 text-muted-foreground hover:border-primary/50 hover:text-foreground"
+                }
+              >
+                {category.category}
+              </Link>
+            </li>
+          );
+        })}
+      </ul>
+    </nav>
+  );
+}
+
+export function PostCard({ locale, post }: { locale: Locale; post: LocalizedPost }) {
+  return (
+    <article className="group flex h-full flex-col overflow-hidden rounded-2xl border bg-card">
+      <Link
+        href={blogPostPath(locale, post.slug)}
+        className="relative block aspect-[16/10]"
+        tabIndex={-1}
+        aria-hidden
+      >
+        <Image
+          src={post.image.src}
+          alt=""
+          fill
+          sizes="(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw"
+          className="object-cover transition-transform duration-500 group-hover:scale-[1.02]"
+        />
+      </Link>
+      <div className="flex flex-1 flex-col p-5">
+        <PostMeta locale={locale} post={post} />
+        <h2 className="mt-2 text-lg font-semibold leading-snug tracking-tight">
+          <Link href={blogPostPath(locale, post.slug)} className="hover:text-primary">
+            {post.title}
+          </Link>
+        </h2>
+        <p className="mt-2 line-clamp-3 text-sm leading-relaxed text-muted-foreground">{post.excerpt}</p>
+      </div>
+    </article>
   );
 }
 

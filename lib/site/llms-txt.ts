@@ -1,6 +1,7 @@
 import { SITES, type SiteConfig } from "./config";
 import { siteAbsoluteUrl, siteBaseUrl, shipToCountries } from "./seo";
 import { BLOG_POSTS } from "@/lib/content/blog";
+import { BLOG_CATEGORIES } from "@/lib/content/blog/categories";
 
 /**
  * Host-aware /llms.txt body (https://llmstxt.org/).
@@ -118,9 +119,11 @@ Volt Caddy, MGI, and Motocaddy electric trolleys, caddies, and accessories.
 
 ## Guides
 
-English is the default URL. The same articles are translated at \`/{nl|fr|de|pt-PT|es|it|ja|zh-CN}/blog/{slug}\`. Each language URL is a separate page (hreflang). Do not treat a translation as the English page.
+English is the default URL. Most articles are also translated at \`/{nl|fr|de|pt-PT|es|it|ja|zh-CN}/blog/{slug}\`. Each language URL is a separate page (hreflang). Do not treat a translation as the English page.
 
 ${BLOG_POSTS.map((p) => `- [${p.title}](${base}/blog/${p.slug}): ${p.description}`).join("\n")}
+
+Topic hubs: ${BLOG_CATEGORIES.map((c) => `[${c.title}](${base}/blog/category/${c.slug})`).join(", ")}
 
 `;
     default: {

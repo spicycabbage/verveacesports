@@ -8,6 +8,7 @@ import { getDictionary, interpolate } from "@/lib/i18n/dictionary";
 import { categoryLabelFromDict } from "@/lib/i18n/helpers";
 import { VOLT_NAV } from "@/lib/site/volt-nav";
 import { roverCopy } from "@/lib/i18n/rover-copy";
+import { blogPath } from "@/lib/content/blog/paths";
 
 export async function Footer() {
   const site = await getSite();
@@ -111,9 +112,10 @@ export async function Footer() {
                 {dict.footer.termsOfService}
               </Link>
             </li>
-            {site.id === "volt-ca" ? null : (
+            {/* The blog only exists on verveacesports.com (see requireVerveaceSite). */}
+            {site.id !== "verveace" ? null : (
               <li>
-                <Link href="/blog" className="hover:text-foreground">
+                <Link href={blogPath(locale)} className="hover:text-foreground">
                   {dict.footer.blog}
                 </Link>
               </li>
