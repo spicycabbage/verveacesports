@@ -1,0 +1,331 @@
+import type { BlogTranslation } from "../../translation";
+
+/** November 2026 guides. Block shape mirrors the English posts exactly. */
+export const frNov2026: Record<string, BlogTranslation> = {
+  "flying-with-golf-trolley-lithium-battery": {
+    title: "Peut-on prendre l'avion avec la batterie d'un chariot de golf électrique? Les règles canadiennes expliquées",
+    metaTitle: "Batterie de chariot de golf en avion : règles au Canada",
+    description: "Vous partez avec votre chariot électrique? Les limites en wattheures sur les vols canadiens, et quoi faire si la batterie ne peut pas voler.",
+    excerpt: "Le châssis voyage habituellement comme équipement sportif. La batterie au lithium, c'est autre chose. Voici comment lire l'étiquette en wattheures et planifier votre voyage de golf.",
+    keywords: ["batterie chariot de golf avion", "chariot de golf électrique voyage", "batterie lithium chariot de golf avion", "wattheures batterie chariot de golf", "règles batteries lithium canada"],
+    imageAlt: "Batterie au lithium et bloc moteur amovibles du Volt Caddy Pro-S retirés du châssis",
+    categoryLabel: "Golf",
+    body: [
+      { type: "p", text: "Les voyages de golf vers le sud l'hiver sont une tradition canadienne, et une fois qu'on a marché avec un chariot électrique, difficile de revenir à un chariot à tirer ou à une location. Bonne nouvelle : un châssis plié peut habituellement voyager comme n'importe quel équipement sportif. Le hic, c'est la **batterie au lithium**, que les transporteurs aériens traitent comme une marchandise dangereuse. Qu'elle puisse prendre l'avion ou non dépend d'un seul chiffre imprimé sur la batterie." },
+      { type: "callout", text: "Les règles changent, et chaque transporteur ajoute sa propre politique aux limites nationales. Consultez la page sur les marchandises dangereuses de votre transporteur et obtenez toute approbation par écrit avant de partir. Ce guide explique le fonctionnement des limites; il ne remplace pas la réponse de votre transporteur." },
+      { type: "h2", text: "Le chiffre qui compte : les wattheures (Wh)" },
+      { type: "p", text: "Les limites des transporteurs sont exprimées en **wattheures (Wh)**, soit la quantité d'énergie stockée dans la batterie. Beaucoup de batteries de chariot l'indiquent sur l'étiquette. Si la vôtre n'affiche que les volts et les ampères-heures, multipliez-les : **volts × ampères-heures = wattheures**. Une batterie de 24 V de 10 Ah, par exemple, fait 240 Wh." },
+      { type: "p", text: "Pour vous donner une idée, voici les valeurs publiées pour quelques chariots que nous vendons :" },
+      {
+        type: "table",
+        caption: "Valeurs de batterie publiées pour certains chariots de golf électriques",
+        head: ["Chariot", "Batterie", "Valeur"],
+        rows: [
+          ["[MGI Ai Navigator Halo](/products/mgi-ai-navigator-halo)", "Lithium 24 V dans un boîtier métallique résistant au feu", "299 Wh"],
+          ["[MGI Zip X1](/products/mgi-zip-x1) et [Zip X5](/products/mgi-zip-x5)", "Lithium 24 V", "250 Wh"],
+          ["[MGI E-Boost](/products/mgi-e-boost-pushcart)", "Lithium Click & Go 24 V", "225 Wh"],
+          ["[Rover Power Plus](/products/bleequp-rover-power-plus) (pour les lunettes BleeqUp)", "1600 mAh", "Approuvée en cabine"],
+        ],
+      },
+      { type: "p", text: "Pour les autres chariots, dont le [Volt Caddy Pro-S](/products/volt-caddy-pro-s) et les batteries CLICK 'N' CONNECT 28 V de Motocaddy, lisez l'étiquette de votre propre batterie plutôt que de deviner." },
+      { type: "h2", text: "Les limites pour les vols au Canada" },
+      { type: "p", text: "L'Administration canadienne de la sûreté du transport aérien ([ACSTA](https://www.catsa-acsta.gc.ca/en/what-can-bring/guidelines-batteries)) publie les limites de contrôle pour les batteries lithium-ion, et la plupart des transporteurs suivent les mêmes seuils que l'Association du transport aérien international (IATA) :" },
+      {
+        type: "ul",
+        items: [
+          "**100 Wh ou moins :** permises en cabine. Les batteries de rechange de cette taille vont dans votre bagage de cabine, pas en soute.",
+          "**De 101 à 160 Wh :** permises en cabine avec l'approbation du transporteur, et pas plus de deux batteries de rechange par personne.",
+          "**Plus de 160 Wh :** interdites en cabine. En soute, il faut l'approbation explicite du transporteur.",
+        ],
+      },
+      { type: "p", text: "Les batteries de chariot de golf pleine grandeur sont conçues pour alimenter un chariot pendant 18 à 36 trous, alors elles dépassent généralement de loin 160 Wh. Toutes les valeurs du tableau ci-dessus les dépassent. En pratique, **prévoyez que votre batterie de chariot restera à la maison**, à moins que votre transporteur ait confirmé par écrit qu'il l'acceptera." },
+      { type: "h2", text: "Ce qui peut voyager : le châssis et vos accessoires" },
+      {
+        type: "ol",
+        items: [
+          "**Retirez la batterie** et laissez-la à la maison, chargée à environ la moitié pour l'entreposage. Notre [guide d'entreposage d'hiver de la batterie](/blog/golf-trolley-lithium-battery-winter-storage) explique comment.",
+          "**Pliez le châssis et protégez-le.** Rembourrez la poignée, la console et les essieux, et emballez-le dans un étui rigide ou un sac de voyage bien rembourré.",
+          "**Demandez comment il sera compté.** Les transporteurs traitent habituellement l'équipement de golf comme équipement sportif, mais un châssis de chariot peut compter comme un bagage supplémentaire. Vérifiez les dimensions, le poids et les frais avant de réserver.",
+          "**Gardez les télécommandes et petits appareils électroniques en cabine.** Les petites batteries au lithium, comme celle d'une télécommande ou la [Rover Power Plus](/products/bleequp-rover-power-plus), voyagent en cabine.",
+        ],
+      },
+      { type: "h2", text: "Les options quand la batterie ne peut pas voler" },
+      {
+        type: "ul",
+        items: [
+          "**Prenez la route.** Il n'y a pas de limite en wattheures dans votre propre auto. Évitez de laisser la batterie dans un coffre chaud l'été, et laissez une batterie froide revenir à la température de la pièce avant de la recharger.",
+          "**Louez sur place.** Beaucoup de destinations golf louent des chariots électriques ou des chariots à pousser. Appelez le club ou une boutique locale à l'avance.",
+          "**Informez-vous sur une batterie de voyage.** Certaines marques offrent de plus petites batteries conçues pour respecter les limites des transporteurs. Si vous magasinez un chariot et voyagez souvent, demandez au fabricant s'il en existe une pour ce modèle.",
+          "**Expédiez-la correctement, ou pas du tout.** L'expédition d'une batterie au lithium est réglementée comme marchandise dangereuse. Renseignez-vous auprès du transporteur sur ses exigences avant d'en emballer une, et ne cachez jamais une batterie dans un sac de golf ou une valise.",
+        ],
+      },
+      { type: "h2", text: "Pourquoi les transporteurs sont aussi stricts" },
+      { type: "p", text: "Une batterie au lithium endommagée ou court-circuitée peut surchauffer, et un incendie dans une soute est difficile à détecter et à combattre. C'est pourquoi les règles portent sur l'énergie stockée (Wh), la protection des bornes et le fait de garder les batteries à la portée de l'équipage. Selon [Transports Canada](https://tc.canada.ca/en/tc-stories/lithium-batteries-part-2-what-you-didn-t-know-about-travelling-them), des milliers d'articles sont retirés des bagages enregistrés dans les aéroports canadiens chaque année à cause de batteries au lithium mal emballées ou non conformes." },
+      { type: "h2", text: "Acheter un chariot en pensant aux voyages" },
+      { type: "p", text: "Si vous jouez souvent loin de chez vous, une **batterie amovible** et un **pliage compact** comptent plus que d'habitude. Le [Volt Caddy Pro-S](/products/volt-caddy-pro-s) sépare la batterie et le bloc moteur du châssis, et la gamme Zip de MGI se plie à 70 × 47 × 42 cm. Comparez tous les modèles dans notre [guide d'achat 2026 des chariots de golf électriques](/blog/best-electric-golf-push-carts-canada), ou parcourez la [collection de chariots électriques](/products?category=electric-carts)." },
+    ],
+    faq: [
+      {
+        q: "Puis-je prendre l'avion au Canada avec la batterie au lithium de mon chariot de golf?",
+        a: "Habituellement non. Les batteries de plus de 160 Wh sont interdites en cabine et exigent l'approbation explicite du transporteur en soute, et les batteries de chariot pleine grandeur dépassent normalement de loin 160 Wh. Vérifiez l'étiquette de votre batterie et demandez à votre transporteur avant de partir.",
+      },
+      {
+        q: "Comment calculer les wattheures de ma batterie de chariot?",
+        a: "Multipliez la tension par la capacité en ampères-heures. Une batterie de 24 V et 10 Ah fait 240 Wh. Beaucoup de batteries indiquent aussi la valeur en Wh sur l'étiquette.",
+      },
+      {
+        q: "Puis-je enregistrer le châssis du chariot sans la batterie?",
+        a: "En général, oui. Sans la batterie, le châssis est un équipement sportif ou un bagage ordinaire. Emballez-le bien et vérifiez les règles de dimensions, de poids et de frais de votre transporteur pour l'équipement sportif.",
+      },
+      {
+        q: "Puis-je apporter mes lunettes BleeqUp et la Power Plus dans l'avion?",
+        a: "Oui. BleeqUp indique que les batteries Power Plus de Rover et de Ranger sont approuvées en bagage de cabine. Gardez-les, ainsi que toute batterie au lithium de rechange, dans votre bagage de cabine.",
+      },
+    ],
+  },
+  "polarized-vs-photochromic-sport-lenses": {
+    title: "Verres polarisés, photochromiques ou ZEISS : quel verre sport choisir pour rouler?",
+    metaTitle: "Verres polarisés ou photochromiques : lequel choisir?",
+    description: "Polarisé, photochromique ou teinte fixe? Comment fonctionne chaque verre sport, où il brille à vélo, en course et au golf, et quel verre BleeqUp va sur vos lunettes.",
+    excerpt: "Un seul verre ne peut pas être parfait à l'aube, à midi et dans un tunnel. Voici les différences entre verres polarisés, photochromiques et ZEISS à teinte fixe, et comment choisir selon votre sport.",
+    keywords: ["verres polarisés ou photochromiques", "lunettes vélo photochromiques", "meilleure teinte de verre pour le vélo", "lunettes polarisées golf", "verres bleequp rover", "transmission de la lumière vlt"],
+    imageAlt: "Lunettes sport IA BleeqUp avec un verre sport miroir rouge",
+    categoryLabel: "Lunettes IA",
+    body: [
+      { type: "p", text: "Les lunettes sport vivent dans une lumière plus difficile que les lunettes de tous les jours : une sortie à 6 h sous les arbres, une course à midi sur une chaussée éclatante, un tertre ombragé à côté d'une allée en plein soleil. Le verre que vous choisissez décide si vous voyez le nid-de-poule, la racine ou la pente du vert. Avec des lunettes à verres interchangeables comme les [BleeqUp Rover](/products/bleequp-rover-ai-sports-glasses) et [Ranger](/products/bleequp-ranger-zeiss-lens), pas besoin d'en choisir un seul." },
+      { type: "h2", text: "D'abord, comprendre la transmission de la lumière (VLT)" },
+      { type: "p", text: "La transmission de la lumière visible (VLT) est la part de lumière qu'un verre laisse passer. Plus le chiffre est bas, plus le verre est foncé. Les verres solaires sont classés en catégories de filtre selon la VLT par la norme ISO 12312-1 :" },
+      {
+        type: "table",
+        caption: "Catégories de filtre des verres solaires selon la transmission de la lumière visible",
+        head: ["Catégorie", "VLT", "Usage typique"],
+        rows: [
+          ["Catégorie 0", "80 à 100 %", "Clair : nuit, temps très couvert, intérieur"],
+          ["Catégorie 1", "43 à 80 %", "Faible luminosité : aube, crépuscule, forêt dense"],
+          ["Catégorie 2", "18 à 43 %", "Soleil variable ou modéré : la plupart des sorties et des rondes"],
+          ["Catégorie 3", "8 à 18 %", "Plein soleil, eau, plein été"],
+          ["Catégorie 4", "3 à 8 %", "Glacier et éblouissement en altitude; pas pour la conduite"],
+        ],
+      },
+      { type: "p", text: "À titre de référence, les verres ZEISS Orange, ZEISS Blue et Orange Red de Ranger ont une VLT de 18 à 43 % (catégorie 2), et son verre photochromique Black Red passe de 43 à 80 % lorsqu'il est clair à 18 à 43 % lorsqu'il est foncé. Tous les verres BleeqUp sont UV400 et bloquent les rayons UV, peu importe la teinte." },
+      { type: "h2", text: "Verres à teinte fixe (dont ZEISS)" },
+      { type: "p", text: "Un verre à teinte fixe garde toujours la même intensité. C'est l'option la plus simple et habituellement la plus nette, ce qui explique pourquoi les verres ZEISS de BleeqUp équipent par défaut les [Rover](/products/bleequp-rover-zeiss-lens) et la [Ranger édition ZEISS](/products/bleequp-ranger-zeiss-lens). Sur Ranger, les verres ZEISS ajoutent des traitements anti-rayures, hydrofuges et oléofuges, utiles quand la sueur et la pluie frappent le verre." },
+      {
+        type: "ul",
+        items: [
+          "**Idéal pour :** rouler et jouer au golf sous une lumière stable, et pour ceux qui veulent un seul verre qui fonctionne, tout simplement.",
+          "**Attention :** à l'ombre dense et au crépuscule, un verre de catégorie 2 peut sembler foncé.",
+        ],
+      },
+      { type: "h2", text: "Verres photochromiques" },
+      { type: "p", text: "Les verres photochromiques foncent lorsque les rayons ultraviolets les frappent et redeviennent clairs quand ils diminuent. Le [verre photochromique Rover](/products/bleequp-rover-photochromic-lens) est clair en faible luminosité et fonce automatiquement au soleil; un seul verre couvre donc un départ à l'aube, un tunnel et le plein soleil." },
+      {
+        type: "ul",
+        items: [
+          "**Idéal pour :** les longues sorties et les courses qui commencent tôt ou finissent tard, les sentiers en forêt et la météo changeante du Canada.",
+          "**Les compromis :** le changement n'est pas instantané, et l'éclaircissement prend habituellement plus de temps que l'assombrissement. La température compte aussi : les verres photochromiques ont tendance à foncer davantage au froid et à réagir plus lentement. Comme ils réagissent aux UV, ils foncent très peu derrière un pare-brise.",
+        ],
+      },
+      { type: "h2", text: "Verres polarisés" },
+      { type: "p", text: "La lumière réfléchie par les surfaces planes comme l'eau, les routes mouillées et les vitres d'auto devient polarisée horizontalement : c'est ce que vous percevez comme de l'éblouissement. Un verre polarisé bloque cette lumière. Le [verre polarisé Rover](/products/bleequp-rover-polarized-lens) est conçu exactement pour ça : l'éblouissement sur l'eau, les routes mouillées et les vitres d'auto." },
+      {
+        type: "ul",
+        items: [
+          "**Idéal pour :** les parcours au bord des lacs et sur la côte, les routes mouillées après la pluie, et les personnes sensibles à l'éblouissement.",
+          "**Les compromis :** la polarisation peut rendre certains écrans ACL, comme les compteurs de vélo et les téléphones, foncés ou inégaux selon l'angle. Certains cyclistes trouvent aussi les plaques mouillées ou glacées plus difficiles à repérer, car le reflet qui les signale est justement ce que le verre élimine. Certains golfeurs préfèrent un verre non polarisé pour lire les verts; c'est personnel, alors essayez les deux.",
+        ],
+      },
+      { type: "h2", text: "Quel verre pour votre sport?" },
+      {
+        type: "table",
+        caption: "Type de verre suggéré selon le sport et les conditions",
+        head: ["Situation", "Notre choix", "Pourquoi"],
+        rows: [
+          ["Vélo de route, soleil et ombre", "Photochromique", "S'adapte quand vous entrez et sortez de l'ombre"],
+          ["Aube, crépuscule ou sentiers en forêt", "Photochromique", "Assez clair pour voir les racines et les nids-de-poule"],
+          ["Journée d'été lumineuse, soleil constant", "ZEISS teinte fixe", "Vision nette et constante"],
+          ["Bord de lac ou routes mouillées", "Polarisé", "Coupe l'éblouissement sur l'eau et l'asphalte mouillé"],
+          ["Golf", "ZEISS ou photochromique", "Contraste constant; essayez le polarisé au champ de pratique d'abord"],
+          ["Sorties avec compteur de vélo", "ZEISS ou photochromique", "Pas d'écran noirci par la polarisation"],
+        ],
+      },
+      { type: "h2", text: "Changer les verres des lunettes BleeqUp" },
+      { type: "p", text: "Les deux modèles acceptent des verres interchangeables, mais **les verres Rover et Ranger ne sont pas compatibles entre eux**. Les verres Rover (ZEISS, polarisé et photochromique) vont uniquement sur Rover; les verres Ranger (ZEISS Orange, ZEISS Blue, Orange Red et photochromique Black Red) vont uniquement sur Ranger. Les verres Ranger se changent sans outils. Changer de verre ne change pas non plus vos vidéos : la caméra est dans la monture, pas derrière le verre. Autre chose à savoir : la garantie de BleeqUp couvre les lunettes, pas les verres, alors rangez vos verres de rechange dans un étui." },
+      { type: "p", text: "Besoin d'une prescription? Les deux modèles sont livrés avec un insert de prescription qui se place derrière le verre sport, pour que vous puissiez quand même changer de teinte. Notre [guide des lunettes caméra avec prescription](/blog/prescription-camera-glasses) explique le fonctionnement." },
+      { type: "callout", text: "Vous ne savez pas par quelles lunettes commencer? Comparez [Rover et Ranger](/compare) côte à côte, ou lisez notre guide des [meilleures lunettes intelligentes pour le vélo](/blog/best-smart-glasses-for-cycling)." },
+    ],
+    faq: [
+      {
+        q: "Verres polarisés ou photochromiques : lequel est le meilleur pour le vélo?",
+        a: "Pour la plupart des cyclistes, le photochromique. Il s'adapte à l'ombre et aux changements de lumière et ne nuit pas à la lecture des écrans de compteur. Le polarisé est préférable quand l'éblouissement sur l'eau ou les routes mouillées est votre principal problème.",
+      },
+      {
+        q: "Les verres photochromiques fonctionnent-ils par temps froid?",
+        a: "Oui. Ils ont tendance à foncer davantage au froid et à changer plus lentement. Ils foncent aussi très peu derrière un pare-brise, car le verre bloque la plupart des UV.",
+      },
+      {
+        q: "Les lunettes polarisées sont-elles bonnes pour le golf?",
+        a: "Beaucoup de golfeurs aiment la réduction de l'éblouissement, mais certains préfèrent un verre non polarisé pour lire les verts. Essayez les deux sur le vert de pratique avant de vous décider.",
+      },
+      {
+        q: "Les verres Rover vont-ils sur Ranger?",
+        a: "Non. Les verres Rover et Ranger ne sont pas interchangeables. Chaque modèle a ses propres verres ZEISS, photochromiques et autres.",
+      },
+    ],
+  },
+  "how-to-use-remote-control-golf-caddy": {
+    title: "Comment utiliser un chariot de golf télécommandé : installation, étiquette et conseils de pro",
+    metaTitle: "Chariot de golf télécommandé : conseils et étiquette",
+    description: "Nouveau chariot de golf télécommandé? Installez-le, pratiquez avant votre première ronde, conduisez-le prudemment en pente et respectez l'étiquette du parcours.",
+    excerpt: "Un chariot télécommandé est facile à conduire, et facile à mal conduire. Voici comment l'installer, où le garer et les bonnes habitudes qui le gardent loin des verts et des étangs.",
+    keywords: ["comment utiliser chariot de golf télécommandé", "conseils chariot de golf télécommandé", "étiquette chariot de golf", "installation chariot de golf électrique", "télécommande volt caddy pro-s"],
+    imageAlt: "Chariot de golf électrique télécommandé Volt Caddy Pro-S déplié et prêt pour une ronde",
+    categoryLabel: "Golf",
+    body: [
+      { type: "p", text: "Un chariot de golf télécommandé est ce qui se rapproche le plus d'un vrai cadet : vos bâtons roulent à côté de vous pendant que vous marchez les mains libres. Il faut environ une ronde pour être à l'aise, et quelques bonnes habitudes pour que le chariot ne finisse jamais sur un vert, dans une fosse de sable ou au bas d'une pente sans vous." },
+      { type: "p", text: "Ce guide prend le [Volt Caddy Pro-S](/products/volt-caddy-pro-s) comme exemple, mais la même approche fonctionne pour les chariots MGI Zip et Ai Navigator et le Motocaddy M7. Lisez toujours d'abord le manuel de votre propre chariot." },
+      { type: "h2", text: "Avant votre première ronde" },
+      {
+        type: "ol",
+        items: [
+          "**Chargez complètement la batterie.** Les batteries au lithium n'ont pas besoin de cycle de rodage, mais vous voulez une pleine charge pour votre premier 18 trous.",
+          "**Jumelez et testez la télécommande.** Vérifiez que l'avance, l'arrêt, la gauche, la droite et la vitesse répondent. Sachez où se trouve le bouton d'arrêt sans regarder.",
+          "**Chargez bien le sac.** Attachez le sac en haut et en bas pour qu'il ne puisse pas pivoter. Placez les objets lourds en bas et respectez la charge maximale de votre chariot (20 kg sur les modèles MGI et Motocaddy).",
+          "**Pratiquez dans un endroit vide.** Un stationnement tranquille ou un champ vide est idéal. Faites des huit, arrêtez-vous sur une cible et essayez de tourner à différentes vitesses.",
+          "**Apprenez les freins.** Le Pro-S a un frein de stationnement automatique et un contrôle de vitesse en descente. Sachez comment votre chariot se comporte quand il s'arrête dans une pente avant de vous y fier.",
+        ],
+      },
+      { type: "h2", text: "Conduire sur le parcours" },
+      { type: "h3", text: "Restez à portée, et à vue" },
+      { type: "p", text: "La portée de la télécommande varie beaucoup selon le modèle : jusqu'à 40 m sur le Pro-S, 100 m ou plus sur le Motocaddy M7, et de 100 à 200 m sur les chariots télécommandés de MGI. La portée est un plafond, pas un objectif. Gardez le chariot assez près pour voir ce qu'il y a devant lui, et arrêtez-le avant qu'il franchisse une crête derrière laquelle vous ne voyez pas. Certains chariots ajoutent une sécurité : l'Ai Navigator Halo de MGI s'arrête s'il perd le contact avec la télécommande pendant 5 secondes." },
+      { type: "h3", text: "Pentes et dévers" },
+      { type: "p", text: "Montez et descendez les pentes en ligne droite plutôt qu'en travers, ralentissez avant la pente plutôt que dedans, et gardez une main sur la poignée sur un terrain abrupt ou glissant. Le Pro-S monte des pentes jusqu'à 30 degrés et a deux roues de stabilité, et le Straight Tracker gyroscopique de MGI aide à garder la ligne en dévers. Dans un dévers prononcé, sur l'herbe mouillée ou sur un pont étroit, poussez-le simplement par la poignée." },
+      { type: "h3", text: "Vitesse" },
+      { type: "p", text: "Ajustez-vous à votre rythme de marche. Le Pro-S offre des modes de vitesse jusqu'à 10 km/h, ce qui est plus rapide que n'importe qui à pied; utilisez la vitesse maximale seulement sur une allée dégagée, et ralentissez près des gens, des voiturettes et dans les virages serrés." },
+      { type: "h2", text: "L'étiquette du parcours avec un chariot télécommandé" },
+      {
+        type: "ul",
+        items: [
+          "**Ne conduisez jamais sur les verts, les tertres de départ ou les fosses de sable.** Évitez aussi le collet et l'avant-vert. Suivez la signalisation pour les chariots et les zones délimitées par des cordes, qui s'appliquent aussi aux chariots.",
+          "**Garez-vous vers le prochain départ.** Laissez le chariot du côté du vert le plus près du prochain trou pour ne pas retraverser le vert.",
+          "**Restez immobile pendant que les autres jouent.** Même un chariot silencieux qui bouge dans le champ de vision de quelqu'un dérange. Arrêtez-le avant qu'un partenaire se place devant la balle.",
+          "**N'envoyez pas le chariot vers l'inconnu.** Les fonctions de distance programmée sont pratiques sur une allée dégagée, mais n'envoyez jamais un chariot vers des joueurs devant vous, vers l'eau ou vers une butte sans visibilité.",
+          "**Respectez les règles par temps humide.** Certains parcours limitent les voiturettes et les chariots quand le sol est mou. Informez-vous à la boutique du pro si vous n'êtes pas certain.",
+        ],
+      },
+      { type: "h2", text: "Un chariot télécommandé est-il permis en compétition?" },
+      { type: "p", text: "Selon les Règles du golf, l'utilisation d'un chariot électrique est généralement permise, mais un comité de compétition peut restreindre les moyens de transport motorisés ou l'équipement dans ses conditions de compétition. Certains chariots ont aussi un mode compétition; le [Zip Navigator AT](/products/mgi-zip-navigator-at-all-terrain) de MGI en est un exemple. Vérifiez les conditions d'inscription ou demandez au comité avant un tournoi." },
+      { type: "h2", text: "Après la ronde" },
+      {
+        type: "ol",
+        items: [
+          "**Éteignez-le avant de le plier ou de le soulever.** Gardez les doigts loin des roues et des articulations de pliage.",
+          "**Essuyez-le.** L'herbe, le sable et l'eau s'accumulent autour des roues et des essieux.",
+          "**Rechargez la batterie à l'intérieur.** Recharger après chaque ronde garde la batterie prête, et la recharge à l'intérieur évite le problème de la recharge au froid au printemps et à l'automne. Sur le Pro-S, la batterie et le bloc moteur se détachent pour que vous puissiez les rentrer.",
+          "**Gardez la télécommande chargée** ou apportez des piles de rechange si elle utilise des piles remplaçables.",
+        ],
+      },
+      { type: "callout", text: "La saison est finie? Suivez notre [guide d'entreposage d'hiver](/blog/golf-trolley-lithium-battery-winter-storage) avant de ranger le chariot au garage, et lisez [Peut-on prendre l'avion avec la batterie d'un chariot de golf électrique?](/blog/flying-with-golf-trolley-lithium-battery) si vous planifiez un voyage de golf dans le sud." },
+      { type: "h2", text: "Vous choisissez encore votre chariot?" },
+      { type: "p", text: "Si vous hésitez entre télécommande et suivi automatique, commencez par [Chariot télécommandé ou à suivi automatique](/blog/remote-vs-follow-me-golf-caddy), puis comparez les modèles dans notre [guide d'achat des chariots de golf électriques](/blog/best-electric-golf-push-carts-canada)." },
+    ],
+    faq: [
+      {
+        q: "À quelle distance peut-on conduire un chariot de golf télécommandé?",
+        a: "Ça dépend du modèle : jusqu'à 40 m pour le Volt Caddy Pro-S, 100 m ou plus pour le Motocaddy M7, et de 100 à 200 m pour les chariots télécommandés de MGI. Gardez le chariot à vue et plus près que sa portée maximale.",
+      },
+      {
+        q: "Puis-je conduire un chariot télécommandé sur le vert?",
+        a: "Non. Gardez tous les chariots hors des verts, des tertres de départ et des fosses de sable, et suivez la signalisation du parcours. Garez-vous du côté du vert le plus près du prochain départ.",
+      },
+      {
+        q: "Les chariots télécommandés sont-ils sécuritaires dans les pentes?",
+        a: "Oui, si vous montez et descendez les pentes en ligne droite, gardez une vitesse basse et utilisez le contrôle de vitesse en descente et le frein de stationnement. Dans un dévers prononcé ou sur l'herbe mouillée, poussez le chariot par la poignée.",
+      },
+      {
+        q: "Dois-je recharger mon chariot après chaque ronde?",
+        a: "Recharger après chaque ronde le garde prêt pour la suivante. Rechargez à l'intérieur, à la température de la pièce, et pour un long entreposage, gardez la batterie partiellement chargée.",
+      },
+    ],
+  },
+  "record-golf-round-with-camera-glasses": {
+    title: "Comment filmer votre ronde de golf avec des lunettes caméra (guide vidéo POV golf)",
+    metaTitle: "Filmer le golf en POV avec des lunettes caméra",
+    description: "Filmez votre ronde de vos propres yeux : réglages des lunettes caméra, autonomie pour 18 trous, Règles du golf et étiquette sur le parcours.",
+    excerpt: "Les lunettes caméra filment la ronde comme vous l'avez vue : la position de balle, la ligne, le roulé qui est tombé. Voici comment les régler, faire durer la batterie et respecter les règles.",
+    keywords: ["lunettes caméra golf", "filmer ronde de golf pov", "caméra vlog golf", "vidéo pov golf", "lunettes caméra pour le golf", "bleequp rover golf"],
+    imageAlt: "Lunettes caméra sport IA BleeqUp Rover",
+    categoryLabel: "Lunettes IA",
+    body: [
+      { type: "p", text: "La plupart des vidéos de golf sont tournées avec un téléphone sur un trépied ou par un ami qui filme dans l'axe. Les lunettes caméra captent autre chose : **la ronde vue de vos propres yeux**. La position de balle que vous regardiez, la ligne que vous avez choisie, la marche vers le vert et le roulé qui est tombé. C'est parfait pour un vlog de golf, un résumé de voyage ou simplement pour se souvenir d'une belle journée." },
+      { type: "p", text: "Ce guide prend les [BleeqUp Rover](/products/bleequp-rover-ai-sports-glasses) et [Ranger](/products/bleequp-ranger-zeiss-lens) comme exemples. Les deux filment en 3K jusqu'à 60 i/s avec un objectif de 120° et servent aussi de lunettes de soleil UV400." },
+      { type: "h2", text: "Ce que les lunettes caméra peuvent montrer, et ne peuvent pas montrer" },
+      { type: "p", text: "Fixez d'abord vos attentes. Les lunettes caméra filment **ce que vous voyez** : à l'adresse, vous captez la balle, la tête du bâton et la cible quand vous levez les yeux. Elles ne montrent pas votre élan de l'extérieur. Pour analyser votre élan, il faut encore un téléphone sur un trépied dans l'axe ou de face. Voyez les lunettes comme la caméra pour raconter, et le téléphone comme la caméra pour l'entraînement." },
+      { type: "h2", text: "Les meilleurs réglages pour le golf" },
+      {
+        type: "ul",
+        items: [
+          "**Inclinaison (Rover) :** la caméra de Rover s'incline à −10°, 0° ou 15°. Vous portez une casquette? Commencez à −10° pour garder la visière hors du cadre.",
+          "**Résolution et cadence :** le 3K30 est un bon réglage par défaut. Les clips durent jusqu'à 5 minutes en 3K30, contre 1 minute en 3K60 ou 1080p60, et le 1080p30 n'a pas de limite de clip. Notez que les modes 60 i/s et 3K exigent un téléphone compatible.",
+          "**Orientation :** filmez en 9:16 si vos clips sont destinés à Reels, TikTok ou Shorts, et en 16:9 pour YouTube.",
+          "**HDR (Rover) :** le HDR en temps réel aide les jours de soleil quand vous êtes à l'ombre et regardez vers une allée ensoleillée.",
+        ],
+      },
+      { type: "h2", text: "Faire durer la batterie 18 trous" },
+      { type: "p", text: "Rover et Ranger filment chacune environ **1 heure de vidéo** sur la batterie intégrée, et une ronde de 18 trous dure bien plus longtemps. De toute façon, le but n'est pas de tout filmer; personne ne veut regarder quatre heures de marche. Filmez les coups, pas la ronde :" },
+      {
+        type: "ol",
+        items: [
+          "**Lancez l'enregistrement en vous plaçant, arrêtez-le après l'atterrissage de la balle.** Un clip de 15 à 30 secondes par coup capte la routine, la vue de l'élan et la trajectoire.",
+          "**Utilisez les commandes vocales sur Rover** pour démarrer et arrêter sans toucher aux lunettes en pleine routine.",
+          "**Sautez la marche.** Prenez plutôt un clip panoramique de temps en temps sur les trous signature.",
+          "**Chargez avant le départ.** Les deux modèles se rechargent rapidement en environ une heure.",
+        ],
+      },
+      { type: "p", text: "Avec cette approche, la batterie intégrée couvre facilement beaucoup de coups. Si vous filmez aussi de longues sorties à vélo, l'[ensemble Rover](/products/bleequp-rover-ai-sports-glasses-bundle) ajoute la Rover Power Plus, qui prolonge l'enregistrement à environ 5 heures. Elle se fixe à l'arrière d'un casque de vélo, alors elle convient mieux au vélo qu'au golf." },
+      { type: "h2", text: "Transformer vos clips en résumé" },
+      { type: "p", text: "Le plus difficile en vidéo de golf, c'est le montage, pas le tournage. L'application BleeqUp détecte les meilleurs moments et crée un montage en un toucher, et sur Rover vous pouvez chercher vos clips par la voix pour trouver un coup précis. Le stockage est de 64 Go sur Rover et de 32 Go sur Ranger, et l'enregistrement en boucle peut continuer en écrasant les plus vieilles séquences; transférez donc vos clips préférés après la ronde." },
+      { type: "h2", text: "Ce que permettent les Règles du golf" },
+      { type: "p", text: "En partie amicale, filmez tant que vous voulez. En compétition, la règle 4.3 des [Règles du golf](https://www.randa.org/rog/the-rules-of-golf/rule-4) s'applique :" },
+      {
+        type: "ul",
+        items: [
+          "**Permis :** enregistrer de l'information de votre ronde pour l'utiliser **après** la ronde.",
+          "**Interdit :** regarder une vidéo de la compétition pendant la ronde pour vous aider à choisir un bâton, à jouer un coup ou à décider comment jouer. Ne revoyez pas vos clips d'élan entre les trous.",
+          "**Audio :** écouter de la musique sans lien avec la compétition est permis, mais pas pour éliminer les distractions ou régler le tempo de votre élan. Si vous utilisez les haut-parleurs ouverts, gardez un volume respectueux.",
+        ],
+      },
+      { type: "p", text: "Les comités peuvent ajouter leurs propres conditions; vérifiez les conditions de la compétition en cas de doute." },
+      { type: "h2", text: "Étiquette : filmer d'autres golfeurs" },
+      {
+        type: "ul",
+        items: [
+          "**Avisez votre groupe** que vous filmez au premier départ, et arrêtez si quelqu'un préfère ne pas être filmé.",
+          "**Demandez avant de publier** des clips qui montrent le visage ou l'élan d'autres personnes.",
+          "**Respectez les politiques du club.** Certains clubs privés restreignent les caméras ou les téléphones; informez-vous à la boutique du pro.",
+          "**Gardez le rythme.** Filmer ne devrait pas ajouter de temps. Démarrez et arrêtez la caméra dans votre routine normale.",
+        ],
+      },
+      { type: "h2", text: "Choisir le bon verre pour le parcours" },
+      { type: "p", text: "Comme les lunettes caméra sont aussi vos lunettes de soleil, le verre compte. Notre [guide des verres polarisés et photochromiques](/blog/polarized-vs-photochromic-sport-lenses) explique quelle teinte convient au golf. Vous hésitez entre les modèles? Comparez [Rover et Ranger](/compare), ou lisez [Lunettes caméra ou caméras d'action](/blog/camera-glasses-vs-action-camera) pour voir où chaque outil l'emporte." },
+    ],
+    faq: [
+      {
+        q: "Les lunettes caméra peuvent-elles filmer mon élan de golf?",
+        a: "Elles filment ce que vous voyez à hauteur des yeux : la balle et la tête du bâton à l'adresse, et la trajectoire quand vous levez les yeux. Pour voir votre élan complet de l'extérieur, utilisez un téléphone sur un trépied.",
+      },
+      {
+        q: "Est-il permis de filmer pendant une compétition de golf?",
+        a: "Selon la règle 4.3, vous pouvez enregistrer de l'information pour l'utiliser après la ronde, mais vous ne devez pas regarder de vidéo pendant la ronde pour vous aider à choisir un bâton, à jouer un coup ou à décider comment jouer. Vérifiez aussi les conditions de la compétition.",
+      },
+      {
+        q: "Les lunettes caméra tiennent-elles une ronde complète?",
+        a: "Pas si vous filmez en continu. Rover et Ranger filment environ 1 heure de vidéo par charge; filmez donc chaque coup plutôt que toute la ronde.",
+      },
+      {
+        q: "Quel est le meilleur réglage vidéo pour le golf en POV?",
+        a: "Le 3K30 est un bon réglage par défaut : une vidéo nette avec des clips jusqu'à 5 minutes. Utilisez le 9:16 pour les réseaux sociaux et le 16:9 pour YouTube.",
+      },
+    ],
+  },
+};

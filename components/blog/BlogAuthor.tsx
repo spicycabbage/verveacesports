@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { JsonLd } from "@/components/seo/JsonLd";
-import { BLOG_POSTS, blogAuthorJsonLd, blogAuthorPath, formatBlogDate, getBlogAuthor } from "@/lib/content/blog";
+import { blogAuthorJsonLd, blogAuthorPath, formatBlogDate, getBlogAuthor, publishedBlogPosts } from "@/lib/content/blog";
 import { localizePost } from "@/lib/content/blog/localize";
 import { blogHrefLang, blogHreflangLanguages, blogOgLocale, blogPath } from "@/lib/content/blog/paths";
 import { blogLocalesFor } from "@/lib/content/blog/translations";
@@ -39,7 +39,7 @@ export function BlogAuthor({ site, locale, slug }: { site: SiteConfig; locale: L
   const author = getBlogAuthor(slug);
   if (!author) notFound();
   const ui = blogUi(locale);
-  const posts = BLOG_POSTS.flatMap((post) => {
+  const posts = publishedBlogPosts().flatMap((post) => {
     if (post.author.slug !== author.slug) return [];
     const localized = localizePost(post, locale);
     return localized ? [localized] : [];

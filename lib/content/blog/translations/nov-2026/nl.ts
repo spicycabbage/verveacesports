@@ -1,0 +1,331 @@
+import type { BlogTranslation } from "../../translation";
+
+/** November 2026 guides. Block shape mirrors the English posts exactly. */
+export const nlNov2026: Record<string, BlogTranslation> = {
+  "flying-with-golf-trolley-lithium-battery": {
+    title: "Mag de accu van een elektrische golftrolley mee in het vliegtuig? De Canadese regels uitgelegd",
+    metaTitle: "Golftrolley-accu mee in het vliegtuig? Regels in Canada",
+    description: "Met je elektrische golftrolley op reis? Zo werken de wattuurlimieten op Canadese vluchten, en dit doe je als de accu niet mee mag.",
+    excerpt: "Het frame reist meestal mee als sportbagage. De lithiumaccu is een ander verhaal. Zo lees je het wattuurlabel en plan je je golfreis eromheen.",
+    keywords: ["golftrolley accu vliegtuig", "golftrolley accu luchtvaartmaatschappij", "lithium golftrolley accu vliegen", "reizen met elektrische golftrolley", "golftrolley accu wattuur"],
+    imageAlt: "Afneembare lithiumaccu en aandrijfunit van de Volt Caddy Pro-S, losgemaakt van het frame",
+    categoryLabel: "Golf",
+    body: [
+      { type: "p", text: "Golfreizen naar het zuiden in de winter zijn een Canadese traditie, en wie eenmaal met een elektrische trolley heeft gelopen, wil niet meer terug naar een trekkar of een huurtrolley. Goed nieuws: een opgevouwen trolleyframe kan meestal mee als gewone sportbagage. Het probleem is de **lithiumaccu**, die luchtvaartmaatschappijen als gevaarlijke goederen behandelen. Of hij mee mag, hangt af van één getal op de accu." },
+      { type: "callout", text: "Regels veranderen, en elke luchtvaartmaatschappij legt eigen beleid bovenop de nationale limieten. Bekijk de pagina over gevaarlijke goederen van je maatschappij en vraag elke goedkeuring schriftelijk aan voordat je vliegt. Deze gids legt uit hoe de limieten werken; hij vervangt het antwoord van je maatschappij niet." },
+      { type: "h2", text: "Het getal dat telt: wattuur (Wh)" },
+      { type: "p", text: "Limieten van luchtvaartmaatschappijen staan in **wattuur (Wh)**, de hoeveelheid energie die de accu opslaat. Veel trolleyaccu's vermelden het op het label. Staan er alleen volt en ampère-uur op, vermenigvuldig ze dan: **volt × ampère-uur = wattuur**. Een accu van 24 V en 10 Ah is bijvoorbeeld 240 Wh." },
+      { type: "p", text: "Om je een idee te geven, dit zijn de gepubliceerde waarden van enkele trolleys die wij verkopen:" },
+      {
+        type: "table",
+        caption: "Gepubliceerde accuwaarden van enkele elektrische golftrolleys",
+        head: ["Trolley", "Accu", "Waarde"],
+        rows: [
+          ["[MGI Ai Navigator Halo](/products/mgi-ai-navigator-halo)", "24 V lithium in een brandwerende metalen behuizing", "299 Wh"],
+          ["[MGI Zip X1](/products/mgi-zip-x1) en [Zip X5](/products/mgi-zip-x5)", "24 V lithium", "250 Wh"],
+          ["[MGI E-Boost](/products/mgi-e-boost-pushcart)", "24 V Click & Go lithium", "225 Wh"],
+          ["[Rover Power Plus](/products/bleequp-rover-power-plus) (voor BleeqUp-brillen)", "1600 mAh", "Goedgekeurd voor handbagage"],
+        ],
+      },
+      { type: "p", text: "Lees voor andere trolleys, zoals de [Volt Caddy Pro-S](/products/volt-caddy-pro-s) en de 28V CLICK 'N' CONNECT-accu's van Motocaddy, het label van je eigen accu in plaats van te gokken." },
+      { type: "h2", text: "De limieten voor vluchten in Canada" },
+      { type: "p", text: "De Canadese luchtvaartbeveiliging ([CATSA](https://www.catsa-acsta.gc.ca/en/what-can-bring/guidelines-batteries)) publiceert de controlelimieten voor lithium-ionaccu's, en de meeste maatschappijen volgen dezelfde drempels van de internationale luchtvaartorganisatie IATA:" },
+      {
+        type: "ul",
+        items: [
+          "**100 Wh of minder:** toegestaan in de handbagage. Reserveaccu's van dit formaat horen in je handbagage, niet in de ruimbagage.",
+          "**101 tot 160 Wh:** toegestaan in de handbagage met goedkeuring van de maatschappij, met maximaal twee reserveaccu's per persoon.",
+          "**Meer dan 160 Wh:** niet toegestaan in de handbagage. In de ruimbagage is uitdrukkelijke goedkeuring van de maatschappij nodig.",
+        ],
+      },
+      { type: "p", text: "Volwaardige golftrolleyaccu's zijn gemaakt om een trolley 18 tot 36 holes aan te drijven, dus ze zitten doorgaans ruim boven 160 Wh. Alle waarden in de tabel hierboven ook. In de praktijk betekent dat: **reken erop dat je trolleyaccu thuisblijft**, tenzij je maatschappij schriftelijk heeft bevestigd dat ze hem accepteert." },
+      { type: "h2", text: "Wat wel mee kan: het frame en je accessoires" },
+      {
+        type: "ol",
+        items: [
+          "**Haal de accu eruit** en laat hem thuis, voor opslag ongeveer half opgeladen. Onze [gids voor winteropslag van de accu](/blog/golf-trolley-lithium-battery-winter-storage) legt uit hoe.",
+          "**Vouw het frame op en bescherm het.** Bescherm handvat, console en wielassen met vulling en verpak het in een harde koffer of een goed gevulde reistas.",
+          "**Vraag hoe het wordt geteld.** Maatschappijen behandelen golfspullen meestal als sportbagage, maar een trolleyframe kan als extra stuk bagage tellen. Controleer afmetingen, gewicht en kosten voordat je boekt.",
+          "**Houd afstandsbedieningen en kleine elektronica in je handbagage.** Kleine lithiumaccu's, zoals in een afstandsbediening of de [Rover Power Plus](/products/bleequp-rover-power-plus), gaan mee in de cabine.",
+        ],
+      },
+      { type: "h2", text: "Opties als de accu niet mee mag" },
+      {
+        type: "ul",
+        items: [
+          "**Ga met de auto.** In je eigen auto geldt geen wattuurlimiet. Laat de accu 's zomers niet in een hete kofferbak liggen, en laat een koude accu op kamertemperatuur komen voordat je hem oplaadt.",
+          "**Huur op je bestemming.** Veel golfbestemmingen verhuren elektrische trolleys of duwkarren. Bel vooraf de baan of een lokale winkel.",
+          "**Vraag naar een reisaccu.** Sommige trolleymerken bieden kleinere accu's die binnen de limieten van luchtvaartmaatschappijen vallen. Koop je een trolley en reis je vaak, vraag dan de fabrikant of er een bestaat voor dat model.",
+          "**Verstuur hem correct, of helemaal niet.** Het verzenden van een lithiumaccu valt onder de regels voor gevaarlijke goederen. Vraag de vervoerder naar de eisen voordat je er een inpakt, en verstop nooit een accu in een golftas of koffer.",
+        ],
+      },
+      { type: "h2", text: "Waarom luchtvaartmaatschappijen zo streng zijn" },
+      { type: "p", text: "Een beschadigde of kortgesloten lithiumaccu kan oververhit raken, en een brand in het vrachtruim is moeilijk te ontdekken en te blussen. Daarom draaien de regels om opgeslagen energie (Wh), het afschermen van de polen en het binnen bereik van de bemanning houden van accu's. Volgens [Transport Canada](https://tc.canada.ca/en/tc-stories/lithium-batteries-part-2-what-you-didn-t-know-about-travelling-them) worden op Canadese luchthavens elk jaar duizenden voorwerpen uit ruimbagage gehaald vanwege verkeerd verpakte of niet-conforme lithiumaccu's." },
+      { type: "h2", text: "Een trolley kopen met reizen in gedachten" },
+      { type: "p", text: "Golf je vaak ver van huis, dan tellen een **afneembare accu** en een **compact vouwformaat** extra zwaar. Bij de [Volt Caddy Pro-S](/products/volt-caddy-pro-s) gaan accu en aandrijfunit los van het frame, en de Zip-reeks van MGI vouwt op tot 70 × 47 × 42 cm. Vergelijk alle modellen in onze [koopgids 2026 voor elektrische golftrolleys](/blog/best-electric-golf-push-carts-canada) of bekijk de [collectie elektrische trolleys](/products?category=electric-carts)." },
+    ],
+    faq: [
+      {
+        q: "Mag de lithiumaccu van mijn golftrolley mee in het vliegtuig in Canada?",
+        a: "Meestal niet. Accu's van meer dan 160 Wh zijn niet toegestaan in de handbagage en hebben voor de ruimbagage uitdrukkelijke goedkeuring van de maatschappij nodig, en volwaardige golftrolleyaccu's zitten normaal ruim boven 160 Wh. Controleer het label van je accu en vraag het je maatschappij voordat je reist.",
+      },
+      {
+        q: "Hoe bereken ik het aantal wattuur van mijn trolleyaccu?",
+        a: "Vermenigvuldig de spanning met het aantal ampère-uur. Een accu van 24 V en 10 Ah is 240 Wh. Veel accu's vermelden de Wh-waarde ook op het label.",
+      },
+      {
+        q: "Kan ik het trolleyframe zonder accu inchecken?",
+        a: "Meestal wel. Zonder accu is het frame gewone sportbagage. Verpak het goed en controleer de regels van je maatschappij voor afmetingen, gewicht en kosten van sportbagage.",
+      },
+      {
+        q: "Mag ik mijn BleeqUp-bril en Power Plus mee aan boord nemen?",
+        a: "Ja. BleeqUp vermeldt dat de Power Plus-accu's van Rover en Ranger zijn goedgekeurd voor handbagage. Neem ze, net als alle reservelithiumaccu's, mee in je handbagage.",
+      },
+    ],
+  },
+  "polarized-vs-photochromic-sport-lenses": {
+    title: "Gepolariseerd, fotochromatisch of ZEISS: welke sportlens kies je?",
+    metaTitle: "Gepolariseerde of fotochromatische sportlenzen: welke?",
+    description: "Gepolariseerd, fotochromatisch of vaste tint? Hoe elke sportlens werkt, waar hij uitblinkt bij fietsen, hardlopen en golf, en welke BleeqUp-lens op je bril past.",
+    excerpt: "Eén lens kan niet perfect zijn bij zonsopgang, om twaalf uur en in een tunnel. Zo verschillen gepolariseerde, fotochromatische en ZEISS-lenzen met vaste tint, en zo kies je voor jouw sport.",
+    keywords: ["gepolariseerd of fotochromatisch", "fotochromatische fietsbril", "beste lenskleur fietsen", "gepolariseerde zonnebril golf", "bleequp rover lenzen", "lichtdoorlaat vlt"],
+    imageAlt: "BleeqUp AI-sportbril met een rode spiegelende sportlens",
+    categoryLabel: "AI-brillen",
+    body: [
+      { type: "p", text: "Sportbrillen krijgen te maken met lastiger licht dan gewone zonnebrillen: een rit om 6 uur onder de bomen, een middagloop op fel asfalt, een schaduwrijke tee naast een zonovergoten fairway. De lens die je kiest bepaalt of je het gat in de weg, de wortel of de helling op de green ziet. Met brillen met wissellenzen zoals de [BleeqUp Rover](/products/bleequp-rover-ai-sports-glasses) en [Ranger](/products/bleequp-ranger-zeiss-lens) hoef je niet voor één lens te kiezen." },
+      { type: "h2", text: "Eerst: lichtdoorlaat (VLT) begrijpen" },
+      { type: "p", text: "Visible light transmission (VLT) is het deel van het licht dat een lens doorlaat. Hoe lager het getal, hoe donkerder de lens. Zonnebrillenzen worden volgens de norm ISO 12312-1 op basis van VLT in filtercategorieën ingedeeld:" },
+      {
+        type: "table",
+        caption: "Filtercategorieën van zonnebrillenzen volgens lichtdoorlaat",
+        head: ["Categorie", "VLT", "Typisch gebruik"],
+        rows: [
+          ["Categorie 0", "80 tot 100%", "Helder: nacht, zware bewolking, binnen"],
+          ["Categorie 1", "43 tot 80%", "Weinig licht: zonsopgang, schemering, dicht bos"],
+          ["Categorie 2", "18 tot 43%", "Wisselende of matige zon: de meeste ritten en rondes"],
+          ["Categorie 3", "8 tot 18%", "Felle zon, water, hoogzomer"],
+          ["Categorie 4", "3 tot 8%", "Gletsjers en verblinding op grote hoogte; niet voor autorijden"],
+        ],
+      },
+      { type: "p", text: "Ter vergelijking: de lenzen ZEISS Orange, ZEISS Blue en Orange Red van de Ranger hebben 18 tot 43% VLT (categorie 2), en de fotochromatische Black Red-lens gaat van 43 tot 80% als hij helder is naar 18 tot 43% als hij donker is. Alle BleeqUp-lenzen zijn UV400 en blokkeren uv-licht, welke tint ook." },
+      { type: "h2", text: "Lenzen met vaste tint (waaronder ZEISS)" },
+      { type: "p", text: "Een lens met vaste tint is altijd even donker. Het is de eenvoudigste en meestal scherpste optie, en daarom zijn de ZEISS-lenzen van BleeqUp standaard op de [Rover](/products/bleequp-rover-zeiss-lens) en de [Ranger ZEISS-editie](/products/bleequp-ranger-zeiss-lens). Op de Ranger voegen de ZEISS-lenzen krasbestendige, water- en olieafstotende coatings toe, handig als zweet en regen op de lens komen." },
+      {
+        type: "ul",
+        items: [
+          "**Ideaal voor:** fietsen en golfen bij constant daglicht, en voor iedereen die één lens wil die gewoon werkt.",
+          "**Let op bij:** diepe schaduw en schemering, waar een lens van categorie 2 donker kan aanvoelen.",
+        ],
+      },
+      { type: "h2", text: "Fotochromatische lenzen" },
+      { type: "p", text: "Fotochromatische lenzen worden donkerder als er uv-licht op valt en weer lichter als dat afneemt. De [fotochromatische Rover-lens](/products/bleequp-rover-photochromic-lens) is helder bij weinig licht en wordt in de zon automatisch donker, zodat één lens een vertrek bij zonsopgang, een tunnel en volle zon dekt." },
+      {
+        type: "ul",
+        items: [
+          "**Ideaal voor:** lange ritten en loopjes die vroeg beginnen of laat eindigen, bospaden en het wisselvallige Canadese weer.",
+          "**De nadelen:** de overgang gaat niet direct, en lichter worden duurt meestal langer dan donker worden. Temperatuur speelt ook mee: fotochromatische lenzen worden bij kou meestal donkerder en reageren trager. Omdat ze op uv reageren, worden ze achter een autovoorruit nauwelijks donker.",
+        ],
+      },
+      { type: "h2", text: "Gepolariseerde lenzen" },
+      { type: "p", text: "Licht dat weerkaatst op vlakke oppervlakken zoals water, natte wegen en autoruiten wordt horizontaal gepolariseerd, en dat ervaar je als verblinding. Een gepolariseerde lens blokkeert dat licht. De [gepolariseerde Rover-lens](/products/bleequp-rover-polarized-lens) is daar precies voor gemaakt: schittering van water, natte wegen en autoruiten." },
+      {
+        type: "ul",
+        items: [
+          "**Ideaal voor:** routes langs meren en de kust, natte wegen na regen en iedereen die gevoelig is voor verblinding.",
+          "**De nadelen:** polarisatie kan sommige lcd-schermen, zoals fietscomputers en telefoons, onder bepaalde hoeken donker of vlekkerig laten lijken. Sommige fietsers zien natte of ijzige plekken ook slechter, omdat de glans die ze verraadt juist wordt weggefilterd. Sommige golfers lezen greens liever met een niet-gepolariseerde lens; dat is persoonlijk, dus probeer beide.",
+        ],
+      },
+      { type: "h2", text: "Welke lens voor jouw sport?" },
+      {
+        type: "table",
+        caption: "Aanbevolen lenstype per sport en omstandigheden",
+        head: ["Situatie", "Onze keuze", "Waarom"],
+        rows: [
+          ["Wegfietsen, afwisselend zon en schaduw", "Fotochromatisch", "Past zich aan als je de schaduw in en uit rijdt"],
+          ["Zonsopgang, schemering of bospaden", "Fotochromatisch", "Helder genoeg om wortels en gaten te zien"],
+          ["Heldere zomerdag, constante zon", "ZEISS vaste tint", "Scherp, constant zicht"],
+          ["Routes langs het meer of natte wegen", "Gepolariseerd", "Haalt de schittering van water en nat asfalt weg"],
+          ["Golf", "ZEISS of fotochromatisch", "Constant contrast; probeer gepolariseerd eerst op de driving range"],
+          ["Ritten met fietscomputer", "ZEISS of fotochromatisch", "Geen scherm dat zwart wordt door polarisatie"],
+        ],
+      },
+      { type: "h2", text: "Lenzen wisselen op BleeqUp-brillen" },
+      { type: "p", text: "Beide modellen hebben wissellenzen, maar **lenzen van Rover en Ranger zijn niet uitwisselbaar**. Rover-lenzen (ZEISS, gepolariseerd en fotochromatisch) passen alleen op de Rover; Ranger-lenzen (ZEISS Orange, ZEISS Blue, Orange Red en fotochromatisch Black Red) alleen op de Ranger. Ranger-lenzen wissel je zonder gereedschap. Een andere lens verandert je beelden ook niet: de camera zit in het frame, niet achter de lens. Nog iets: de garantie van BleeqUp dekt de bril, niet de lenzen, dus bewaar reservelenzen in een etui." },
+      { type: "p", text: "Heb je glazen op sterkte nodig? Beide modellen worden geleverd met een inzetstuk op sterkte dat achter de sportlens zit, zodat je nog steeds van tint kunt wisselen. Onze [gids voor camerabrillen op sterkte](/blog/prescription-camera-glasses) legt uit hoe dat werkt." },
+      { type: "callout", text: "Weet je niet met welke bril je moet beginnen? Vergelijk [Rover en Ranger](/compare) naast elkaar of lees onze gids met de [beste slimme brillen om te fietsen](/blog/best-smart-glasses-for-cycling)." },
+    ],
+    faq: [
+      {
+        q: "Is gepolariseerd of fotochromatisch beter om te fietsen?",
+        a: "Voor de meeste fietsers fotochromatisch. De lens past zich aan schaduw en wisselend licht aan en hindert het aflezen van een fietscomputer niet. Gepolariseerd is beter als schittering van water of natte wegen je grootste probleem is.",
+      },
+      {
+        q: "Werken fotochromatische lenzen bij koud weer?",
+        a: "Ja. Ze worden bij kou meestal donkerder en veranderen trager. Achter een autovoorruit worden ze nauwelijks donker, omdat het glas het meeste uv-licht tegenhoudt.",
+      },
+      {
+        q: "Zijn gepolariseerde zonnebrillen goed voor golf?",
+        a: "Veel golfers houden van de minder felle schittering, maar sommigen lezen greens liever met een niet-gepolariseerde lens. Probeer beide op de puttinggreen voordat je kiest.",
+      },
+      {
+        q: "Passen Rover-lenzen op de Ranger?",
+        a: "Nee. Lenzen van Rover en Ranger zijn niet uitwisselbaar. Elk model heeft eigen ZEISS-, fotochromatische en andere lenzen.",
+      },
+    ],
+  },
+  "how-to-use-remote-control-golf-caddy": {
+    title: "Zo gebruik je een golfcaddy met afstandsbediening: instellen, etiquette op de baan en tips",
+    metaTitle: "Golfcaddy met afstandsbediening: tips en etiquette",
+    description: "Nieuwe golfcaddy met afstandsbediening? Zo stel je hem in, oefen je voor je eerste ronde, rij je veilig op hellingen en volg je de etiquette op de baan.",
+    excerpt: "Een caddy met afstandsbediening is makkelijk te besturen, en makkelijk verkeerd te besturen. Zo stel je hem in, parkeer je hem slim en houd je hem weg van greens en vijvers.",
+    keywords: ["golfcaddy afstandsbediening gebruiken", "tips golftrolley met afstandsbediening", "etiquette golftrolley", "elektrische golfcaddy instellen", "volt caddy pro-s afstandsbediening"],
+    imageAlt: "Elektrische golftrolley met afstandsbediening Volt Caddy Pro-S, uitgevouwen en klaar voor een ronde",
+    categoryLabel: "Golf",
+    body: [
+      { type: "p", text: "Een golfcaddy met afstandsbediening komt het dichtst bij een echte caddie: je clubs rollen naast je mee terwijl je met lege handen loopt. Na ongeveer één ronde voel je je er thuis bij, en met een paar goede gewoontes belandt de trolley nooit zonder jou op een green, in een bunker of onderaan een helling." },
+      { type: "p", text: "Deze gids gebruikt de [Volt Caddy Pro-S](/products/volt-caddy-pro-s) als voorbeeld, maar dezelfde aanpak werkt voor de MGI Zip- en Ai Navigator-caddies en de Motocaddy M7. Lees altijd eerst de handleiding van je eigen trolley." },
+      { type: "h2", text: "Voor je eerste ronde" },
+      {
+        type: "ol",
+        items: [
+          "**Laad de accu volledig op.** Lithiumaccu's hebben geen inloopcyclus nodig, maar voor je eerste 18 holes wil je een volle accu.",
+          "**Koppel en test de afstandsbediening.** Controleer of vooruit, stop, links, rechts en snelheid reageren. Weet waar de stopknop zit zonder te kijken.",
+          "**Laad de tas goed in.** Zet de tas boven en onder vast zodat hij niet kan draaien. Leg zware spullen onderin en blijf binnen de maximale belasting van je trolley (20 kg bij MGI- en Motocaddy-modellen).",
+          "**Oefen ergens waar het rustig is.** Een stille parkeerplaats of een leeg veld is ideaal. Rij achtjes, stop bij een doel en probeer te draaien op verschillende snelheden.",
+          "**Leer de remmen kennen.** De Pro-S heeft een automatische parkeerrem en snelheidsregeling bergaf. Weet hoe je trolley zich gedraagt als hij op een helling stopt voordat je erop vertrouwt.",
+        ],
+      },
+      { type: "h2", text: "Rijden op de baan" },
+      { type: "h3", text: "Blijf binnen bereik, en in zicht" },
+      { type: "p", text: "Het bereik van de afstandsbediening verschilt sterk per model: tot 40 m bij de Pro-S, 100 m of meer bij de Motocaddy M7 en 100 tot 200 m bij de afstandsbediende caddies van MGI. Bereik is een plafond, geen doel. Houd de trolley zo dichtbij dat je ziet wat ervoor ligt, en stop hem voordat hij over een heuveltop gaat waar je niet overheen kijkt. Sommige trolleys hebben een beveiliging: de MGI Ai Navigator Halo stopt als hij 5 seconden geen contact heeft met de afstandsbediening." },
+      { type: "h3", text: "Hellingen en schuine stukken" },
+      { type: "p", text: "Rij recht omhoog en recht omlaag in plaats van dwars over een helling, rem af vóór de helling in plaats van erop, en houd op steil of glad terrein een hand aan het handvat. De Pro-S beklimt hellingen tot 30 graden en heeft twee stabiliteitswielen, en de gyroscopische Straight Tracker van MGI helpt de lijn te houden op een schuine helling. Bij een sterke dwarshelling, op nat gras of op een smalle brug duw je hem gewoon aan het handvat." },
+      { type: "h3", text: "Snelheid" },
+      { type: "p", text: "Pas je snelheid aan je looptempo aan. De Pro-S heeft snelheidsstanden tot 10 km/u, sneller dan iemand loopt, dus gebruik de topsnelheid alleen op een open fairway en minder vaart bij mensen, buggy's en krappe bochten." },
+      { type: "h2", text: "Etiquette op de baan met een caddy met afstandsbediening" },
+      {
+        type: "ul",
+        items: [
+          "**Rij nooit op greens, tees of in bunkers.** Blijf ook van de voorgreen af. Volg de trolleyborden en afgezette zones van de baan; die gelden ook voor trolleys.",
+          "**Parkeer richting de volgende tee.** Zet de trolley aan de kant van de green die het dichtst bij de volgende hole ligt, zodat je niet terug over de green loopt.",
+          "**Sta stil terwijl anderen spelen.** Zelfs een stille trolley die in iemands blikveld beweegt, leidt af. Stop voordat een medespeler de bal adresseert.",
+          "**Stuur hem niet het onbekende in.** Afstandsfuncties zijn handig op open fairways, maar stuur een trolley nooit richting spelers voor je, water of een onoverzichtelijke heuvel.",
+          "**Respecteer de regels bij nat weer.** Sommige banen beperken buggy's en trolleys als de grond zacht is. Vraag het in de proshop als je twijfelt.",
+        ],
+      },
+      { type: "h2", text: "Mag een caddy met afstandsbediening in wedstrijden?" },
+      { type: "p", text: "Volgens de Golfregels is een elektrische trolley doorgaans toegestaan, maar een wedstrijdcommissie kan gemotoriseerd vervoer of uitrusting beperken in de wedstrijdvoorwaarden. Sommige trolleys hebben ook een wedstrijdmodus; de [Zip Navigator AT](/products/mgi-zip-navigator-at-all-terrain) van MGI is er één van. Controleer de inschrijvingsvoorwaarden of vraag het de commissie voor een wedstrijd." },
+      { type: "h2", text: "Na de ronde" },
+      {
+        type: "ol",
+        items: [
+          "**Zet hem uit voordat je hem opvouwt of optilt.** Houd je vingers weg van de wielen en vouwscharnieren.",
+          "**Veeg hem schoon.** Gras, zand en water verzamelen zich rond wielen en assen.",
+          "**Laad de accu binnen op.** Opladen na elke ronde houdt de accu klaar voor gebruik, en binnen opladen voorkomt het probleem van laden in de kou in voor- en najaar. Bij de Pro-S gaan accu en aandrijfunit los, zodat je ze mee naar binnen kunt nemen.",
+          "**Houd de afstandsbediening opgeladen** of neem reservebatterijen mee als hij vervangbare batterijen gebruikt.",
+        ],
+      },
+      { type: "callout", text: "Seizoen voorbij? Volg onze [gids voor winteropslag](/blog/golf-trolley-lithium-battery-winter-storage) voordat de trolley de garage in gaat, en lees [Mag de accu van een elektrische golftrolley mee in het vliegtuig?](/blog/flying-with-golf-trolley-lithium-battery) als je een golfreis naar het zuiden plant." },
+      { type: "h2", text: "Nog aan het kiezen?" },
+      { type: "p", text: "Twijfel je tussen afstandsbediening en volg-mij, begin dan met [Afstandsbediening versus volg-mij-golfcaddies](/blog/remote-vs-follow-me-golf-caddy) en vergelijk daarna de modellen in onze [koopgids voor elektrische golftrolleys](/blog/best-electric-golf-push-carts-canada)." },
+    ],
+    faq: [
+      {
+        q: "Van hoe ver kan ik een golfcaddy met afstandsbediening besturen?",
+        a: "Dat hangt af van het model: tot 40 m bij de Volt Caddy Pro-S, 100 m of meer bij de Motocaddy M7 en 100 tot 200 m bij de afstandsbediende caddies van MGI. Houd de trolley in zicht en dichterbij dan het maximale bereik.",
+      },
+      {
+        q: "Mag ik met een caddy met afstandsbediening over de green rijden?",
+        a: "Nee. Houd alle trolleys van greens, tees en bunkers af en volg de borden van de baan. Parkeer aan de kant van de green die het dichtst bij de volgende tee ligt.",
+      },
+      {
+        q: "Zijn caddies met afstandsbediening veilig op hellingen?",
+        a: "Ja, als je recht omhoog en omlaag rijdt, langzaam blijft en de snelheidsregeling bergaf en de parkeerrem gebruikt. Op een sterke dwarshelling of nat gras duw je de trolley aan het handvat.",
+      },
+      {
+        q: "Moet ik mijn caddy na elke ronde opladen?",
+        a: "Opladen na elke ronde houdt hem klaar voor de volgende. Laad binnen op kamertemperatuur op, en bewaar de accu voor langere opslag gedeeltelijk geladen.",
+      },
+    ],
+  },
+  "record-golf-round-with-camera-glasses": {
+    title: "Zo film je je golfronde met een camerabril (gids voor POV-golfvideo)",
+    metaTitle: "Golf filmen in POV met een camerabril",
+    description: "Film je golfronde vanuit je eigen ogen: instellingen van de camerabril, accu voor 18 holes, wat de Golfregels toestaan en etiquette op de baan.",
+    excerpt: "Een camerabril filmt de ronde zoals jij hem zag: de ligging, de lijn, de putt die viel. Zo stel je hem in, laat je de accu langer meegaan en blijf je binnen de regels.",
+    keywords: ["camerabril golf", "golfronde filmen pov", "golf vlog camera", "pov golfvideo", "camerabril voor golf", "bleequp rover golf"],
+    imageAlt: "BleeqUp Rover AI-sportcamerabril",
+    categoryLabel: "AI-brillen",
+    body: [
+      { type: "p", text: "De meeste golfvideo's worden gefilmd met een telefoon op een statief of door een vriend die van achteren filmt. Een camerabril legt iets anders vast: **de ronde vanuit je eigen ogen**. De ligging waar je naar keek, de lijn die je koos, de wandeling naar de green en de putt die viel. Ideaal voor een golfvlog, een reisverslag of gewoon om een mooie dag te onthouden." },
+      { type: "p", text: "Deze gids gebruikt de [BleeqUp Rover](/products/bleequp-rover-ai-sports-glasses) en [Ranger](/products/bleequp-ranger-zeiss-lens) als voorbeeld. Beide filmen in 3K tot 60 fps via een lens van 120° en zijn tegelijk UV400-zonnebrillen." },
+      { type: "h2", text: "Wat een camerabril wel en niet kan laten zien" },
+      { type: "p", text: "Stel eerst je verwachtingen bij. Een camerabril filmt **wat jij ziet**: bij het adresseren leg je de bal, de clubkop en het doel vast als je opkijkt. Je swing van buitenaf laat hij niet zien. Voor swinganalyse heb je nog steeds een telefoon op een statief nodig, van achteren of van voren. Zie de bril als de camera om te vertellen, en de telefoon als de camera om te trainen." },
+      { type: "h2", text: "De beste instellingen voor golf" },
+      {
+        type: "ul",
+        items: [
+          "**Kanteling (Rover):** de camera van de Rover kantelt naar −10°, 0° of 15°. Draag je een pet? Begin op −10° om de klep uit beeld te houden.",
+          "**Resolutie en framerate:** 3K30 is een goede standaard. Clips duren tot 5 minuten bij 3K30, tegenover 1 minuut bij 3K60 of 1080p60, en 1080p30 heeft geen cliplimiet. Let op: de standen met 60 fps en 3K hebben een ondersteunde telefoon nodig.",
+          "**Oriëntatie:** film in 9:16 als je clips voor Reels, TikTok of Shorts zijn, en in 16:9 voor YouTube.",
+          "**HDR (Rover):** realtime HDR helpt op zonnige dagen als je in de schaduw staat en naar een zonnige fairway kijkt.",
+        ],
+      },
+      { type: "h2", text: "De accu 18 holes laten meegaan" },
+      { type: "p", text: "Rover en Ranger filmen elk **ongeveer 1 uur video** op de ingebouwde accu, en een ronde van 18 holes duurt veel langer. Alles filmen is sowieso niet het doel; niemand wil vier uur wandelen bekijken. Film slagen, niet de ronde:" },
+      {
+        type: "ol",
+        items: [
+          "**Start de opname bij het klaarzetten en stop als de bal landt.** Een clip van 15 tot 30 seconden per slag legt de routine, het swingbeeld en de balvlucht vast.",
+          "**Gebruik spraakopdrachten op de Rover** om te starten en te stoppen zonder midden in je routine de bril aan te raken.",
+          "**Sla het lopen over.** Maak liever af en toe een mooie clip op de signature holes.",
+          "**Laad op voordat je afslaat.** Beide modellen laden in ongeveer een uur snel op.",
+        ],
+      },
+      { type: "p", text: "Op deze manier dekt de ingebouwde accu ruim veel slagen. Film je ook lange fietsritten, dan voegt de [Rover-bundel](/products/bleequp-rover-ai-sports-glasses-bundle) de Rover Power Plus toe, die de opnametijd verlengt tot ongeveer 5 uur. Die wordt achter op een fietshelm bevestigd en past dus beter bij fietsen dan bij golf." },
+      { type: "h2", text: "Van clips een samenvatting maken" },
+      { type: "p", text: "Het moeilijke aan golfvideo is monteren, niet filmen. De BleeqUp-app herkent hoogtepunten en maakt met één tik een montage, en op de Rover kun je clips met je stem doorzoeken om een bepaalde slag te vinden. De opslag is 64 GB op de Rover en 32 GB op de Ranger, en loop-opname kan blijven filmen door de oudste beelden te overschrijven, dus zet je favoriete clips na de ronde over." },
+      { type: "h2", text: "Wat de Golfregels toestaan" },
+      { type: "p", text: "In een vriendschappelijke ronde film je zoveel je wilt. In een wedstrijd geldt Regel 4.3 van de [Golfregels](https://www.randa.org/rog/the-rules-of-golf/rule-4):" },
+      {
+        type: "ul",
+        items: [
+          "**Toegestaan:** informatie uit je ronde vastleggen om **na** de ronde te gebruiken.",
+          "**Niet toegestaan:** tijdens de ronde video van de wedstrijd bekijken die helpt bij het kiezen van een club, het maken van een slag of beslissen hoe te spelen. Bekijk je swingclips niet tussen de holes.",
+          "**Audio:** luisteren naar muziek die niets met de wedstrijd te maken heeft mag, maar niet om afleiding weg te nemen of je swingtempo te bepalen. Gebruik je de open-ear speakers, houd het volume dan rustig.",
+        ],
+      },
+      { type: "p", text: "Commissies kunnen eigen voorwaarden toevoegen, dus controleer bij twijfel de wedstrijdvoorwaarden." },
+      { type: "h2", text: "Etiquette: andere golfers filmen" },
+      {
+        type: "ul",
+        items: [
+          "**Vertel je flight** op de eerste tee dat je filmt, en stop als iemand liever niet gefilmd wordt.",
+          "**Vraag het voordat je post** als clips gezichten of swings van anderen laten zien.",
+          "**Respecteer het clubbeleid.** Sommige privéclubs beperken camera's of telefoons; vraag het in de proshop.",
+          "**Houd het tempo erin.** Filmen mag geen tijd kosten. Start en stop de camera als onderdeel van je normale routine.",
+        ],
+      },
+      { type: "h2", text: "Kies de juiste lens voor de baan" },
+      { type: "p", text: "Omdat een camerabril ook je zonnebril is, doet de lens ertoe. Onze [gids over gepolariseerde en fotochromatische lenzen](/blog/polarized-vs-photochromic-sport-lenses) legt uit welke tint bij golf past. Twijfel je tussen modellen? Vergelijk [Rover en Ranger](/compare) of lees [Camerabrillen versus actiecamera's](/blog/camera-glasses-vs-action-camera) om te zien waar elk apparaat wint." },
+    ],
+    faq: [
+      {
+        q: "Kan een camerabril mijn golfswing filmen?",
+        a: "Hij filmt wat je op ooghoogte ziet: de bal en clubkop bij het adresseren en de balvlucht als je opkijkt. Voor je volledige swing van buitenaf gebruik je een telefoon op een statief.",
+      },
+      {
+        q: "Mag ik filmen tijdens een golfwedstrijd?",
+        a: "Volgens Regel 4.3 mag je informatie vastleggen om na de ronde te gebruiken, maar je mag tijdens de ronde geen video bekijken die helpt bij clubkeuze, slag of speelwijze. Controleer ook de wedstrijdvoorwaarden.",
+      },
+      {
+        q: "Houdt een camerabril een hele golfronde vol?",
+        a: "Niet als je onafgebroken filmt. Rover en Ranger filmen ongeveer 1 uur video per lading, dus film elke slag in plaats van de hele ronde.",
+      },
+      {
+        q: "Wat is de beste video-instelling voor golf-POV?",
+        a: "3K30 is een goede standaard: scherpe video met clips tot 5 minuten. Gebruik 9:16 voor sociale media en 16:9 voor YouTube.",
+      },
+    ],
+  },
+};

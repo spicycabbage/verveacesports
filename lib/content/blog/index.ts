@@ -8,6 +8,10 @@ import { bestSmartGlassesForCycling } from "./posts/best-smart-glasses-for-cycli
 import { walkingGolfElectricTrolleyBenefits } from "./posts/walking-golf-electric-trolley-benefits";
 import { prescriptionCameraGlasses } from "./posts/prescription-camera-glasses";
 import { golfTrolleyLithiumBatteryWinterStorage } from "./posts/golf-trolley-lithium-battery-winter-storage";
+import { flyingWithGolfTrolleyLithiumBattery } from "./posts/flying-with-golf-trolley-lithium-battery";
+import { howToUseRemoteControlGolfCaddy } from "./posts/how-to-use-remote-control-golf-caddy";
+import { polarizedVsPhotochromicSportLenses } from "./posts/polarized-vs-photochromic-sport-lenses";
+import { recordGolfRoundWithCameraGlasses } from "./posts/record-golf-round-with-camera-glasses";
 
 export type { BlogBlock, BlogPost } from "./types";
 export {
@@ -20,6 +24,10 @@ export {
 
 /** Newest first. */
 export const BLOG_POSTS: readonly BlogPost[] = [
+  recordGolfRoundWithCameraGlasses,
+  polarizedVsPhotochromicSportLenses,
+  howToUseRemoteControlGolfCaddy,
+  flyingWithGolfTrolleyLithiumBattery,
   golfTrolleyLithiumBatteryWinterStorage,
   prescriptionCameraGlasses,
   walkingGolfElectricTrolleyBenefits,
@@ -29,13 +37,33 @@ export const BLOG_POSTS: readonly BlogPost[] = [
   bestElectricGolfPushCartsCanada,
 ].sort((a, b) => b.publishedAt.localeCompare(a.publishedAt));
 
-export function getBlogPost(slug: string): BlogPost | null {
-  return BLOG_POSTS.find((p) => p.slug === slug) ?? null;
+/**
+ * Scheduled publishing: a post goes live at midnight Eastern (EST, UTC-5) on
+ * its `publishedAt` date. Every blog route reads request headers first, so this
+ * is checked per request and scheduled posts appear without a redeploy.
+ */
+export function blogPublishTime(date: string): number {
+  return Date.parse(`${date}T00:00:00-05:00`);
 }
 
-/** Up to `limit` other posts, same category first. */
+export function isBlogPostPublished(post: Pick<BlogPost, "publishedAt">, now: number = Date.now()): boolean {
+  return now >= blogPublishTime(post.publishedAt);
+}
+
+/** Live posts only, newest first. Use this, not BLOG_POSTS, for anything public. */
+export function publishedBlogPosts(now: number = Date.now()): BlogPost[] {
+  return BLOG_POSTS.filter((post) => isBlogPostPublished(post, now));
+}
+
+/** Null for unknown slugs and for posts scheduled in the future. */
+export function getBlogPost(slug: string): BlogPost | null {
+  const post = BLOG_POSTS.find((p) => p.slug === slug);
+  return post && isBlogPostPublished(post) ? post : null;
+}
+
+/** Up to `limit` other live posts, same category first. */
 export function relatedBlogPosts(post: BlogPost, limit = 3): BlogPost[] {
-  const others = BLOG_POSTS.filter((p) => p.slug !== post.slug);
+  const others = publishedBlogPosts().filter((p) => p.slug !== post.slug);
   return [
     ...others.filter((p) => p.category === post.category),
     ...others.filter((p) => p.category !== post.category),

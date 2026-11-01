@@ -82,11 +82,14 @@ export function HeaderCategoryNav({
   faqLabel,
   viewAllLabel,
   pickCartCategoryLabel,
+  blogLink,
 }: {
   categories: NavMegaCategory[];
   faqLabel: string;
   viewAllLabel: string;
   pickCartCategoryLabel: string;
+  /** Only set on storefronts that have a blog. */
+  blogLink?: { href: string; label: string };
 }) {
   const [openId, setOpenId] = useState<Category | null>(null);
   const [activeFeatureId, setActiveFeatureId] = useState<CartFeatureId | null>(
@@ -180,6 +183,14 @@ export function HeaderCategoryNav({
         >
           {faqLabel}
         </Link>
+        {blogLink ? (
+          <Link
+            href={blogLink.href}
+            className="text-base font-medium text-muted-foreground hover:text-foreground lg:text-lg"
+          >
+            {blogLink.label}
+          </Link>
+        ) : null}
       </nav>
 
       {showPanel && open ? (

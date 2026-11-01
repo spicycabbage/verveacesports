@@ -27,10 +27,13 @@ export function MobileNav({
   categories: categoriesProp,
   cartFeatures = [],
   isAdmin = false,
+  blogHref,
 }: {
   categories?: readonly Category[];
   cartFeatures?: NavCartFeature[];
   isAdmin?: boolean;
+  /** Only set on storefronts that have a blog. */
+  blogHref?: string;
 } = {}) {
   const site = useSite();
   const dict = useDictionary();
@@ -180,6 +183,15 @@ export function MobileNav({
             >
               {dict.nav.faq}
             </Link>
+            {blogHref ? (
+              <Link
+                href={blogHref}
+                onClick={close}
+                className="rounded-md px-3 py-2.5 text-sm font-medium hover:bg-accent"
+              >
+                {dict.footer.blog}
+              </Link>
+            ) : null}
             </>
             )}
           </nav>

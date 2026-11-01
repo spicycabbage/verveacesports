@@ -24,6 +24,7 @@ import { getDictionary } from "@/lib/i18n/dictionary";
 import { categoryLabelFromDict } from "@/lib/i18n/helpers";
 import { catalogProductName } from "@/lib/i18n/catalog-copy";
 import { getSite } from "@/lib/site/get-site";
+import { blogPath } from "@/lib/content/blog/paths";
 import type { Category } from "@/lib/constants";
 import { AnnouncementBar } from "./AnnouncementBar";
 import {
@@ -51,6 +52,8 @@ export async function Header() {
   const dict = getDictionary(locale);
 
   const isVolt = site.id === "volt-ca";
+  // The blog only exists on verveacesports.com (see requireVerveaceSite).
+  const blogHref = site.id === "verveace" ? blogPath(locale) : undefined;
   const nav = adminRoute || isVolt
     ? { byCategory: {}, electricCartProducts: [] }
     : await getCachedNavProducts(
@@ -125,6 +128,7 @@ export async function Header() {
           categories={site.categories}
           cartFeatures={cartFeatures}
           isAdmin={profile?.is_admin ?? false}
+          blogHref={blogHref}
         />
         <Logo className="shrink-0" />
         {isVolt ? (
@@ -135,6 +139,7 @@ export async function Header() {
             faqLabel={dict.nav.faq}
             viewAllLabel={dict.home.viewAll}
             pickCartCategoryLabel={dict.cartFeatures.pickCategory}
+            blogLink={blogHref ? { href: blogHref, label: dict.footer.blog } : undefined}
           />
         )}
         {isVolt ? null : (

@@ -22,7 +22,8 @@ import {
   blogPath,
   blogPostPath,
 } from "@/lib/content/blog/paths";
-import { blogLocalesFor } from "@/lib/content/blog/translations";
+import { blogLocalesForPost } from "@/lib/content/blog/translations";
+import { blogCategoryInfo, blogCategoryPath } from "@/lib/content/blog/categories";
 import { blogUi } from "@/lib/content/blog/ui";
 import { interpolate } from "@/lib/i18n/translate";
 import type { Locale } from "@/lib/i18n/locale";
@@ -31,17 +32,20 @@ import { listSitemapProducts, listStorefrontProductsBySlugs } from "@/lib/catalo
 import type { SiteConfig } from "@/lib/site/config";
 import { siteAbsoluteUrl, siteBaseUrl, siteLogoPath } from "@/lib/site/seo";
 
-function alternates(site: SiteConfig, locale: Locale, suffix: string) {
+/** hreflang only lists languages this post is actually translated into. */
+function alternates(site: SiteConfig, locale: Locale, slug: string) {
+  const suffix = `/${slug}`;
   return {
     canonical: blogPath(locale, suffix),
-    languages: blogHreflangLanguages(site, suffix, blogLocalesFor()),
+    languages: blogHreflangLanguages(site, suffix, blogLocalesForPost(slug)),
   };
 }
 
-function ogLocales(locale: Locale) {
-  return LOCALE_LIST.map((entry) => blogOgLocale(entry.code as Locale)).filter(
-    (code) => code !== blogOgLocale(locale),
-  );
+function ogLocales(locale: Locale, slug: string) {
+  const available = new Set<string>(blogLocalesForPost(slug));
+  return LOCALE_LIST.filter((entry) => available.has(entry.code))
+    .map((entry) => blogOgLocale(entry.code as Locale))
+    .filter((code) => code !== blogOgLocale(locale));
 }
 
 export function blogArticleMetadata(site: SiteConfig, locale: Locale, slug: string): Metadata {
@@ -56,7 +60,7 @@ export function blogArticleMetadata(site: SiteConfig, locale: Locale, slug: stri
     keywords: post.keywords,
     authors: [{ name: post.author.name, url: siteAbsoluteUrl(site, blogAuthorPath(post.author, locale)) }],
     alternates: {
-      ...alternates(site, locale, `/${post.slug}`),
+      ...alternates(site, locale, post.slug),
       types: {
         "application/rss+xml": [{ url: blogPath(locale, "/rss.xml"), title: `${site.name} ${ui.blog}` }],
       },
@@ -68,7 +72,7 @@ export function blogArticleMetadata(site: SiteConfig, locale: Locale, slug: stri
       url: path,
       siteName: site.name,
       locale: blogOgLocale(locale),
-      alternateLocale: ogLocales(locale),
+      alternateLocale: ogLocales(locale, post.slug),
       publishedTime: blogDateIso(post.publishedAt),
       modifiedTime: blogDateIso(modified),
       section: post.categoryLabel,
@@ -116,6 +120,7 @@ export async function BlogArticle({
   const modified = post.updatedAt ?? post.publishedAt;
   const organization = {
     "@type": "Organization",
+    "@id": `${base}/#organization`,
     name: site.name,
     url: base,
     logo: { "@type": "ImageObject", url: `${base}${siteLogoPath(site)}` },
@@ -140,14 +145,22 @@ export async function BlogArticle({
     timeRequired: `PT${minutes}M`,
     inLanguage: blogHrefLang(locale),
   };
+  const category = blogCategoryInfo(post.category);
+  const crumbs = [
+    { name: ui.home, item: base },
+    { name: ui.blog, item: siteAbsoluteUrl(site, blogPath(locale)) },
+    { name: post.categoryLabel, item: siteAbsoluteUrl(site, blogCategoryPath(category.slug, locale)) },
+    { name: post.title, item: url },
+  ];
   const breadcrumbJsonLd = {
     "@context": "https://schema.org",
     "@type": "BreadcrumbList",
-    itemListElement: [
-      { "@type": "ListItem", position: 1, name: ui.home, item: base },
-      { "@type": "ListItem", position: 2, name: ui.blog, item: siteAbsoluteUrl(site, blogPath(locale)) },
-      { "@type": "ListItem", position: 3, name: post.title, item: url },
-    ],
+    itemListElement: crumbs.map((crumb, index) => ({
+      "@type": "ListItem",
+      position: index + 1,
+      name: crumb.name,
+      item: crumb.item,
+    })),
   };
   const faqJsonLd = {
     "@context": "https://schema.org",
@@ -175,6 +188,10 @@ export async function BlogArticle({
           {ui.blog}
         </Link>
         {" / "}
+        <Link href={blogCategoryPath(category.slug, locale)} className="hover:text-foreground">
+          {post.categoryLabel}
+        </Link>
+        {" / "}
         <span aria-current="page" className="line-clamp-1 inline">
           {post.title}
         </span>
@@ -182,7 +199,12 @@ export async function BlogArticle({
 
       <article className="mt-6">
         <header className="mx-auto max-w-3xl">
-          <p className="text-xs font-medium uppercase tracking-wide text-primary">{post.categoryLabel}</p>
+          <Link
+            href={blogCategoryPath(category.slug, locale)}
+            className="text-xs font-medium uppercase tracking-wide text-primary hover:underline"
+          >
+            {post.categoryLabel}
+          </Link>
           <h1 className="mt-2 text-3xl font-bold leading-tight tracking-tight sm:text-4xl">{post.title}</h1>
           <p className="mt-4 text-lg leading-relaxed text-muted-foreground">{post.excerpt}</p>
           <p className="mt-4 flex flex-wrap gap-x-2 text-sm text-muted-foreground">
