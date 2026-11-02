@@ -20,6 +20,7 @@ import { AdminOrderAlerts } from "@/components/admin/AdminOrderAlerts";
 import { AdminLiveChatAlerts } from "@/components/admin/AdminLiveChatAlerts";
 import { PageViewBeacon } from "@/components/analytics/PageViewBeacon";
 import { sitePwaChrome } from "@/lib/site/pwa";
+import { generateHreflangLinks } from "@/lib/site/hreflang";
 import {
   merchantReturnPolicyJsonLd,
   siteBaseUrl,
@@ -62,6 +63,13 @@ export async function generateMetadata(): Promise<Metadata> {
   const description = siteDescription(dict, site.id);
   const base = siteBaseUrl(site);
   const title = `${site.name} — ${tagline}`;
+  const hreflangLinks = generateHreflangLinks(site);
+  const alternates: Metadata["alternates"] = {};
+  if (hreflangLinks.length > 0) {
+    alternates.languages = Object.fromEntries(
+      hreflangLinks.map((link) => [link.hreflang, link.href]),
+    );
+  }
   return {
     metadataBase: new URL(base),
     title: {
@@ -70,6 +78,7 @@ export async function generateMetadata(): Promise<Metadata> {
     },
     description,
     applicationName: site.name,
+    alternates,
     manifest: "/manifest.webmanifest",
     appleWebApp: {
       capable: true,
