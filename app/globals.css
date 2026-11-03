@@ -150,12 +150,20 @@
   }
 }
 
-html.pos-native [data-admin-nav] {
-  display: none;
-}
 html.pos-native [data-admin-shell] {
-  display: block;
+  display: flex;
+  flex-direction: column;
   max-width: none;
+  gap: 0.75rem;
   padding: 0.75rem;
   padding-top: max(0.75rem, env(safe-area-inset-top));
+}
+html.pos-native [data-admin-nav] {
+  display: block;
+}
+html.pos-native [data-admin-nav] nav {
+  flex-direction: row;
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
 }

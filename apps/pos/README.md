@@ -1,6 +1,6 @@
 # Verveace POS (Android Tap to Pay)
 
-Native wrapper around `/admin/pos`. Collects Visa / Mastercard contactless (and wallets) on the phone. Interac chip+PIN stays on the hardware reader.
+Native wrapper around admin (starts on `/admin/pos`). Same admin nav as the site — Orders, Chat, POS, etc. Collects Visa / Mastercard contactless (and wallets) on the phone. Interac chip+PIN stays on the hardware reader.
 
 Expo Go will not work. iPhone is skipped until there is an Apple Developer account.
 
