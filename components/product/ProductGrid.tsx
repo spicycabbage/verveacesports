@@ -17,6 +17,7 @@ function toCardData(p: ProductWithDefaultVariant): ProductCardData {
     defaultVariantId: p.defaultVariantId,
     defaultVariantLabel: p.defaultVariantLabel,
     defaultPriceCad: p.defaultPriceCad,
+    defaultCompareAtCad: p.defaultCompareAtCad,
     translations: p.translations,
   };
 }

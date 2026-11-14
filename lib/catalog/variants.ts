@@ -14,13 +14,16 @@ export async function attachDefaultVariantIds<T extends { id: string }>(
     defaultVariantLabel: string;
     defaultPriceUsd: number;
     defaultPriceCad: number;
+    defaultCompareAtCad: number | null;
   })[]
 > {
   if (products.length === 0) return [];
   const ids = products.map((p) => p.id);
   const { data } = await client
     .from("product_variants")
-    .select("id, product_id, title, option1, option2, option3, price_usd, price_cad")
+    .select(
+      "id, product_id, sku, title, option1, option2, option3, price_usd, price_cad, compare_at_cad",
+    )
     .in("product_id", ids)
     .eq("is_active", true)
     .order("position", { ascending: true });
@@ -28,12 +31,14 @@ export async function attachDefaultVariantIds<T extends { id: string }>(
   type VariantPick = {
     id: string;
     product_id: string;
+    sku: string | null;
     title: string;
     option1: string | null;
     option2: string | null;
     option3: string | null;
     price_usd: number | string;
     price_cad: number | string;
+    compare_at_cad: number | string | null;
   };
   const rows = (data ?? []) as VariantPick[];
   const byProduct = new Map<string, VariantPick>();
@@ -51,6 +56,7 @@ export async function attachDefaultVariantIds<T extends { id: string }>(
       defaultVariantLabel: parts.length > 0 ? parts.join(" / ") : (v?.title ?? "Default"),
       defaultPriceUsd: prices.priceUsd,
       defaultPriceCad: prices.priceCad,
+      defaultCompareAtCad: saleCompareAt(v?.compare_at_cad, prices.priceCad),
     };
   });
 }
@@ -66,7 +72,7 @@ export async function loadStorefrontVariants(
     client
       .from("product_variants")
       .select(
-        "id, option1, option2, option3, title, price_usd, price_cad, is_active, position, image_url",
+        "id, sku, option1, option2, option3, title, price_usd, price_cad, compare_at_cad, is_active, position, image_url",
       )
       .eq("product_id", productId)
       .eq("is_active", true)
@@ -89,19 +95,33 @@ export async function loadStorefrontVariants(
   const avail = new Map((levels ?? []).map((l) => [l.variant_id, Number(l.available)]));
   const missingInventory = (levels ?? []).length === 0;
 
-  return variants.map((v) => ({
-    id: v.id,
-    option1: v.option1,
-    option2: v.option2,
-    option3: v.option3,
-    title: v.title,
-    ...normalizeVariantPrices(v),
-    imageUrl: v.image_url ?? null,
-    available:
-      missingInventory && variants.length === 1 && fallbackStock !== undefined
-        ? fallbackStock
-        : (avail.get(v.id) ?? 0),
-  }));
+  return variants.map((v) => {
+    const prices = normalizeVariantPrices(v);
+    return {
+      id: v.id,
+      option1: v.option1,
+      option2: v.option2,
+      option3: v.option3,
+      title: v.title,
+      ...prices,
+      compareAtCad: saleCompareAt(v.compare_at_cad, prices.priceCad),
+      imageUrl: v.image_url ?? null,
+      available:
+        missingInventory && variants.length === 1 && fallbackStock !== undefined
+          ? fallbackStock
+          : (avail.get(v.id) ?? 0),
+    };
+  });
+}
+
+function saleCompareAt(
+  compare: number | string | null | undefined,
+  priceCad: number,
+): number | null {
+  if (compare == null || compare === "") return null;
+  const amount = Number(compare);
+  if (!Number.isFinite(amount) || amount <= priceCad) return null;
+  return amount;
 }
 
 export type ProductWithDefaultVariant = Product & {
@@ -109,4 +129,5 @@ export type ProductWithDefaultVariant = Product & {
   defaultVariantLabel: string;
   defaultPriceUsd: number;
   defaultPriceCad: number;
+  defaultCompareAtCad: number | null;
 };

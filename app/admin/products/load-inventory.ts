@@ -1,5 +1,6 @@
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { getDefaultLocation } from "@/lib/catalog/default-location";
+import { rangerVariantPriceCad } from "@/lib/catalog/ranger-sale";
 
 export type AdminVariant = {
   id: string;
@@ -88,6 +89,7 @@ export async function loadAdminProductInventory(): Promise<AdminInventoryPayload
       variant.inventory_levels?.find((l) => l.location_id === location?.id) ??
       variant.inventory_levels?.[0];
     const list = variantsByProduct.get(variant.product_id) ?? [];
+    const priceCad = rangerVariantPriceCad(variant.sku, Number(variant.price_cad));
     list.push({
       id: variant.id,
       title: variant.title,
@@ -95,8 +97,8 @@ export async function loadAdminProductInventory(): Promise<AdminInventoryPayload
       option1: variant.option1,
       option2: variant.option2,
       option3: variant.option3,
-      priceUsd: Number(variant.price_usd),
-      priceCad: Number(variant.price_cad),
+      priceCad,
+      priceUsd: priceCad,
       isActive: variant.is_active,
       onHand: Number(match?.on_hand ?? 0),
       reserved: Number(match?.reserved ?? 0),

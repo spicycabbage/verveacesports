@@ -1,4 +1,5 @@
 import type { Currency } from "@/lib/constants";
+import { rangerVariantPriceCad } from "@/lib/catalog/ranger-sale";
 
 /** Storefront and checkout prices always come from `product_variants`. */
 export type VariantPrices = {
@@ -9,10 +10,13 @@ export type VariantPrices = {
 export function normalizeVariantPrices(row: {
   price_usd: number | string;
   price_cad: number | string;
+  sku?: string | null;
 }): VariantPrices {
+  const storedCad = Number(row.price_cad);
+  const priceCad = rangerVariantPriceCad(row.sku, storedCad);
   return {
-    priceUsd: Number(row.price_usd),
-    priceCad: Number(row.price_cad),
+    priceUsd: priceCad === storedCad ? Number(row.price_usd) : priceCad,
+    priceCad,
   };
 }
 

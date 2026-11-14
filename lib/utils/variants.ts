@@ -13,6 +13,7 @@ export type StorefrontVariant = {
   title: string;
   priceUsd: number;
   priceCad: number;
+  compareAtCad: number | null;
   available: number;
   imageUrl: string | null;
 };

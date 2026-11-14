@@ -112,6 +112,7 @@ export function ProductBuyBox({
       <div className="flex flex-wrap items-center gap-2 sm:gap-3">
         <ProductPrice
           price={priceCad}
+          compareAt={selected?.compareAtCad}
           className="text-xl font-bold tabular-nums sm:text-2xl"
         />
         {stock === 0 ? (

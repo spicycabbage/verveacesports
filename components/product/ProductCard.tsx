@@ -23,6 +23,7 @@ export type ProductCardData = Pick<
   | "defaultVariantId"
   | "defaultVariantLabel"
   | "defaultPriceCad"
+  | "defaultCompareAtCad"
   | "translations"
 >;
 
@@ -80,6 +81,7 @@ export function ProductCard({
           <div className="mt-auto flex items-center justify-between gap-2 pt-2">
             <ProductPrice
               price={product.defaultPriceCad}
+              compareAt={product.defaultCompareAtCad}
               className="text-base font-bold tabular-nums"
             />
             <AddToCartButton

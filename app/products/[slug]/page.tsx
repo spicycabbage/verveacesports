@@ -4,6 +4,7 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { ProductDetailPanel } from "@/components/product/ProductDetailPanel";
 import { ProductReviews } from "@/components/product/ProductReviews";
 import { ProductGrid } from "@/components/product/ProductGrid";
+import { rangerProductPriceCad } from "@/lib/catalog/ranger-sale";
 import { loadStorefrontVariants } from "@/lib/catalog/variants";
 import { descriptionFaq, descriptionPlainText } from "@/lib/catalog/description";
 import { parseProductOptions } from "@/lib/catalog/product-options";
@@ -125,14 +126,17 @@ export default async function ProductDetailPage({ params }: { params: Params }) 
       "@type": "Offer",
       url: productUrl,
       priceCurrency: "CAD",
-      price: Number(product.price_cad),
+      price: rangerProductPriceCad(product.slug, Number(product.price_cad)),
       availability:
         Number(product.stock) > 0
           ? "https://schema.org/InStock"
           : "https://schema.org/OutOfStock",
       seller: { "@type": "Organization", name: site.name },
       hasMerchantReturnPolicy: merchantReturnPolicyJsonLd(site),
-      shippingDetails: offerShippingDetailsJsonLd(site, Number(product.price_cad)),
+      shippingDetails: offerShippingDetailsJsonLd(
+        site,
+        rangerProductPriceCad(product.slug, Number(product.price_cad)),
+      ),
     },
     ...(summary.count > 0
       ? {
